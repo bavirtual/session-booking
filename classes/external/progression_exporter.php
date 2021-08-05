@@ -34,7 +34,7 @@ use moodle_url;
 /**
  * Class for displaying the week view.
  *
- * @package   core_calendar
+ * @package   local_booking
  * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -56,24 +56,19 @@ class progression_exporter extends exporter {
     const DB_ENROL = 'enrol';
 
     /**
-     * @var int $courseid An id of the course context objects.
-     */
-    protected $courseid;
-
-    /**
      * @var int $categoyid An id of the category context objects.
      */
     protected $categoyid;
 
     /**
-     * @var int $activestudents An array of active users objects.
+     * @var array $exercisenames An array of excersice ids and names for the course.
      */
-    protected $activestudents = [];
+    protected $exercisenames = [];
 
     /**
-     * @var int $exerciscount A count of excersizes for the course.
+     * @var array $activestudents An array of active users objects.
      */
-    protected $exerciscount;
+    protected $activestudents = [];
 
     /**
      * @var moodle_url $url The URL for the events page.
@@ -83,26 +78,16 @@ class progression_exporter extends exporter {
     /**
      * Constructor.
      *
-     * @param \calendar_information $calendar The calendar information for the period being displayed
-     * @param mixed $timesessions An array of week_day_exporter objects.
+     * @param mixed $data An array of student progress data.
      * @param array $related Related objects.
      */
-    public function __construct($data, $categoryid, $type) {
-
-        $this->courseid = $courseid;
-        $this->categoryid = $categoryid;
+    public function __construct($data, $related) {
 
         $this->url = new moodle_url('/local/booking/view.php', [
                 'time' => time(),
             ]);
 
-        $related['type'] = $type;
-
-        $data = [
-            'url' => $this->url->out(false),
-            'courseid' => $courseid,
-            'cateogryid' => $categoryid,
-        ];
+        $data = ['url' => $this->url->out(false)];
 
         parent::__construct($data, $related);
     }
@@ -148,14 +133,24 @@ class progression_exporter extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
+        $this->exercisenames = $this->get_exercisenames();
         $return = [
-            'courseid' => $this->courseid,
-            'categoryid' => $this->categoryid,
-            'exercisenames' => $this->get_exercisenames(),
+            'exercises' => $this->exercisenames,
             'activestudents' => $this->get_activestudents($output),
         ];
 
         return $return;
+    }
+
+    /**
+     * Returns a list of objects that are related.
+     *
+     * @return array
+     */
+    protected static function define_related() {
+        return array(
+            'context' => 'context',
+        );
     }
 
     /**
@@ -169,10 +164,10 @@ class progression_exporter extends exporter {
         global $DB;
 
         $names = [];
-        $exercises = $DB->get_records('mdl_assign', array('course'=>$this->courseid));
-        $this->exerciscount = count($exercises);
+        $exercises = $DB->get_records('mdl_assign', array('course'=>$this->data->courseid));
 
         foreach ($exercises as $exercisename) {
+            $names['id'] = $exercisename->id;
             $names['shortname'] = $exercisename->name;
         }
 
@@ -204,8 +199,8 @@ class progression_exporter extends exporter {
             $i++;
             $data = [];
             $data[] = [
-                'courseid' => $this->courseid,
-                'exercisecount' => $this->exerciscount,
+                'courseid' => $this->data->courseid,
+                'exercises' => $this->exercises,
                 'studentid' => $student->userid,
                 'studentname' => $student->fullname,
                 'sequence' => $i,
@@ -214,16 +209,5 @@ class progression_exporter extends exporter {
         }
 
         return $activestudents;
-    }
-
-    /**
-     * Returns a list of objects that are related.
-     *
-     * @return array
-     */
-    protected static function define_related() {
-        return array(
-            'context' => 'context',
-        );
     }
 }
