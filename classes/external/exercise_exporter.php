@@ -17,7 +17,7 @@
 /**
  * Contains event class for displaying the day on month view.
  *
- * @package   core_calendar
+ * @package   local_booking
  * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
 
 use renderer_base;
 use core\external\exporter;
-use moodle_url;
 
 /**
  * Class for displaying the day on month view.
@@ -42,16 +41,11 @@ class exercise_exporter extends exporter {
     /**
      * Constructor.
      *
-     * @param \calendar_information $calendar The calendar information for the period being displayed
-     * @param mixed $data Either an stdClass or an array of values.
+     * @param mixed $data An array of exercise data.
      * @param array $related Related objects.
      */
-    public function __construct(\calendar_information $calendar, $data, $related) {
-        parent::__construct($calendar, $data, $related);
-        // Fix the url for today to be based on the today timestamp
-        // rather than the calendar_information time set in the parent
-        // constructor.
-        $this->url->param('time', $this->data[0]);
+    public function __construct($data, $related) {
+        parent::__construct($data, $related);
     }
 
     /**
@@ -60,20 +54,16 @@ class exercise_exporter extends exporter {
      * @return array
      */
     protected static function define_properties() {
-        $return = parent::define_properties();
-        $return = array_merge($return, [
-            // These are additional params.
-            'istoday' => [
-                'type' => PARAM_BOOL,
-                'default' => false,
+        return [
+            'sessionstatus' => [
+                'type' => PARAM_RAW,
+                'default' => '',
             ],
-            'isweekend' => [
-                'type' => PARAM_BOOL,
-                'default' => false,
+            'sessiondate' => [
+                'type' => PARAM_RAW,
+                'default' => '',
             ],
-        ]);
-
-        return $return;
+        ];
     }
     /**
      * Return the list of additional properties.
@@ -81,34 +71,23 @@ class exercise_exporter extends exporter {
      * @return array
      */
     protected static function define_other_properties() {
-        $return = parent::define_other_properties();
-        $return = array_merge($return, [
+        return [
             'popovertitle' => [
                 'type' => PARAM_RAW,
                 'default' => '',
             ],
-            'daytitle' => [
-                'type' => PARAM_RAW,
+            'graded' => [
+                'type' => PARAM_BOOL,
             ],
-            'slotavailable' => [
+            'booked' => [
                 'type' => PARAM_BOOL,
                 'default' => false,
             ],
-            'slotmarked' => [
+            'tentative' => [
                 'type' => PARAM_BOOL,
                 'default' => false,
             ],
-            'slotstatus' => [
-                'type' => PARAM_RAW,
-                'default' => '',
-            ],
-            'slotstatustooltip' => [
-                'type' => PARAM_RAW,
-                'default' => '',
-            ],
-        ]);
-
-        return $return;
+        ];
     }
 
     /**
@@ -118,19 +97,13 @@ class exercise_exporter extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
-        $return = parent::get_other_values($output);
 
-        if ($popovertitle = $this->get_popover_title()) {
-            $return['popovertitle'] = $popovertitle;
-        }
-
-        $return['daytitle'] = $this->get_day_title();
-        $return['slotavailable'] = $this->data['available'];
-        $return['slotmarked'] = $this->data['marked'];
-        $return['slotstatus'] = !empty($this->data['bookedstatus']) ?  $this->data['bookedstatus'] : 'selected';
-            $return['slotstatustooltip'] = !empty($this->data['bookedstatus']) ?  $this->data['bookedstatus'] : '';
-
-        return $return;
+        return [
+            'popovertitle'  => $this->get_popover_title(),
+            'graded'        => $this->data['graded'],
+            'booked'        => $this->get_booking(),
+            'tentative'     => $this->get_booking(),
+        ];
     }
 
     /**
@@ -139,11 +112,19 @@ class exercise_exporter extends exporter {
      * @return array
      */
     protected static function define_related() {
-        return [
-            'events' => '\core_calendar\local\event\entities\event_interface[]',
-            'cache' => '\core_calendar\external\events_related_objects_cache',
-            'type' => '\core_calendar\type_base',
-        ];
+        return array(
+            'context' => 'context',
+        );
+    }
+
+    /**
+     * Get the title for this popover.
+     *
+     * @return string
+     */
+    protected function get_booking() {
+
+        return true;
     }
 
     /**
@@ -154,35 +135,9 @@ class exercise_exporter extends exporter {
     protected function get_popover_title() {
         $title = null;
 
-        $userdate = userdate($this->data[0], get_string('strftimedayshort'));
-        if (count($this->related['events'])) {
-            $title = get_string('eventsfor', 'calendar', $userdate);
-        } else if ($this->data['istoday']) {
-            $title = $userdate;
-        }
-
-        if ($this->data['istoday']) {
-            $title = get_string('todayplustitle', 'calendar', $userdate);
-        }
-
-        return $title;
-    }
-
-    /**
-     * Get the title for this day.
-     *
-     * @return string
-     */
-    protected function get_day_title(): string {
-        $userdate = userdate($this->data[0], get_string('strftimedayshort'));
-
-        $numevents = count($this->related['events']);
-        if ($numevents == 1) {
-            $title = get_string('dayeventsone', 'calendar', $userdate);
-        } else if ($numevents) {
-            $title = get_string('dayeventsmany', 'calendar', ['num' => $numevents, 'day' => $userdate]);
-        } else {
-            $title = get_string('dayeventsnone', 'calendar', $userdate);
+        if ($this->data->instructorname !== '') {
+            $title = $this->data->booked ? get_string('sessionbookedby', 'local_booking') :
+                get_string('sessiongradededby', 'local_booking') . ' ' . $this->data->instructorfullname;
         }
 
         return $title;

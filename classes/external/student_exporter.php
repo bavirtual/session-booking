@@ -41,44 +41,27 @@ use moodle_url;
 class student_exporter extends exporter {
 
     /**
-     * @var int $course id A course id to be rendered.
+     * Process user enrollments table name.
      */
-    protected $courseid;
+    const DB_GRADES = 'grade_grades';
 
     /**
-     * @var int $student id A user id to be rendered.
+     * Process user enrollments table name.
      */
-    protected $studentid;
+    const DB_GRADE_ITEMS = 'grade_items';
 
     /**
-     * @var int $student name A user fullname to be rendered.
+     * Process user  table name.
      */
-    protected $studentname;
-
-    /**
-     * @var int $sequence id A sequence number for each student to be rendered.
-     */
-    protected $sequence;
-
-    /**
-     * @var array $actions An array for the action.
-     */
-    protected $actions = [];
+    const DB_USER = 'user';
 
     /**
      * Constructor.
      *
-     * @param \calendar_information $calendar The calendar information for the period being displayed
-     * @param mixed $data Either an stdClass or an array of values.
+     * @param mixed $data An array of student data.
      * @param array $related Related objects.
      */
     public function __construct($data, $related) {
-        $this->courseid     = $data->courseid;
-        $this->exerciscount = $data->exerciscount;
-        $this->studentid    = $data->studentid;
-        $this->studentname  = $data->studentname;
-        $this->sequence     = $data->sequence;
-
         parent::__construct($data, $related);
     }
 
@@ -109,7 +92,7 @@ class student_exporter extends exporter {
     protected static function define_other_properties() {
         return [
             'exercises' => [
-                'type' => student_exporter::read_properties_definition(),
+                'type' => exercise_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
             'actionbuttonname' => [
@@ -128,64 +111,16 @@ class student_exporter extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
+        $exercises = $this->get_exercises($output);
         $action = $this->get_action();
 
         $return = [
-            'exercises' => $this->get_exercises($output),
+            'exercises' => $exercises,
             'actionbuttonname' => $action->name,
             'actionbuttonurl' => $action->url,
         ];
 
         return $return;
-    }
-
-    /**
-     * Get the list of days
-     * of the week.
-     *
-     * @return  $days[]
-     */
-    protected function get_exercises($output) {
-        $exercises = [];
-
-        for ($i = 0; $i < $this->exerciscount; $i++) {
-            // get week day exporter based on a timestamp that matches the time slot for each day of the week
-            $slotdaydata = $type->timestamp_to_date_array(gmmktime($this->hour, 0, 0, $daydata['mon'], $daydata['mday'], $daydata['year']));
-            $slotdaydata['istoday'] = $this->is_today($daydata);
-            $slotdaydata['isweekend'] = $this->is_weekend($daydata);
-            $slotdaydata['available'] = !$this->is_slot_unavailable($daydata);
-            $slotdaydata['marked'] = $this->is_marked($slotdaydata);
-            $slotdaydata['bookedstatus'] = $this->get_status($slotdaydata);
-
-            $exercise = new exercise_exporter($this->calendar, $slotdaydata, [
-                'events' => $events,
-                'cache' => $this->related['cache'],
-                'type' => $this->related['type'],
-            ]);
-
-            $exercises[] = $exercise->export($output);
-        }
-
-        return $exercises;
-
-    }
-
-    /**
-     * Checks if the slot date is out
-     * of week lookahead bounds
-     *
-     * @return  {Object}
-     */
-    protected function get_action() {
-        $actionname = get_string('grade', 'grades');
-        $actionurl = new moodle_url('/mod/assign/view.php', [
-            'id' => time(),
-            'rownum' => 0,
-            'action' => 'grader',
-            'userid' => $this->studentid,
-        ]);
-
-        return ['name' => $actionname, 'url' => $actionurl];
     }
 
     /**
@@ -197,5 +132,85 @@ class student_exporter extends exporter {
         return array(
             'context' => 'context',
         );
+    }
+
+    /**
+     * Get the list of days
+     * of the week.
+     *
+     * @return  $exercises[]
+     */
+    protected function get_exercises($output) {
+        $type = \core_calendar\type_factory::get_calendar_instance();
+
+        $studentgrades = $this->get_studentgrades();
+
+        $data = [];
+        $exercises = [];
+        foreach ($this->data->exercisenames as $exercise) {
+            $graded = false;
+            // Find out if this exercise has been graded
+            if (array_search($this->exerciseid, array_column($studentgrades, 'exerciseid'))) {
+                $graded = true;
+                $data[] = [
+                    'grade'             => $studentgrades[0]->finalgrade,
+                    'instructorfullname'=> $studentgrades[0]->instructorfullname,
+                    'gradedate'         => $type->timestamp_to_date_array($studentgrades[0]->timemodified),
+                ];
+            }
+
+            $data[] = [
+                'graded'            => $graded,
+                'courseid'          => $this->courseid,
+                'studentid'         => $this->$data->studentid,
+                'exercises'         => $this->data->exercisenames,
+                'exerciseid'        => $exercise->id,
+            ];
+
+            $exercisesession = new exercise_exporter($data, $this->related);
+            $exercises[] = $exercisesession->export($output);
+            }
+
+        return $exercises;
+    }
+
+    /**
+     * Retrieves the action object containing
+     * actino name and url
+     *
+     * @return {Object}
+     */
+    protected function get_action() {
+        $actionname = get_string('grade', 'grades');
+        $actionurl = new moodle_url('/mod/assign/view.php', [
+            'id' => time(),
+            'rownum' => 0,
+            'action' => 'grader',
+            'userid' => $this->data->studentid,
+        ]);
+
+        return ['name' => $actionname, 'url' => $actionurl];
+    }
+
+    /**
+     * Checks if the slot date is out
+     * of week lookahead bounds
+     *
+     * @return {Object}[]
+     */
+    protected function get_studentgrades() {
+        global $DB;
+
+        // Get the student's grades
+        $sql = 'SELECT gi.iteminstance AS exerciseid, gr.finalgrade, ' . $DB->sql_concat('us.firstname', 'us.lastname') .
+                    ' AS instructorfullname, gr.timemodified
+                FROM {' . self::DB_GRADES . '} gr
+                INNER JOIN {' . self::DB_GRADE_ITEMS . '} gi on gr.itemid = gi.id
+                INNER JOIN {' . self::DB_USER . '} us on gr.usermodified = us.id
+                WHERE gi.courseid = ' . $this->data->courseid . ', gr.userid = ' . $this->data->studentid;
+
+        $grades = $DB->get_records_sql($sql);
+
+        return $grades;
     }
 }
