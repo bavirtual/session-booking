@@ -1,0 +1,41 @@
+.exercise {
+    background-color: white;
+}
+
+.exercise-graded {
+    background-color: cornflowerblue;
+}
+
+.exercise-booked {
+    background-color: green;
+}
+
+.exercise-tentative {
+    background-color: coral;
+}
+
+.exercise-button {
+    width: 75px;
+    color: white;
+    font-size: smaller;
+    font-weight: bold;
+    padding: 2px 5px;
+    margin: 10px 0px 0px 0px;
+    border-radius: 5px;
+    border-width: 0px;
+    outline: 0;
+    float: right;
+    box-shadow: 0px 2px 2px lightgray;
+    transition: ease background-color 250ms;
+}
+
+.exercise-button-blue {
+    background-color: #1565c0;
+    transition: ease background-color 250ms;
+    cursor: pointer;
+}
+
+.exercise-button-blue:hover {
+    background-color: #0d47a1;
+    cursor: pointer;
+}

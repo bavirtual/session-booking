@@ -1,0 +1,103 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local/booking/calendar_week
+
+    Calendar week view for blocks.
+
+    The purpose of this template is to render the main, detailed weekly view.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Example context (json):
+    {
+    }
+}}
+
+<div{{!
+    }} class="bookingwrapper"{{!
+    }}{{#courseid}} data-courseid="{{courseid}}"{{/courseid}}{{!
+    }}{{#categoryid}} data-categoryid="{{categoryid}}"{{/categoryid}}{{!
+    }} data-context-id="{{defaulteventcontext}}"{{!
+    }}>
+    {{> core/overlay_loading}}
+    <table id="progression-detail-{{uniqid}}" data-region="student-progression" class="generaltable mb-0">
+        <thead>
+            <tr>
+                <th class="header text-xs-center" style="width: 100px;">
+                    <br><span class="media-body small" aria-hidden="true">#</span></br>
+                </th>
+                <th class="header text-xs-center" style="width: 100px;">
+                    <br><span class="media-body zulutime" aria-hidden="true">{{#str}}students,local_booking{{/str}}</span></br>
+                </th>
+                <th class="header text-xs-center" style="width: 100px;">
+                    <br><span class="media-body" aria-hidden="true">{{#str}}sessionaction,local_booking{{/str}}</span></br>
+                </th>
+                {{#exercisesnames}}
+                <th class="header text-xs-center" data-region="lesson-exercises">
+                    <br><span class="card small" aria-hidden="true">{{exercisenames.shortname}}</span></br>
+                </th>
+                {{/exercisesnames}}
+            </tr>
+        </thead>
+        <tbody>
+        {{#activestudents}}
+            <tr data-region="student">
+                <td class="day text-sm-center text-md-left}}"
+                    style="height: 2em;">
+                    <span class="media-body small" aria-hidden="true">{{sequence}}</span>
+                </td>
+                <td class="day text-sm-center text-md-left}}"
+                    style="height: 2em;">
+                    <span aria-hidden="true">{{studentname}}</span>
+                </td>
+                <td class="day text-sm-center text-md-left}}">
+                    <div class="singlebutton">
+                        <a href="{{actionbuttonurl}}">
+                        <button class="exercise-button exercise-button-blue"
+                            data-region="action-button"
+                            id="action_button"{{uniqid}}
+                            title="">
+                            <i class="fa fa-location-arrow" style="padding-right: 5px;"></i>
+                            {{actionbuttonname}}
+                        </button>
+                         </a>
+                    </div>
+                </td>
+            {{#exercises}}
+                <td id="exercise-{{uniqid}}" class="session text-sm-center text-md-left{{!
+                        }}{{#graded}} exercise-graded{{/graded}}{{!
+                        }}{{#booked}} exercise-booked{{/booked}}{{!
+                        }}{{#tentative}} exercise-tentative{{/tentative}}{{!
+                    }}"
+                    data-exercise-status="{{sessionstatus}}"
+                    data-region="exercises">
+                    <div class="d-md-block text-xs-center">
+                        <span class="media-body small fa-inverse">{{exercisedate}}</span>
+                    </div>
+                </td>
+            {{/exercises}}
+            </tr>
+        {{/activestudents}}
+        </tbody>
+    </table>
+</div>
+
