@@ -28,6 +28,9 @@ defined('MOODLE_INTERNAL') || die();
 
 use renderer_base;
 use core\external\exporter;
+use local_booking\local\session\entities\session;
+use local_booking\local\session\entities\grade;
+use local_booking\local\session\entities\booking;
 
 /**
  * Class for displaying the day on month view.
@@ -36,7 +39,12 @@ use core\external\exporter;
  * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class exercise_exporter extends exporter {
+class session_exporter extends exporter {
+
+    /**
+     * @var /strClass $session An object containing session info.
+     */
+    protected $session;
 
     /**
      * Constructor.
@@ -45,6 +53,37 @@ class exercise_exporter extends exporter {
      * @param array $related Related objects.
      */
     public function __construct($data, $related) {
+        $type = \core_calendar\type_factory::get_calendar_instance();
+
+// $data['grades'][1]->instructorid,
+        $grade = null;
+        if (count($data['grades']) > 0) {
+            if (array_search($data['exerciseid'], array_column($data['grades'], 'exerciseid')) !== false) {
+                $grade = new grade(
+                        $data['exerciseid'],
+                        $data['grades'][1]->instructorid,
+                        $data['grades'][1]->instructorname,
+                        $data['studentid'],
+                        $data['studentname'],
+                        $type->timestamp_to_date_array($data['grades'][1]->timemodified),
+                        $data['grades'][1]->finalgrade);
+            }
+        }
+
+        $booking = null;
+
+        $sessionstatus = $grade !== null ? 'graded' : ($booking !== null ? $booking->get_status() : '');
+        $timestamp = $grade !== null ? $grade->get_gradedate()[0] : ($booking !== null ? $booking->get_bookingdate()[0] : time());
+        $sessiondate = new \DateTime('@' . $timestamp);
+
+        $this->session = new session($grade, $booking, $sessionstatus, $sessiondate);
+        $sessionempty = $this->session->empty();
+
+        $data = [
+            'sessionstatus' => $sessionstatus,
+            'sessiondate'   => $sessiondate->format('d/m/y'),
+            'sessionempty'  => $sessionempty,
+        ];
         parent::__construct($data, $related);
     }
 
@@ -62,6 +101,10 @@ class exercise_exporter extends exporter {
             'sessiondate' => [
                 'type' => PARAM_RAW,
                 'default' => '',
+            ],
+            'sessionempty' => [
+                'type' => PARAM_BOOL,
+                'default' => true,
             ],
         ];
     }
@@ -98,12 +141,14 @@ class exercise_exporter extends exporter {
      */
     protected function get_other_values(renderer_base $output) {
 
-        return [
+        $return = [
             'popovertitle'  => $this->get_popover_title(),
-            'graded'        => $this->data['graded'],
-            'booked'        => $this->get_booking(),
-            'tentative'     => $this->get_booking(),
+            'graded'        => $this->session->hasgrade(),
+            'booked'        => $this->session->hasbooking() && $this->session->booking->confirmed(),
+            'tentative'     => $this->session->hasbooking() && !$this->session->booking->confirmed(),
         ];
+
+        return $return;
     }
 
     /**
@@ -122,22 +167,15 @@ class exercise_exporter extends exporter {
      *
      * @return string
      */
-    protected function get_booking() {
-
-        return true;
-    }
-
-    /**
-     * Get the title for this popover.
-     *
-     * @return string
-     */
     protected function get_popover_title() {
         $title = null;
 
-        if ($this->data->instructorname !== '') {
-            $title = $this->data->booked ? get_string('sessionbookedby', 'local_booking') :
-                get_string('sessiongradededby', 'local_booking') . ' ' . $this->data->instructorfullname;
+        if (!$this->session->empty()) {
+            if ($this->session->hasgrade()) {
+                $title = get_string('sessiongradeddby', 'local_booking') . ' ' . $this->session->get_grade()->get_gradername();
+            } else if ($this->session->hasbooking()) {
+                $title = get_string('sessionbookedby', 'local_booking') . ' ' . $this->session->get_booking()->get_instructorname();
+            }
         }
 
         return $title;

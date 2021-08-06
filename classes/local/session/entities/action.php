@@ -25,62 +25,45 @@
 
 namespace local_booking\local\session\entities;
 
+use moodle_url;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Interface for a course exercise session class.
+ * Class representing an course exercise session action.
  *
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-interface session_interface {
-    /**
-     * Get the grade for this session.
-     *
-     * @return grade
-     */
-    public function get_grade();
+class action implements action_interface {
 
     /**
-     * Get the booking for this session.
-     *
-     * @return booking
+     * @var string $type The name of this action.
      */
-    public function get_booking();
+    protected $type;
 
     /**
-     * Get the status for this session.
-     *
-     * @return status
+     * @var url $url The name of this action.
      */
-    public function get_status();
+    protected $url;
 
     /**
-     * Get the date of this session.
+     * Constructor.
      *
-     * @return array
+     * @param event_interface  $event  The event to delegate to.
+     * @param action_interface $action The action associated with this event.
      */
-    public function get_sessiondate();
+    public function __construct(string $actiontype, moodle_url $actionurl) {
+        $this->name = $actiontype;
+        $this->url = $actionurl;
+    }
 
-    /**
-     * Get whether this session has a grade.
-     *
-     * @return bool
-     */
-    public function hasgrade();
+    public function get_type() {
+        return $this->type;
+    }
 
-    /**
-     * Get whether this session has a booking.
-     *
-     * @return bool
-     */
-    public function hasbooking();
+    public function get_url() {
+        return $this->url;
+    }
 
-    /**
-     * Get whether this session has not been graded or booked
-     *  (i.e. future session).
-     *
-     * @return bool
-     */
-    public function empty();
 }

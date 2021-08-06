@@ -26,6 +26,7 @@ namespace local_booking\external;
 
 defined('MOODLE_INTERNAL') || die();
 
+use local_booking\external\exercise_name_exporter;
 use local_booking\external\student_exporter;
 use core\external\exporter;
 use renderer_base;
@@ -56,9 +57,9 @@ class progression_exporter extends exporter {
     const DB_ENROL = 'enrol';
 
     /**
-     * @var int $categoyid An id of the category context objects.
+     * Process user enrollments table name.
      */
-    protected $categoyid;
+    const DB_ASSIGN = 'assign';
 
     /**
      * @var array $exercisenames An array of excersice ids and names for the course.
@@ -87,7 +88,7 @@ class progression_exporter extends exporter {
                 'time' => time(),
             ]);
 
-        $data = ['url' => $this->url->out(false)];
+        $data['url'] = $this->url->out(false);
 
         parent::__construct($data, $related);
     }
@@ -116,7 +117,7 @@ class progression_exporter extends exporter {
     protected static function define_other_properties() {
         return [
             'exercisenames' => [
-                'type' => PARAM_RAW,
+                'type' => exercise_name_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
             'activestudents' => [
@@ -133,9 +134,9 @@ class progression_exporter extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
-        $this->exercisenames = $this->get_exercisenames();
+
         $return = [
-            'exercises' => $this->exercisenames,
+            'exercisenames' => $this->get_exercise_names($output),
             'activestudents' => $this->get_activestudents($output),
         ];
 
@@ -150,28 +151,8 @@ class progression_exporter extends exporter {
     protected static function define_related() {
         return array(
             'context' => 'context',
+            'exercises' => 'stdClass[]?',
         );
-    }
-
-    /**
-     * Get the list of day names for display, re-ordered from the first day
-     * of the week.
-     *
-     * @param   renderer_base $output
-     * @return  day_name_exporter[]
-     */
-    protected function get_exercisenames() {
-        global $DB;
-
-        $names = [];
-        $exercises = $DB->get_records('mdl_assign', array('course'=>$this->data->courseid));
-
-        foreach ($exercises as $exercisename) {
-            $names['id'] = $exercisename->id;
-            $names['shortname'] = $exercisename->name;
-        }
-
-        return $names;
     }
 
     /**
@@ -186,28 +167,51 @@ class progression_exporter extends exporter {
 
         $activestudents = [];
 
-        $sql = 'SELECT us.id AS userid, ' . $DB->sql_concat('us.firstname', 'us.lastname') . ' AS fullname
-                FROM {' . self::DB_ENROL . '} en
-                INNER JOIN {' . self::DB_USER_ENROL . '} ue on en.id = ue.enrolid
-                INNER JOIN {' . self::DB_USER . '} us on ue.enrolid = us.id
-                ORDER BY enrolid ASC';
+        $sql = 'SELECT us.id AS userid, ' . $DB->sql_concat('us.firstname', '" "', 'us.lastname') . ' AS fullname
+                FROM {' . self::DB_USER . '} us
+                INNER JOIN {' . self::DB_USER_ENROL . '} ue on us.id = ue.userid
+                INNER JOIN {' . self::DB_ENROL . '} en on ue.enrolid = en.id
+                WHERE en.courseid = ' . $this->data['courseid'] . '
+                ORDER BY ue.enrolid ASC';
 
-        $students = $DB->get_records_sql($sql);
+                $students = $DB->get_records_sql($sql);
 
         $i = 0;
         foreach ($students as $student) {
             $i++;
             $data = [];
-            $data[] = [
-                'courseid' => $this->data->courseid,
-                'exercises' => $this->exercises,
+            $data = [
                 'studentid' => $student->userid,
                 'studentname' => $student->fullname,
                 'sequence' => $i,
             ];
-            $activestudents[] = (new student_exporter($data, $this->related))->export($output);
+            $student = new student_exporter($data, $this->data['courseid'], [
+                'context' => \context_system::instance(),
+                'courseexercises' => $this->exercisenames,
+            ]);
+            $activestudents[] = $student->export($output);
         }
 
         return $activestudents;
+    }
+
+    protected function get_exercise_names($output) {
+        global $DB;
+
+        $this->exercisenames = $DB->get_records(self::DB_ASSIGN, array('course'=>$this->data['courseid']));
+
+        $exerciseslabels = [];
+
+        foreach($this->exercisenames as $name) {
+            $data = [
+                'shortname' => substr($name->name, 0, 8),
+                'fullname' => $name->name,
+            ];
+
+            $exercisename = new exercise_name_exporter($data);
+            $exerciseslabels[] = $exercisename->export($output);
+        }
+
+        return $exerciseslabels;
     }
 }

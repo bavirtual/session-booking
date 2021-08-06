@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Student Availability Plugin
+ * Session Booking Plugin
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)

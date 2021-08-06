@@ -28,59 +28,23 @@ namespace local_booking\local\session\entities;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Interface for a course exercise session class.
+ * Interface for a action class.
  *
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-interface session_interface {
+interface action_interface {
     /**
-     * Get the grade for this session.
+     * Get the name of the action.
      *
-     * @return grade
+     * @return string
      */
-    public function get_grade();
+    public function get_type();
 
     /**
-     * Get the booking for this session.
+     * Get the URL of the action.
      *
-     * @return booking
+     * @return \moodle_url
      */
-    public function get_booking();
-
-    /**
-     * Get the status for this session.
-     *
-     * @return status
-     */
-    public function get_status();
-
-    /**
-     * Get the date of this session.
-     *
-     * @return array
-     */
-    public function get_sessiondate();
-
-    /**
-     * Get whether this session has a grade.
-     *
-     * @return bool
-     */
-    public function hasgrade();
-
-    /**
-     * Get whether this session has a booking.
-     *
-     * @return bool
-     */
-    public function hasbooking();
-
-    /**
-     * Get whether this session has not been graded or booked
-     *  (i.e. future session).
-     *
-     * @return bool
-     */
-    public function empty();
+    public function get_url();
 }

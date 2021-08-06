@@ -26,7 +26,8 @@ namespace local_booking\external;
 
 defined('MOODLE_INTERNAL') || die();
 
-use local_booking\external\exercise_exporter;
+use local_booking\external\session_exporter;
+use local_booking\local\session\entities\action;
 use core\external\exporter;
 use renderer_base;
 use moodle_url;
@@ -56,12 +57,23 @@ class student_exporter extends exporter {
     const DB_USER = 'user';
 
     /**
+     * @var int $studentid An id of the student.
+     */
+    protected $courseid;
+
+    /**
+     * @var int $studentid An id of the student.
+     */
+    protected $studentid;
+
+    /**
      * Constructor.
      *
      * @param mixed $data An array of student data.
      * @param array $related Related objects.
      */
-    public function __construct($data, $related) {
+    public function __construct($data, $courseid, $related) {
+        $this->courseid = $courseid;
         parent::__construct($data, $related);
     }
 
@@ -72,7 +84,7 @@ class student_exporter extends exporter {
      */
     protected static function define_properties() {
         return [
-            'studentuserid' => [
+            'studentid' => [
                 'type' => PARAM_INT,
             ],
             'studentname' => [
@@ -91,16 +103,13 @@ class student_exporter extends exporter {
      */
     protected static function define_other_properties() {
         return [
-            'exercises' => [
-                'type' => exercise_exporter::read_properties_definition(),
+            'sessions' => [
+                'type' => session_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
-            'actionbuttonname' => [
+            'action' => [
                 'type' => PARAM_RAW,
                 ],
-            'actionbuttonurl' => [
-                'type' => PARAM_URL,
-            ],
         ];
     }
 
@@ -111,13 +120,11 @@ class student_exporter extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
-        $exercises = $this->get_exercises($output);
-        $action = $this->get_action();
+        $submissions = $this->get_exercises($output);
 
         $return = [
-            'exercises' => $exercises,
-            'actionbuttonname' => $action->name,
-            'actionbuttonurl' => $action->url,
+            'sessions' => $submissions,
+            'action' => $this->get_action(),
         ];
 
         return $return;
@@ -130,7 +137,8 @@ class student_exporter extends exporter {
      */
     protected static function define_related() {
         return array(
-            'context' => 'context',
+            'context'=>'context',
+            'courseexercises'=>'stdClass[]?',
         );
     }
 
@@ -138,58 +146,28 @@ class student_exporter extends exporter {
      * Get the list of days
      * of the week.
      *
-     * @return  $exercises[]
+     * @return  $submissions[]
      */
     protected function get_exercises($output) {
-        $type = \core_calendar\type_factory::get_calendar_instance();
 
         $studentgrades = $this->get_studentgrades();
+        $courseexercises = $this->related['courseexercises'];
 
-        $data = [];
-        $exercises = [];
-        foreach ($this->data->exercisenames as $exercise) {
-            $graded = false;
-            // Find out if this exercise has been graded
-            if (array_search($this->exerciseid, array_column($studentgrades, 'exerciseid'))) {
-                $graded = true;
-                $data[] = [
-                    'grade'             => $studentgrades[0]->finalgrade,
-                    'instructorfullname'=> $studentgrades[0]->instructorfullname,
-                    'gradedate'         => $type->timestamp_to_date_array($studentgrades[0]->timemodified),
-                ];
-            }
-
-            $data[] = [
-                'graded'            => $graded,
-                'courseid'          => $this->courseid,
-                'studentid'         => $this->$data->studentid,
-                'exercises'         => $this->data->exercisenames,
-                'exerciseid'        => $exercise->id,
+        foreach ($courseexercises as $exercise) {
+            $studentinfo = [];
+            $studentinfo = [
+                'studentid'   => $this->data['studentid'],
+                'studentname' => $this->data['studentname'],
+                'courseid'    => $this->courseid,
+                'exerciseid'  => $exercise->id,
+                'grades'      => $studentgrades,
+                'bookings'    => null,
             ];
+            $exercisesession = new session_exporter($studentinfo, $this->related);
+            $sessions[] = $exercisesession->export($output);
+        }
 
-            $exercisesession = new exercise_exporter($data, $this->related);
-            $exercises[] = $exercisesession->export($output);
-            }
-
-        return $exercises;
-    }
-
-    /**
-     * Retrieves the action object containing
-     * actino name and url
-     *
-     * @return {Object}
-     */
-    protected function get_action() {
-        $actionname = get_string('grade', 'grades');
-        $actionurl = new moodle_url('/mod/assign/view.php', [
-            'id' => time(),
-            'rownum' => 0,
-            'action' => 'grader',
-            'userid' => $this->data->studentid,
-        ]);
-
-        return ['name' => $actionname, 'url' => $actionurl];
+        return $sessions;
     }
 
     /**
@@ -202,15 +180,31 @@ class student_exporter extends exporter {
         global $DB;
 
         // Get the student's grades
-        $sql = 'SELECT gi.iteminstance AS exerciseid, gr.finalgrade, ' . $DB->sql_concat('us.firstname', 'us.lastname') .
-                    ' AS instructorfullname, gr.timemodified
+        $sql = 'SELECT gi.iteminstance AS exerciseid, gr.finalgrade, us.id as instructorid,
+                ' . $DB->sql_concat('us.firstname', '" "','us.lastname') . ' AS instructorname, gr.timemodified
                 FROM {' . self::DB_GRADES . '} gr
                 INNER JOIN {' . self::DB_GRADE_ITEMS . '} gi on gr.itemid = gi.id
                 INNER JOIN {' . self::DB_USER . '} us on gr.usermodified = us.id
-                WHERE gi.courseid = ' . $this->data->courseid . ', gr.userid = ' . $this->data->studentid;
+                WHERE gi.courseid = ' . $this->courseid . ' AND gr.userid = ' . $this->data['studentid'];
 
-        $grades = $DB->get_records_sql($sql);
+        return $DB->get_records_sql($sql);
+    }
 
-        return $grades;
+    /**
+     * Retrieves the action object containing
+     * actino name and url
+     *
+     * @return {Object}
+     */
+    protected function get_action() {
+        $actiotype = get_string('grade', 'grades');
+        $actionurl = new moodle_url('/mod/assign/view.php', [
+            'id' => time(),
+            'rownum' => 0,
+            'action' => 'grader',
+            'userid' => $this->data['studentid'],
+        ]);
+        $action = new action($actiotype, $actionurl);
+        return (array) $action;
     }
 }

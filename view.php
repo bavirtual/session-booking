@@ -13,15 +13,14 @@
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
 require_once($CFG->dirroot . '/course/lib.php');
-require_once($CFG->dirroot . '/calendar/lib.php');
 
 global $USER, $DB;
 
 use html_writer;
 
 // // Set up the page.
-$categoryid = optional_param('category', null, PARAM_INT);
-$courseid = optional_param('course', SITEID, PARAM_INT);
+$categoryid = optional_param('categoryid', null, PARAM_INT);
+$courseid = optional_param('courseid', SITEID, PARAM_INT);
 $course = get_course($courseid);
 $pluginname = $course->shortname . ' ' . get_string('pluginname', 'local_booking');
 $title = get_string('title', 'local_booking');
@@ -56,20 +55,20 @@ require_login($course, false);
 
 $url->param('courseid', $courseid);
 
-$PAGE->navbar->add(userdate($time, get_string('progression','local_booking')));
-$PAGE->set_pagelayout('base');  // otherwise use 'standard' layout
+$PAGE->navbar->add(userdate(time(), get_string('strftimedate')));
+$PAGE->set_pagelayout('standard');  // otherwise use 'standard' layout
 $PAGE->set_title($pluginname, 'local_booking');
 $PAGE->set_heading($pluginname, 'local_booking');// . ' course id='  . $courseid);
 $PAGE->add_body_class('path-local-booking');
 
-$template = 'local_booking/session_booking';
-$renderer = $PAGE->get_renderer('loca_booking');
+$template = 'local_booking/progress_detailed';
+$renderer = $PAGE->get_renderer('local_booking');
 
 echo $OUTPUT->header();
 echo $renderer->start_layout();
 echo html_writer::start_tag('div', array('class'=>'heightcontainer'));
 
-list($data, $template) = get_progression_view();
+list($data, $template) = get_progression_view($courseid, $categoryid);
 echo $renderer->render_from_template($template, $data);
 
 // list($data, $template) = get_bookings_view($calendar);

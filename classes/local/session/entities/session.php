@@ -15,10 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Calendar session class.
+ * Session Booking Plugin
  *
- * @package    core_calendar
- * @copyright  2017 Cameron Ball <cameron@cameron1729.xyz>
+ * @package    local_booking
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,124 +28,78 @@ namespace local_booking\local\session\entities;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Class representing a calendar session.
+ * Class representing a course exercise session.
  *
- * @copyright 2017 Cameron Ball <cameron@cameron1729.xyz>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class session implements session_interface {
-    /**
-     * @var int $id The session's id in the database.
-     */
-    protected $id;
 
     /**
-     * @var int $userid The session's userid in the database.
+     * @var grade $graded The session grade object.
      */
-    protected $userid;
+    protected $grade;
 
     /**
-     * @var int $courseid The session's courseid in the database.
+     * @var booking $booking The session booking object.
      */
-    protected $courseid;
+    protected $booking;
 
     /**
-     * @var int $starttime The session's start time in the database.
+     * @var string $status The session status.
      */
-    protected $starttime;
+    protected $status;
 
     /**
-     * @var int $endtime The session's end time in the database.
+     * @var array $sessiondate The date of this session.
      */
-    protected $endtime;
+    protected $sessiondate;
 
-    /**
-     * @var string $bookingstatus The booking status of this session.
-     */
-    protected $bookingstatus;
-
-    /**
-     * @var int $year The session's year in the database.
-     */
-    protected $year;
-
-    /**
-     * @var int $week The session's week in the database.
-     */
-    protected $week;
-
-    /**
-     * @var int $instructorid The session's booking instructor id in the database.
-     */
-    protected $instructorid;
     /**
      * Constructor.
      *
-     * @param int                        $id             The session's ID in the database.
-     * @param int                        $userid         The session's user id in the database.
-     * @param int                        $courseid       The session's course id in the database.
-     * @param int                        $starttime      The session's start time in the database.
-     * @param int                        $endtime        The session's end time in the database.
-     * @param string                     $bookingstatus  The session's booking status in the database.
-     * @param int                        $year           The session's year in the database.
-     * @param int                        $week           The session's week in the database.
-     * @param int                        $instructorid   The session's booking instructor user id in the database.
+     * @param grade             $grade          The session grade object.
+     * @param booking           $booking        The session booking object.
+     * @param string            $status         The session status.
+     * @param array             $sessiondate    The date of this session.
      */
     public function __construct(
-        $id = 0,
-        $userid = 0,
-        $courseid,
-        $starttime,
-        $endtime,
-        $year,
-        $week,
-        $bookingstatus = null,
-        $instructorid = 0
+        $grade = null,
+        $booking = null,
+        $status = '',
+        $sessiondate = []
     ) {
-        $this->id = $id;
-        $this->userid = $userid;
-        $this->courseid = $courseid;
-        $this->starttime = $starttime;
-        $this->endtime = $endtime;
-        $this->year = $year;
-        $this->week = $week;
-        $this->bookingstatus = $bookingstatus;
-        $this->instructorid = $instructorid;
+        $this->grade = $grade;
+        $this->booking = $booking;
+        $this->status = $status;
+        $this->sessiondate = $sessiondate;
     }
 
-    public function get_id() {
-        return $this->id;
+    public function get_grade() {
+        return $this->grade;
     }
 
-    public function get_userid() {
-        return $this->userid;
+    public function get_booking() {
+        return $this->booking;
     }
 
-    public function get_courseid() {
-        return $this->courseid;
+    public function get_status() {
+        return $this->status;
     }
 
-    public function get_starttime() {
-        return $this->starttime;
+    public function get_sessiondate() {
+        return $this->sessiondate;
     }
 
-    public function get_endtime() {
-        return $this->endtime;
+    public function hasgrade() {
+        return $this->grade !== null;
     }
 
-    public function get_year() {
-        return $this->year;
+    public function hasbooking() {
+        return $this->booking !== null;
     }
 
-    public function get_week() {
-        return $this->week;
-    }
-
-    public function get_bookingstatus() {
-        return $this->bookingstatus;
-    }
-
-    public function get_instructorid() {
-        return $this->instructorid;
+    public function empty() {
+        return !($this->hasbooking() || $this->hasgrade());
     }
 }

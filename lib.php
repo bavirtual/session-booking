@@ -23,14 +23,10 @@ use \local_booking\external\progression_exporter;
  * @param   int     $lookahead Overwrites site and users's lookahead setting.
  * @return  array[array, string]
  */
-function get_progression_view() {
+function get_progression_view($courseid, $categoryid) {
     global $PAGE;
 
     $renderer = $PAGE->get_renderer('local_booking');
-
-    $type = \core_calendar\type_factory::get_calendar_instance();
-    $courseid = (isset($args['courseid']) && $args['courseid'] != SITEID) ? clean_param($args['courseid'], PARAM_INT) : null;
-    $categoryid = isset($args['categoryid']) ? clean_param($args['categoryid'], PARAM_INT) : null;
 
     $template = 'local_booking/progress_detailed';
     $data = [
@@ -38,7 +34,7 @@ function get_progression_view() {
         'categoryid' => $categoryid,
     ];
 
-    $progression = new progression_exporter($data, ['context' => 'context']);
+    $progression = new progression_exporter($data, ['context' => \context_system::instance()]);
     $data = $progression->export($renderer);
 
     return [$data, $template];
@@ -156,7 +152,7 @@ function local_booking_extend_navigation(global_navigation $navigation) {
         $node = $navigation->find('booking', navigation_node::NODETYPE_LEAF);
         if (!$node && $COURSE->id!==SITEID) {
             $parent = $navigation->find($COURSE->id, navigation_node::TYPE_COURSE);
-            $node = navigation_node::create(get_string('booking', 'local_booking'), new moodle_url('/local/booking/view.php', array('course'=>$COURSE->id)));
+            $node = navigation_node::create(get_string('booking', 'local_booking'), new moodle_url('/local/booking/view.php', array('courseid'=>$COURSE->id)));
             $node->key = 'booking';
             $node->type = navigation_node::NODETYPE_LEAF;
             $node->forceopen = true;

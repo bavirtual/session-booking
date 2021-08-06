@@ -28,59 +28,17 @@ namespace local_booking\local\session\entities;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Interface for a course exercise session class.
+ * Interface for an event factory class.
  *
- * @copyright  BAVirtual.co.uk © 2021
+ * @copyright  2017 Cameron Ball <cameron@cameron1729.xyz>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-interface session_interface {
+interface session_factory_interface {
     /**
-     * Get the grade for this session.
+     * Creates an array of an object.
      *
-     * @return grade
+     * @param \stdClass $dbrow The event row from the database.
+     * @return \core_calendar\local\event\entities\event_interface
      */
-    public function get_grade();
-
-    /**
-     * Get the booking for this session.
-     *
-     * @return booking
-     */
-    public function get_booking();
-
-    /**
-     * Get the status for this session.
-     *
-     * @return status
-     */
-    public function get_status();
-
-    /**
-     * Get the date of this session.
-     *
-     * @return array
-     */
-    public function get_sessiondate();
-
-    /**
-     * Get whether this session has a grade.
-     *
-     * @return bool
-     */
-    public function hasgrade();
-
-    /**
-     * Get whether this session has a booking.
-     *
-     * @return bool
-     */
-    public function hasbooking();
-
-    /**
-     * Get whether this session has not been graded or booked
-     *  (i.e. future session).
-     *
-     * @return bool
-     */
-    public function empty();
+    public function create_instance(\stdClass $dbrow);
 }
