@@ -39,50 +39,48 @@
     }} data-context-id="{{defaulteventcontext}}"{{!
     }}>
     {{> core/overlay_loading}}
-    <table id="progression-detail-{{uniqid}}" data-region="student-progression" class="generaltable mb-0">
+    <table id="progression-detail-{{uniqid}}" data-region="student-progression" class="table-hover table-bordered">
         <thead>
             <tr>
-                <th class="header text-xs-center" style="width: 100px;">
-                    <br><span class="media-body small" aria-hidden="true">#</span></br>
+                <th class="header text-xs-center" style="width: 2%;">
+                    <span class="media-body" aria-hidden="true">#</span>
                 </th>
                 <th class="header text-xs-center" style="width: 100px;">
-                    <br><span class="media-body zulutime" aria-hidden="true">{{#str}}students,local_booking{{/str}}</span></br>
+                    <span class="media-body" aria-hidden="true">{{#str}}students,local_booking{{/str}}</span>
                 </th>
                 <th class="header text-xs-center" style="width: 100px;">
-                    <br><span class="media-body" aria-hidden="true">{{#str}}sessionaction,local_booking{{/str}}</span></br>
+                    <span class="media-body" aria-hidden="true">{{#str}}sessionaction,local_booking{{/str}}</span>
                 </th>
-                {{#exercisesnames}}
-                <th class="header text-xs-center" data-region="lesson-exercises">
-                    <br><span class="card small" aria-hidden="true">{{exercisenames.shortname}}</span></br>
+                {{#exercisenames}}
+                <th class="header text-xs-center" data-region="lesson-exercise">
+                    <span class="media-body small" aria-hidden="true">{{shortname}}</span>
                 </th>
-                {{/exercisesnames}}
+                {{/exercisenames}}
             </tr>
         </thead>
         <tbody>
         {{#activestudents}}
             <tr data-region="student">
-                <td class="day text-sm-center text-md-left}}"
-                    style="height: 2em;">
+                <td class="text-sm-center text-md-left">
                     <span class="media-body small" aria-hidden="true">{{sequence}}</span>
                 </td>
-                <td class="day text-sm-center text-md-left}}"
-                    style="height: 2em;">
-                    <span aria-hidden="true">{{studentname}}</span>
+                <td class="day text-sm-center text-md-left">
+                    <span class="media-body small" aria-hidden="true">{{studentname}}</span>
                 </td>
-                <td class="day text-sm-center text-md-left}}">
+                <td class="day text-sm-center text-md-left">
                     <div class="singlebutton">
-                        <a href="{{actionbuttonurl}}">
+                        <a href="{{action.url}}">
                         <button class="exercise-button exercise-button-blue"
                             data-region="action-button"
                             id="action_button"{{uniqid}}
                             title="">
                             <i class="fa fa-location-arrow" style="padding-right: 5px;"></i>
-                            {{actionbuttonname}}
+                            {{action.type}}
                         </button>
                          </a>
                     </div>
                 </td>
-            {{#exercises}}
+            {{#sessions}}
                 <td id="exercise-{{uniqid}}" class="session text-sm-center text-md-left{{!
                         }}{{#graded}} exercise-graded{{/graded}}{{!
                         }}{{#booked}} exercise-booked{{/booked}}{{!
@@ -94,7 +92,7 @@
                         <span class="media-body small fa-inverse">{{sessiondate}}</span>
                     </div>
                 </td>
-            {{/exercises}}
+            {{/sessions}}
             </tr>
         {{/activestudents}}
         </tbody>
