@@ -26,21 +26,25 @@ defined('MOODLE_INTERNAL') || die();
 
 $capabilities = array(
 
-    'local/booking:addinstance' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
-            'seniorinstructor' => CAP_ALLOW
-        ),
-    ),
-
     'local/booking:view' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => array(
             'instructor' => CAP_ALLOW,
             'seniorinstructor' => CAP_ALLOW,
-            'flighttrainingmanager' => CAP_ALLOW
+            'flighttrainingmanager' => CAP_ALLOW,
+            'betauser' => CAP_ALLOW,
+        )
+    ),
+
+    'local/booking:book' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'instructor' => CAP_ALLOW,
+            'seniorinstructor' => CAP_ALLOW,
+            'flighttrainingmanager' => CAP_ALLOW,
+            'betauser' => CAP_ALLOW,
         )
     ),
 );

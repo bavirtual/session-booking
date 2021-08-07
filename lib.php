@@ -145,9 +145,9 @@ function get_progression_view($courseid, $categoryid) {
 function local_booking_extend_navigation(global_navigation $navigation) {
     global $COURSE;
 
-    $systemcontext = context_system::instance();
+    $systemcontext = context_course::instance($COURSE->id);
 
-    if (has_capability('local/booking:addinstance', $systemcontext)) {
+    if (has_capability('local/booking:view', $systemcontext)) {
     // $node = $navigation->find('booking', navigation_node::TYPE_CUSTOM);
         $node = $navigation->find('booking', navigation_node::NODETYPE_LEAF);
         if (!$node && $COURSE->id!==SITEID) {

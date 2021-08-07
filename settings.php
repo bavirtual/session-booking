@@ -25,39 +25,39 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-if ($hassiteconfig) {
-    $ADMIN->add('localplugins', new admin_category('local_booking_settings', new lang_string('pluginname', 'local_booking')));
-    $settingspage = new admin_settingpage('managelocalbooking', new lang_string('pluginname', 'local_booking'));
+// if ($hassiteconfig) {
+//     $ADMIN->add('localplugins', new admin_category('local_booking_settings', new lang_string('pluginname', 'local_booking')));
+//     $settingspage = new admin_settingpage('managelocalbooking', new lang_string('pluginname', 'local_booking'));
 
-    if ($ADMIN->fulltree) {
-        // hours in the day 24-hour format
-        $options = array();
-        for ($i = 0; $i <= 23; $i++) {
-            $options[] = substr('00'. $i, -2).':00';
-        }
-        // first allowable session time
-        $settingspage->add(new admin_setting_configselect('local_booking/firstsession',
-            new lang_string('firstsession', 'local_booking'), new lang_string('firstsessiondesc', 'local_booking'),
-            8, $options)
-        );
-        // last allowable session time
-        $settingspage->add(new admin_setting_configselect('local_booking/lastsession',
-            new lang_string('lastsession', 'local_booking'), new lang_string('lastsessiondesc', 'local_booking'),
-            23, $options)
-        );
+//     if ($ADMIN->fulltree) {
+//         // hours in the day 24-hour format
+//         $options = array();
+//         for ($i = 0; $i <= 23; $i++) {
+//             $options[] = substr('00'. $i, -2).':00';
+//         }
+//         // first allowable session time
+//         $settingspage->add(new admin_setting_configselect('local_booking/firstsession',
+//             new lang_string('firstsession', 'local_booking'), new lang_string('firstsessiondesc', 'local_booking'),
+//             8, $options)
+//         );
+//         // last allowable session time
+//         $settingspage->add(new admin_setting_configselect('local_booking/lastsession',
+//             new lang_string('lastsession', 'local_booking'), new lang_string('lastsessiondesc', 'local_booking'),
+//             23, $options)
+//         );
 
-        // booking recording weeks ahead
-        $settingspage->add(new admin_setting_configtext('local_booking/weeksahead',
-            new lang_string('weeksahead', 'local_booking'), new lang_string('weeksaheaddesc', 'local_booking'),
-            3, PARAM_INT)
-        );
+//         // booking recording weeks ahead
+//         $settingspage->add(new admin_setting_configtext('local_booking/weeksahead',
+//             new lang_string('weeksahead', 'local_booking'), new lang_string('weeksaheaddesc', 'local_booking'),
+//             3, PARAM_INT)
+//         );
 
-        // show local time next to Zulu time
-        $settingspage->add(new admin_setting_configcheckbox('local_booking/showlocaltime',
-            new lang_string('showlocaltime', 'local_booking'), new lang_string('showlocaltimedesc', 'local_booking'),
-            1)
-        );
-    }
+//         // show local time next to Zulu time
+//         $settingspage->add(new admin_setting_configcheckbox('local_booking/showlocaltime',
+//             new lang_string('showlocaltime', 'local_booking'), new lang_string('showlocaltimedesc', 'local_booking'),
+//             1)
+//         );
+//     }
 
-    $ADMIN->add('localplugins', $settingspage);
-}
+//     $ADMIN->add('localplugins', $settingspage);
+// }
