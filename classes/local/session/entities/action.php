@@ -53,8 +53,16 @@ class action implements action_interface {
      * @param event_interface  $event  The event to delegate to.
      * @param action_interface $action The action associated with this event.
      */
-    public function __construct(string $actiontype, moodle_url $actionurl) {
-        $this->name = $actiontype;
+    public function __construct(string $actiontype, int $userid) {
+        $actiontype = get_string('grade', 'grades');
+        $actionurl = new moodle_url('/mod/assign/view.php', [
+            'id' => time(),
+            'rownum' => 0,
+            'action' => 'grader',
+            'userid' => $userid,
+        ]);
+
+        $this->type = $actiontype;
         $this->url = $actionurl;
     }
 

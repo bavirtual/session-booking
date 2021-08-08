@@ -167,7 +167,8 @@ class progression_exporter extends exporter {
 
         $activestudents = [];
 
-        $sql = 'SELECT us.id AS userid, ' . $DB->sql_concat('us.firstname', '" "', 'us.lastname') . ' AS fullname
+        $sql = 'SELECT us.id AS userid, ' . $DB->sql_concat('us.firstname', '" "',
+                    'us.lastname', '" "', 'us.alternatename') . ' AS fullname
                 FROM {' . self::DB_USER . '} us
                 INNER JOIN {' . self::DB_USER_ENROL . '} ue on us.id = ue.userid
                 INNER JOIN {' . self::DB_ENROL . '} en on ue.enrolid = en.id
@@ -204,7 +205,7 @@ class progression_exporter extends exporter {
 
         foreach($this->exercisenames as $name) {
             $data = [
-                'shortname' => substr($name->name, 0, 8),
+                'shortname' => substr($name->name, 0, 9),
                 'fullname' => $name->name,
             ];
 

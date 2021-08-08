@@ -1,26 +1,29 @@
-.exercise {
+.booking-header {
+    text-align: center;
+}
+
+.session {
     background-color: white;
 }
 
-.exercise-graded {
+.session-graded {
     background-color: cornflowerblue;
 }
 
-.exercise-booked {
+.session-booked {
     background-color: green;
 }
 
-.exercise-tentative {
+.session-tentative {
     background-color: coral;
 }
 
-.exercise-button {
+.session-button {
     width: 75px;
     color: white;
     font-size: smaller;
     font-weight: bold;
     padding: 2px 5px;
-    margin: 10px 0px 0px 0px;
     border-radius: 5px;
     border-width: 0px;
     outline: 0;
@@ -29,13 +32,13 @@
     transition: ease background-color 250ms;
 }
 
-.exercise-button-blue {
+.session-button-blue {
     background-color: #1565c0;
     transition: ease background-color 250ms;
     cursor: pointer;
 }
 
-.exercise-button-blue:hover {
+.session-button-blue:hover {
     background-color: #0d47a1;
     cursor: pointer;
 }

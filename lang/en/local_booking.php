@@ -3,6 +3,8 @@
 $string['booking'] = 'Booking';
 $string['booking:view'] = 'View session bookings';
 $string['booking:book'] = 'Make sessino bookings';
+$string['buttonbook'] = 'Book';
+$string['buttongrade'] = 'Grade';
 $string['pluginname'] = 'Session Booking';
 $string['progression'] = 'Students Progression';
 $string['sessionaction'] = 'Action';

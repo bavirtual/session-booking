@@ -66,7 +66,7 @@ class session_exporter extends exporter {
                         $data['studentid'],
                         $data['studentname'],
                         $type->timestamp_to_date_array($data['grades'][1]->timemodified),
-                        $data['grades'][1]->finalgrade);
+                        $data['grades'][1]->grade);
             }
         }
 

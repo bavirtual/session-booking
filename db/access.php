@@ -33,7 +33,6 @@ $capabilities = array(
             'instructor' => CAP_ALLOW,
             'seniorinstructor' => CAP_ALLOW,
             'flighttrainingmanager' => CAP_ALLOW,
-            'betauser' => CAP_ALLOW,
         )
     ),
 
@@ -44,7 +43,6 @@ $capabilities = array(
             'instructor' => CAP_ALLOW,
             'seniorinstructor' => CAP_ALLOW,
             'flighttrainingmanager' => CAP_ALLOW,
-            'betauser' => CAP_ALLOW,
         )
     ),
 );

@@ -42,17 +42,17 @@
     <table id="progression-detail-{{uniqid}}" data-region="student-progression" class="table-hover table-bordered">
         <thead>
             <tr>
-                <th class="header text-xs-center" style="width: 2%;">
+                <th class="header booking-header text-xs-center " style="width: 20px;">
                     <span class="media-body" aria-hidden="true">#</span>
                 </th>
-                <th class="header text-xs-center" style="width: 100px;">
+                <th class="header booking-header text-xs-center" style="width: 400px;">
                     <span class="media-body" aria-hidden="true">{{#str}}students,local_booking{{/str}}</span>
                 </th>
-                <th class="header text-xs-center" style="width: 100px;">
+                <th class="header booking-header text-xs-center" style="width: 80px;">
                     <span class="media-body" aria-hidden="true">{{#str}}sessionaction,local_booking{{/str}}</span>
                 </th>
                 {{#exercisenames}}
-                <th class="header text-xs-center" data-region="lesson-exercise">
+                <th class="header booking-header text-xs-center" data-region="lesson-exercise" style="width: 70px;">
                     <span class="media-body small" aria-hidden="true">{{shortname}}</span>
                 </th>
                 {{/exercisenames}}
@@ -61,35 +61,35 @@
         <tbody>
         {{#activestudents}}
             <tr data-region="student">
-                <td class="text-sm-center text-md-left">
+                <td class="text-sm-center">
                     <span class="media-body small" aria-hidden="true">{{sequence}}</span>
                 </td>
                 <td class="day text-sm-center text-md-left">
-                    <span class="media-body small" aria-hidden="true">{{studentname}}</span>
+                    <span class="media-body" aria-hidden="true">{{studentname}}</span>
                 </td>
                 <td class="day text-sm-center text-md-left">
-                    <div class="singlebutton">
-                        <a href="{{action.url}}">
-                        <button class="exercise-button exercise-button-blue"
+                    <div class="singlebutton" style="float: right;">
+                        <a href="{{actionurl}}">
+                        <button class="session-button session-button-blue"
                             data-region="action-button"
                             id="action_button"{{uniqid}}
                             title="">
                             <i class="fa fa-location-arrow" style="padding-right: 5px;"></i>
-                            {{action.type}}
+                            {{actiontype}}
                         </button>
                          </a>
                     </div>
                 </td>
             {{#sessions}}
-                <td id="exercise-{{uniqid}}" class="session text-sm-center text-md-left{{!
-                        }}{{#graded}} exercise-graded{{/graded}}{{!
-                        }}{{#booked}} exercise-booked{{/booked}}{{!
-                        }}{{#tentative}} exercise-tentative{{/tentative}}{{!
+                <td id="exercise-{{uniqid}}" class="text-sm-center{{!
+                        }}{{#graded}} session-graded{{/graded}}{{!
+                        }}{{#booked}} session-booked{{/booked}}{{!
+                        }}{{#tentative}} session-tentative{{/tentative}}{{!
                     }}"
                     data-exercise-status="{{sessionstatus}}"
                     data-region="exercises">
                     <div class="d-md-block text-xs-center">
-                        <span class="media-body small fa-inverse">{{sessiondate}}</span>
+                        <span class="media-body small fa-inverse" style="vertical-align: text-top;">{{sessiondate}}</span>
                     </div>
                 </td>
             {{/sessions}}

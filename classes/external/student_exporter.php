@@ -30,7 +30,6 @@ use local_booking\external\session_exporter;
 use local_booking\local\session\entities\action;
 use core\external\exporter;
 use renderer_base;
-use moodle_url;
 
 /**
  * Class for displaying the day on month view.
@@ -44,12 +43,12 @@ class student_exporter extends exporter {
     /**
      * Process user enrollments table name.
      */
-    const DB_GRADES = 'grade_grades';
+    const DB_GRADES = 'assign_grades';
 
     /**
      * Process user enrollments table name.
      */
-    const DB_GRADE_ITEMS = 'grade_items';
+    const DB_ASSIGNMENTS = 'assign';
 
     /**
      * Process user  table name.
@@ -107,8 +106,11 @@ class student_exporter extends exporter {
                 'type' => session_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
-            'action' => [
+            'actiontype' => [
                 'type' => PARAM_RAW,
+                ],
+            'actionurl' => [
+                'type' => PARAM_URL,
                 ],
         ];
     }
@@ -120,11 +122,13 @@ class student_exporter extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
-        $submissions = $this->get_exercises($output);
+        $sessions = $this->get_sessions($output);
+        $action = $this->get_action();
 
         $return = [
-            'sessions' => $submissions,
-            'action' => $this->get_action(),
+            'sessions' => $sessions,
+            'actionurl' => $action->get_url(),
+            'actiontype' => $action->get_type(),
         ];
 
         return $return;
@@ -148,7 +152,7 @@ class student_exporter extends exporter {
      *
      * @return  $submissions[]
      */
-    protected function get_exercises($output) {
+    protected function get_sessions($output) {
 
         $studentgrades = $this->get_studentgrades();
         $courseexercises = $this->related['courseexercises'];
@@ -180,12 +184,13 @@ class student_exporter extends exporter {
         global $DB;
 
         // Get the student's grades
-        $sql = 'SELECT gi.iteminstance AS exerciseid, gr.finalgrade, us.id as instructorid,
-                ' . $DB->sql_concat('us.firstname', '" "','us.lastname') . ' AS instructorname, gr.timemodified
-                FROM {' . self::DB_GRADES . '} gr
-                INNER JOIN {' . self::DB_GRADE_ITEMS . '} gi on gr.itemid = gi.id
-                INNER JOIN {' . self::DB_USER . '} us on gr.usermodified = us.id
-                WHERE gi.courseid = ' . $this->courseid . ' AND gr.userid = ' . $this->data['studentid'];
+        $sql = 'SELECT a.id AS exerciseid, ag.grade, ag.grader as instructorid,
+                    ' . $DB->sql_concat('us.firstname', '" "','us.lastname') .
+                    ' AS instructorname, ag.timemodified
+                FROM {' . self::DB_GRADES . '} ag
+                INNER JOIN {' . self::DB_ASSIGNMENTS . '} a on ag.assignment = a.id
+                INNER JOIN {' . self::DB_USER . '} us on ag.grader = us.id
+                WHERE a.course = ' . $this->courseid . ' AND ag.userid = ' . $this->data['studentid'];
 
         return $DB->get_records_sql($sql);
     }
@@ -197,14 +202,7 @@ class student_exporter extends exporter {
      * @return {Object}
      */
     protected function get_action() {
-        $actiotype = get_string('grade', 'grades');
-        $actionurl = new moodle_url('/mod/assign/view.php', [
-            'id' => time(),
-            'rownum' => 0,
-            'action' => 'grader',
-            'userid' => $this->data['studentid'],
-        ]);
-        $action = new action($actiotype, $actionurl);
-        return (array) $action;
+        $action = new action('grade', $this->data['studentid']);
+        return $action;
     }
 }
