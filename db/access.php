@@ -35,15 +35,5 @@ $capabilities = array(
             'flighttrainingmanager' => CAP_ALLOW,
         )
     ),
-
-    'local/booking:book' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
-            'instructor' => CAP_ALLOW,
-            'seniorinstructor' => CAP_ALLOW,
-            'flighttrainingmanager' => CAP_ALLOW,
-        )
-    ),
 );
 
