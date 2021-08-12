@@ -30,7 +30,6 @@ use renderer_base;
 use core\external\exporter;
 use local_booking\local\session\entities\session;
 use local_booking\local\session\entities\grade;
-use local_booking\local\session\entities\booking;
 
 /**
  * Class for displaying the day on month view.
@@ -55,7 +54,6 @@ class session_exporter extends exporter {
     public function __construct($data, $related) {
         $type = \core_calendar\type_factory::get_calendar_instance();
 
-// $data['grades'][1]->instructorid,
         $grade = null;
         if (count($data['grades']) > 0) {
             if (array_search($data['exerciseid'], array_column($data['grades'], 'exerciseid')) !== false) {
@@ -81,7 +79,7 @@ class session_exporter extends exporter {
 
         $data = [
             'sessionstatus' => $sessionstatus,
-            'sessiondate'   => $sessiondate->format('d/m/y'),
+            'sessiondate'   => !$sessionempty ? $sessiondate->format('d/m/y') : '',
             'sessionempty'  => $sessionempty,
         ];
         parent::__construct($data, $related);

@@ -47,6 +47,26 @@ class progression_exporter extends exporter {
     const DB_USER = 'user';
 
     /**
+     * Process user role table name.
+     */
+    const DB_ROLE = 'role';
+
+    /**
+     * Process user role assignment table name.
+     */
+    const DB_ROLE_ASSIGN = 'role_assignments';
+
+    /**
+     * Process user info data table name for the simulator.
+     */
+    const DB_USER_DATA = 'user_info_data';
+
+    /**
+     * Process user info data table name for the simulator.
+     */
+    const DB_USER_FIELD = 'user_info_field';
+
+    /**
      * Process user enrollments table name.
      */
     const DB_USER_ENROL = 'user_enrolments';
@@ -60,6 +80,26 @@ class progression_exporter extends exporter {
      * Process user enrollments table name.
      */
     const DB_ASSIGN = 'assign';
+
+    /**
+     * Process course modules table name.
+     */
+    const DB_COURSE_MODS = 'course_modules';
+
+    /**
+     * Process groups table name for on-hold group.
+     */
+    const DB_GROUPS = 'groups';
+
+    /**
+     * Process groups members table name for on-hold students.
+     */
+    const DB_GROUPS_MEM = 'groups_members';
+
+    /**
+     * Process groups members table name for on-hold students.
+     */
+    const DB_COURSE_MODULES = 'course_modules';
 
     /**
      * @var array $exercisenames An array of excersice ids and names for the course.
@@ -137,7 +177,7 @@ class progression_exporter extends exporter {
 
         $return = [
             'exercisenames' => $this->get_exercise_names($output),
-            'activestudents' => $this->get_activestudents($output),
+            'activestudents' => $this->get_active_students($output),
         ];
 
         return $return;
@@ -162,17 +202,31 @@ class progression_exporter extends exporter {
      * @param   renderer_base $output
      * @return  day_name_exporter[]
      */
-    protected function get_activestudents($output) {
-        global $DB;
+    protected function get_active_students($output) {
+        global $DB, $COURSE;
 
         $activestudents = [];
 
         $sql = 'SELECT us.id AS userid, ' . $DB->sql_concat('us.firstname', '" "',
-                    'us.lastname', '" "', 'us.alternatename') . ' AS fullname
-                FROM {' . self::DB_USER . '} us
-                INNER JOIN {' . self::DB_USER_ENROL . '} ue on us.id = ue.userid
+                    'us.lastname', '" "', 'us.alternatename') . ' AS fullname,
+                    ud.data AS simulator
+                FROM {' . self::DB_USER . '} u
+                INNER JOIN {' . self::DB_ROLE_ASSIGN . '} ra on u.id = ra.userid
+                INNER JOIN {' . self::DB_ROLE . '} r on r.id = ra.roleid
+                INNER JOIN {' . self::DB_USER_DATA . '} ud on ra.userid = ud.userid
+                INNER JOIN {' . self::DB_USER_FIELD . '} uf on uf.id = ud.fieldid
+                INNER JOIN {' . self::DB_USER_ENROL . '} ue on ud.userid = ue.userid
                 INNER JOIN {' . self::DB_ENROL . '} en on ue.enrolid = en.id
                 WHERE en.courseid = ' . $this->data['courseid'] . '
+                    AND ra.contextid = ' . \context_course::instance($COURSE->id)->id .'
+                    AND r.shortname = "student"
+                    AND uf.shortname = "simulator"
+                    AND u.id != (
+                        SELECT userid
+                        FROM {' . self::DB_GROUPS_MEM . '} gm
+                        INNER JOIN {' . self::DB_GROUPS . '} g on g.id = gm.groupid
+                        WHERE g.name = "OnHold"
+                        )
                 ORDER BY ue.enrolid ASC';
 
                 $students = $DB->get_records_sql($sql);
@@ -182,8 +236,9 @@ class progression_exporter extends exporter {
             $i++;
             $data = [];
             $data = [
-                'studentid' => $student->userid,
+                'studentid'   => $student->userid,
                 'studentname' => $student->fullname,
+                'simulator'   => $students->simulator,
                 'sequence' => $i,
             ];
             $student = new student_exporter($data, $this->data['courseid'], [
@@ -199,15 +254,33 @@ class progression_exporter extends exporter {
     protected function get_exercise_names($output) {
         global $DB;
 
+        // get assignments for this course based on sorted course topic sections
+        $sql = 'SELECT cm.id AS exercisedid, a.name AS exercisename
+                FROM {' . self::DB_ASSIGN . '} a
+                INNER JOIN {' . self::DB_COURSE_MODS . '} cm on a.id = cm.instance
+                WHERE module = 1
+                ORDER BY cm.section;';
+
         $this->exercisenames = $DB->get_records(self::DB_ASSIGN, array('course'=>$this->data['courseid']));
+
+        // get titles from the plugin settings which should be delimited by comma
+        $exercisetitles = explode(',', get_config('local_booking', 'exercisetitles'));
 
         $exerciseslabels = [];
 
+        $i = 0;
         foreach($this->exercisenames as $name) {
+            // break down each setting title by <br/> tag, until a better way is identified
+            $titleitem = explode('<br/>', $exercisetitles[$i]);
+            $name->title = $titleitem[0];
+            $name->type = $titleitem[1];
             $data = [
-                'shortname' => substr($name->name, 0, 9),
-                'fullname' => $name->name,
+                'exerciseid'    => $name->exerciseid,
+                'exercisename'  => $name->exercisename,
+                'exercisetitle' => $name->title,
+                'exercisetype'  => $name->type,
             ];
+            $i++;
 
             $exercisename = new exercise_name_exporter($data);
             $exerciseslabels[] = $exercisename->export($output);

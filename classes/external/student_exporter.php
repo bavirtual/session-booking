@@ -56,14 +56,14 @@ class student_exporter extends exporter {
     const DB_USER = 'user';
 
     /**
-     * @var int $studentid An id of the student.
+     * Process user enrollments table name.
      */
-    protected $courseid;
+    const DB_BOOKINGS = 'local_booking';
 
     /**
      * @var int $studentid An id of the student.
      */
-    protected $studentid;
+    protected $courseid;
 
     /**
      * Constructor.
@@ -87,6 +87,9 @@ class student_exporter extends exporter {
                 'type' => PARAM_INT,
             ],
             'studentname' => [
+                'type' => PARAM_RAW,
+            ],
+            'simulator' => [
                 'type' => PARAM_RAW,
             ],
             'sequence' => [
@@ -123,7 +126,7 @@ class student_exporter extends exporter {
      */
     protected function get_other_values(renderer_base $output) {
         $sessions = $this->get_sessions($output);
-        $action = $this->get_action();
+        $action = $this->get_next_action();
 
         $return = [
             'sessions' => $sessions,
@@ -154,7 +157,7 @@ class student_exporter extends exporter {
      */
     protected function get_sessions($output) {
 
-        $studentgrades = $this->get_studentgrades();
+        $studentgrades = $this->get_student_grades();
         $courseexercises = $this->related['courseexercises'];
 
         foreach ($courseexercises as $exercise) {
@@ -180,7 +183,7 @@ class student_exporter extends exporter {
      *
      * @return {Object}[]
      */
-    protected function get_studentgrades() {
+    protected function get_student_grades() {
         global $DB;
 
         // Get the student's grades
@@ -197,12 +200,18 @@ class student_exporter extends exporter {
 
     /**
      * Retrieves the action object containing
-     * actino name and url
+     * action name and url. Next action for
+     * students with booked session is a grading
+     * action, otherwise it is a booking action
      *
      * @return {Object}
      */
-    protected function get_action() {
-        $action = new action('grade', $this->data['studentid']);
+    protected function get_next_action() {
+        global $DB;
+
+        $hasbookings = $DB->count_records(self::DB_BOOKINGS, ['studentid' => $this->data['studentid']]) > 0;
+        $action = new action($hasbookings ? 'grade' : 'book', $this->data['studentid']);
+
         return $action;
     }
 }
