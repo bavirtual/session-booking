@@ -53,10 +53,16 @@ class exercise_name_exporter extends exporter {
      */
     protected static function define_properties() {
         return [
-            'shortname' => [
+            'exerciseid' => [
+                'type' => PARAM_INT,
+            ],
+            'exercisename' => [
                 'type' => PARAM_RAW,
             ],
-            'fullname' => [
+            'exercisetitle' => [
+                'type' => PARAM_RAW,
+            ],
+            'exercisetype' => [
                 'type' => PARAM_RAW,
             ],
         ];

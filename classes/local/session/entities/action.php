@@ -38,7 +38,7 @@ defined('MOODLE_INTERNAL') || die();
 class action implements action_interface {
 
     /**
-     * @var string $type The name of this action.
+     * @var string $type The type of this action.
      */
     protected $type;
 
@@ -48,22 +48,35 @@ class action implements action_interface {
     protected $url;
 
     /**
+     * @var string $type The name of this action.
+     */
+    protected $name;
+
+    /**
      * Constructor.
      *
      * @param event_interface  $event  The event to delegate to.
      * @param action_interface $action The action associated with this event.
      */
-    public function __construct(string $actiontype, int $userid) {
-        $actiontype = get_string('grade', 'grades');
-        $actionurl = new moodle_url('/mod/assign/view.php', [
-            'id' => time(),
-            'rownum' => 0,
-            'action' => 'grader',
-            'userid' => $userid,
-        ]);
+    public function __construct(string $actiontype, int $userid, $exerciseid) {
+        if ($actiontype == 'grade') {
+            $actionurl = new moodle_url('/mod/assign/view.php', [
+                'id' => $exerciseid,
+                'rownum' => 0,
+                'action' => 'grader',
+                'userid' => $userid,
+            ]);
+
+        } elseif ($actiontype == 'book') {
+            $actionurl = new moodle_url('/local/availability/view.php', [
+                'action' => 'book',
+                'userid' => $userid,
+            ]);
+        }
 
         $this->type = $actiontype;
         $this->url = $actionurl;
+        $this->name = $actiontype == 'grade' ? get_string('grade', 'grades') : get_string('book', 'local_booking');
     }
 
     public function get_type() {
@@ -74,4 +87,7 @@ class action implements action_interface {
         return $this->url;
     }
 
+    public function get_name() {
+        return $this->name;
+    }
 }

@@ -207,8 +207,8 @@ class progression_exporter extends exporter {
 
         $activestudents = [];
 
-        $sql = 'SELECT us.id AS userid, ' . $DB->sql_concat('us.firstname', '" "',
-                    'us.lastname', '" "', 'us.alternatename') . ' AS fullname,
+        $sql = 'SELECT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
+                    'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
                     ud.data AS simulator
                 FROM {' . self::DB_USER . '} u
                 INNER JOIN {' . self::DB_ROLE_ASSIGN . '} ra on u.id = ra.userid
@@ -221,6 +221,7 @@ class progression_exporter extends exporter {
                     AND ra.contextid = ' . \context_course::instance($COURSE->id)->id .'
                     AND r.shortname = "student"
                     AND uf.shortname = "simulator"
+                    AND ue.status = 0
                     AND u.id != (
                         SELECT userid
                         FROM {' . self::DB_GROUPS_MEM . '} gm
@@ -236,10 +237,10 @@ class progression_exporter extends exporter {
             $i++;
             $data = [];
             $data = [
+                'sequence' => $i,
                 'studentid'   => $student->userid,
                 'studentname' => $student->fullname,
-                'simulator'   => $students->simulator,
-                'sequence' => $i,
+                'simulator'   => $student->simulator,
             ];
             $student = new student_exporter($data, $this->data['courseid'], [
                 'context' => \context_system::instance(),
@@ -251,17 +252,22 @@ class progression_exporter extends exporter {
         return $activestudents;
     }
 
+    /**
+     * Retrieves exercises for the course
+     *
+     * @return array
+     */
     protected function get_exercise_names($output) {
         global $DB;
 
         // get assignments for this course based on sorted course topic sections
-        $sql = 'SELECT cm.id AS exercisedid, a.name AS exercisename
+        $sql = 'SELECT cm.id AS exerciseid, a.name AS exercisename
                 FROM {' . self::DB_ASSIGN . '} a
                 INNER JOIN {' . self::DB_COURSE_MODS . '} cm on a.id = cm.instance
                 WHERE module = 1
                 ORDER BY cm.section;';
 
-        $this->exercisenames = $DB->get_records(self::DB_ASSIGN, array('course'=>$this->data['courseid']));
+        $this->exercisenames = $DB->get_records_sql($sql);
 
         // get titles from the plugin settings which should be delimited by comma
         $exercisetitles = explode(',', get_config('local_booking', 'exercisetitles'));

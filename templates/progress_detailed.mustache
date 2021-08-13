@@ -45,17 +45,17 @@
                 <th class="header booking-header text-xs-center " style="width: 20px;">
                     <span class="media-body" aria-hidden="true">#</span>
                 </th>
-                <th class="header booking-header text-xs-center" style="width: 400px;">
+                <th class="header booking-header text-xs-center" style="width: 250px;">
                     <span class="media-body" aria-hidden="true">{{#str}}students,local_booking{{/str}}</span>
                 </th>
-                <th class="header booking-header text-xs-center" style="width: 400px;">
+                <th class="header booking-header text-xs-center" style="width: 60px;">
                     <span class="media-body" aria-hidden="true">{{#str}}simulator,local_booking{{/str}}</span>
                 </th>
                 <th class="header booking-header text-xs-center" style="width: 80px;">
                     <span class="media-body" aria-hidden="true">{{#str}}sessionaction,local_booking{{/str}}</span>
                 </th>
                 {{#exercisenames}}
-                <th class="header booking-header text-xs-center" data-region="lesson-exercise" style="width: 70px;">
+                <th class="header booking-header text-xs-center" data-region="lesson-exercise" style="width: 100px;">
                     <span class="media-body small" aria-hidden="true">{{exercisetitle}}</span><br/>
                     <span class="media-body small" aria-hidden="true">{{exercisetype}}</span>
                 </th>
@@ -68,21 +68,21 @@
                 <td class="text-sm-center">
                     <span class="media-body small" aria-hidden="true">{{sequence}}</span>
                 </td>
-                <td class="day text-sm-center text-md-left">
-                    <span class="media-body" aria-hidden="true">{{studentname}}</span>
+                <td class="day booking-truncate text-sm-center text-md-left">
+                    <span class="media-body small" aria-hidden="true">{{studentname}}</span>
                 </td>
-                <td class="day text-sm-center text-md-left">
-                    <span class="media-body" aria-hidden="true">{{simulator}}</span>
+                <td class="day text-sm-center">
+                    <span class="media-body small" aria-hidden="true">{{simulator}}</span>
                 </td>
                 <td class="day text-sm-center text-md-left">
                     <div class="singlebutton" style="float: right;">
                         <a href="{{actionurl}}">
-                        <button class="session-button session-button-blue"
+                        <button class="session-button session-button-{{actiontype}}"
                             data-region="action-button"
                             id="action_button"{{uniqid}}
                             title="">
                             <i class="fa fa-location-arrow" style="padding-right: 5px;"></i>
-                            {{actiontype}}
+                            {{actionname}}
                         </button>
                          </a>
                     </div>

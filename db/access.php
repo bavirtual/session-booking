@@ -30,6 +30,7 @@ $capabilities = array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => array(
+            'teacher' => CAP_ALLOW,
             'instructor' => CAP_ALLOW,
             'seniorinstructor' => CAP_ALLOW,
             'flighttrainingmanager' => CAP_ALLOW,

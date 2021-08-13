@@ -35,7 +35,7 @@ defined('MOODLE_INTERNAL') || die();
  */
 interface action_interface {
     /**
-     * Get the name of the action.
+     * Get the type of the action.
      *
      * @return string
      */
@@ -47,4 +47,11 @@ interface action_interface {
      * @return \moodle_url
      */
     public function get_url();
+
+    /**
+     * Get the name of the action.
+     *
+     * @return string
+     */
+    public function get_name();
 }

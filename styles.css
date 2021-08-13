@@ -2,6 +2,14 @@
     text-align: center;
 }
 
+.booking-truncate {
+    width: 1px;
+    padding-left: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .session {
     background-color: white;
 }
@@ -30,15 +38,23 @@
     float: right;
     box-shadow: 0px 2px 2px lightgray;
     transition: ease background-color 250ms;
+    cursor: pointer;
 }
 
-.session-button-blue {
+.session-button-grade {
     background-color: #1565c0;
     transition: ease background-color 250ms;
-    cursor: pointer;
 }
 
-.session-button-blue:hover {
+.session-button-grade:hover {
     background-color: #0d47a1;
-    cursor: pointer;
+}
+
+.session-button-book {
+    background-color: black;
+    transition: ease background-color 250ms;
+}
+
+.session-button-book:hover {
+    background-color: darkgray;
 }

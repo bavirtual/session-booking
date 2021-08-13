@@ -3,6 +3,8 @@
 $string['booking'] = 'Booking';
 $string['booking:view'] = 'View session bookings';
 $string['book'] = 'Book';
+$string['exercisetitles'] = 'Course exercise titles:';
+$string['exercisetitlesdesc'] = 'Titles delimited by commas';
 $string['pluginname'] = 'Session Booking';
 $string['progression'] = 'Students Progression';
 $string['sessionaction'] = 'Action';

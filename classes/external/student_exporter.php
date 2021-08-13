@@ -48,7 +48,7 @@ class student_exporter extends exporter {
     /**
      * Process user enrollments table name.
      */
-    const DB_ASSIGNMENTS = 'assign';
+    const DB_COURSE_MODS = 'course_modules';
 
     /**
      * Process user  table name.
@@ -66,6 +66,21 @@ class student_exporter extends exporter {
     protected $courseid;
 
     /**
+     * @var int $studentid A user of the student.
+     */
+    protected $studentid;
+
+    /**
+     * @var array $courseexercises An array of the course exercises.
+     */
+    protected $courseexercises;
+
+    /**
+     * @var array $studentgrades An array of the student's grades.
+     */
+    protected $studentgrades;
+
+    /**
      * Constructor.
      *
      * @param mixed $data An array of student data.
@@ -73,6 +88,8 @@ class student_exporter extends exporter {
      */
     public function __construct($data, $courseid, $related) {
         $this->courseid = $courseid;
+        $this->studentid = $data['studentid'];
+        $this->courseexercises = $related['courseexercises'];
         parent::__construct($data, $related);
     }
 
@@ -83,6 +100,9 @@ class student_exporter extends exporter {
      */
     protected static function define_properties() {
         return [
+            'sequence' => [
+                'type' => PARAM_INT,
+            ],
             'studentid' => [
                 'type' => PARAM_INT,
             ],
@@ -91,9 +111,6 @@ class student_exporter extends exporter {
             ],
             'simulator' => [
                 'type' => PARAM_RAW,
-            ],
-            'sequence' => [
-                'type' => PARAM_INT,
             ],
         ];
     }
@@ -109,12 +126,15 @@ class student_exporter extends exporter {
                 'type' => session_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
-            'actiontype' => [
-                'type' => PARAM_RAW,
-                ],
             'actionurl' => [
                 'type' => PARAM_URL,
-                ],
+            ],
+            'actiontype' => [
+                'type' => PARAM_RAW,
+            ],
+            'actionname' => [
+                'type' => PARAM_RAW,
+            ],
         ];
     }
 
@@ -130,8 +150,9 @@ class student_exporter extends exporter {
 
         $return = [
             'sessions' => $sessions,
-            'actionurl' => $action->get_url(),
+            'actionurl' => $action->get_url()->out(false),
             'actiontype' => $action->get_type(),
+            'actionname' => $action->get_name(),
         ];
 
         return $return;
@@ -157,17 +178,17 @@ class student_exporter extends exporter {
      */
     protected function get_sessions($output) {
 
-        $studentgrades = $this->get_student_grades();
-        $courseexercises = $this->related['courseexercises'];
+        $this->studentgrades = $this->get_student_grades();
 
-        foreach ($courseexercises as $exercise) {
+
+        foreach ($this->courseexercises as $exercise) {
             $studentinfo = [];
             $studentinfo = [
-                'studentid'   => $this->data['studentid'],
+                'studentid'   => $this->studentid,
                 'studentname' => $this->data['studentname'],
                 'courseid'    => $this->courseid,
-                'exerciseid'  => $exercise->id,
-                'grades'      => $studentgrades,
+                'exerciseid'  => $exercise->exerciseid,
+                'grades'      => $this->studentgrades,
                 'bookings'    => null,
             ];
             $exercisesession = new session_exporter($studentinfo, $this->related);
@@ -187,13 +208,14 @@ class student_exporter extends exporter {
         global $DB;
 
         // Get the student's grades
-        $sql = 'SELECT a.id AS exerciseid, ag.grade, ag.grader as instructorid,
-                    ' . $DB->sql_concat('us.firstname', '" "','us.lastname') .
-                    ' AS instructorname, ag.timemodified
+        $sql = 'SELECT cm.id AS exerciseid, ag.assignment AS assignid,
+                    ag.userid, ag.grade, ag.timemodified AS gradedate,
+                    u.id AS instructorid, ' . $DB->sql_concat('u.firstname', '" "',
+                    'u.lastname', '" "', 'u.alternatename') . ' AS instructorname
                 FROM {' . self::DB_GRADES . '} ag
-                INNER JOIN {' . self::DB_ASSIGNMENTS . '} a on ag.assignment = a.id
-                INNER JOIN {' . self::DB_USER . '} us on ag.grader = us.id
-                WHERE a.course = ' . $this->courseid . ' AND ag.userid = ' . $this->data['studentid'];
+                INNER JOIN {' . self::DB_COURSE_MODS . '} cm on ag.assignment = cm.instance
+                INNER JOIN {' . self::DB_USER . '} u on ag.grader = u.id
+                WHERE cm.module = 1 AND ag.userid = ' . $this->studentid;
 
         return $DB->get_records_sql($sql);
     }
@@ -209,8 +231,10 @@ class student_exporter extends exporter {
     protected function get_next_action() {
         global $DB;
 
-        $hasbookings = $DB->count_records(self::DB_BOOKINGS, ['studentid' => $this->data['studentid']]) > 0;
-        $action = new action($hasbookings ? 'grade' : 'book', $this->data['studentid']);
+        $exercisevalues = array_values($this->courseexercises);
+        $exerciseid = count($this->studentgrades) > 0 ? end($this->studentgrades)->exerciseid : array_shift($exercisevalues)->exerciseid;
+        $hasbookings = $DB->count_records(self::DB_BOOKINGS, ['studentid' => $this->studentid]) > 0;
+        $action = new action($hasbookings ? 'grade' : 'book', $this->studentid, $exerciseid);
 
         return $action;
     }

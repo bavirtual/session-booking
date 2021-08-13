@@ -59,12 +59,12 @@ class session_exporter extends exporter {
             if (array_search($data['exerciseid'], array_column($data['grades'], 'exerciseid')) !== false) {
                 $grade = new grade(
                         $data['exerciseid'],
-                        $data['grades'][1]->instructorid,
-                        $data['grades'][1]->instructorname,
+                        $data['grades'][$data['exerciseid']]->instructorid,
+                        $data['grades'][$data['exerciseid']]->instructorname,
                         $data['studentid'],
                         $data['studentname'],
-                        $type->timestamp_to_date_array($data['grades'][1]->timemodified),
-                        $data['grades'][1]->grade);
+                        $type->timestamp_to_date_array($data['grades'][$data['exerciseid']]->gradedate),
+                        $data['grades'][$data['exerciseid']]->grade);
             }
         }
 
