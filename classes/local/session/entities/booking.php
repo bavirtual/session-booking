@@ -25,6 +25,8 @@
 
 namespace local_booking\local\session\entities;
 
+use local_availability\local\slot\entities\slot;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -61,9 +63,9 @@ class booking implements booking_interface {
     protected $studentname;
 
     /**
-     * @var string $slots The booked slots' timestamps comma delimited.
+     * @var slot $slot The booked slot.
      */
-    protected $booingslots;
+    protected $slot;
 
     /**
      * @var bool $confirmed The booking is confirmed.
@@ -78,12 +80,18 @@ class booking implements booking_interface {
     /**
      * Constructor.
      *
-     * @param event_interface  $event  The event to delegate to.
-     * @param action_interface $action The action associated with this event.
+     * @param int            $exerciseid     The exercise id associated with the booking.
+     * @param slot_interface $slot           The slot associated with this booking.
+     * @param int            $studentid      The student id associated with this booking..
+     * @param string         studentname     The student name.
+     * @param int            $instructorid   The instructor id who made this booking.
+     * @param string         $instructorname The instructor name.
+     * @param bool           $confirmed      The confimration status of this booking.
+     * @param int            $bookingdate    The booking timestamp.
      */
     public function __construct(
         $exerciseid,
-        $bookedslots,
+        $slot,
         $studentid,
         $studentname    = '',
         $instructorid   = 0,
@@ -92,7 +100,7 @@ class booking implements booking_interface {
         $bookingdate    = 0,
         ) {
         $this->exerciseid       = $exerciseid;
-        $this->bookedslots      = $bookedslots;
+        $this->slot             = $slot;
         $this->studentid        = $studentid;
         $this->studentname      = $studentname;
         $this->instructorid     = $instructorid;
@@ -105,6 +113,10 @@ class booking implements booking_interface {
 
     public function get_exerciseid() {
         return $this->exerciseid;
+    }
+
+    public function get_slot() {
+        return $this->slot;
     }
 
     public function get_instructorid() {
@@ -121,10 +133,6 @@ class booking implements booking_interface {
 
     public function get_studentname() {
         return $this->studentname;
-    }
-
-    public function get_bookedslots() {
-        return $this->bookedslots;
     }
 
     public function confirmed() {
@@ -144,6 +152,15 @@ class booking implements booking_interface {
      */
     public function set_exerciseid(int $exerciseid) {
         $this->exerciseid = $exerciseid;
+    }
+
+    /**
+     * Set the id of booked slot.
+     *
+     * @return slot
+     */
+    public function set_slot(slot $slot) {
+        $this->slot = $slot;
     }
 
     /**
@@ -180,15 +197,6 @@ class booking implements booking_interface {
      */
     public function set_studentname(string $studentname) {
         $this->studentname = $studentname;
-    }
-
-    /**
-     * Set the string of booked slots.
-     *
-     * @return array
-     */
-    public function set_bookedslots(string $bookedslots) {
-        $this->bookedslots = $bookedslots;
     }
 
     /**

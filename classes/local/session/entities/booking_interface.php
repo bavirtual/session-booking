@@ -25,6 +25,8 @@
 
 namespace local_booking\local\session\entities;
 
+use local_availability\local\slot\entities\slot;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -71,11 +73,11 @@ interface booking_interface {
     public function get_studentname();
 
     /**
-     * Get the string of booked slots comma delimited.
+     * Get the slot object of booking.
      *
-     * @return string
+     * @return {slot}
      */
-    public function get_bookedslots();
+    public function get_slot();
 
     /**
      * Set the status of the booking Confirmed or Tentative.
@@ -85,9 +87,9 @@ interface booking_interface {
     public function confirmed();
 
     /**
-     * Get the date array of the booking.
+     * Get the date timestamp of the booking.
      *
-     * @return array
+     * @return int
      */
     public function get_bookingdate();
 
@@ -127,16 +129,16 @@ interface booking_interface {
     public function set_studentname(string $studentname);
 
     /**
-     * Set the string of booked slots comma delimited.
+     * Set the slot object of booking.
      *
-     * @return string
+     * @return slot_interface
      */
-    public function set_bookedslots(string $bookedslots);
+    public function set_slot(slot $slot);
 
     /**
-     * Set the date array of the booking.
+     * Set the date timestamp of the booking.
      *
-     * @return array
+     * @return int
      */
     public function set_bookingdate(int $bookingdate);
 }
