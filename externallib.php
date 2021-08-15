@@ -27,6 +27,7 @@
 
 use local_booking\local\session\data_access\booking_vault;
 use local_booking\local\session\entities\booking;
+use local_availability\local\slot\entities\slot;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -49,21 +50,21 @@ class local_booking_external extends external_api {
      * Save booked slots. Delete existing ones for the user then update
      * any existing slots if applicable with slot values
      *
-     * @param {object} $bookedslots Object containing booked slots.
+     * @param {object} $bookedslot Object containing booked slots.
      * @param int $slots A list of slots to create.
      * @param int $slots A list of slots to create.
      * @return array array of slots created.
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
-    public static function save_booking($bookedslots, $exerciseid, $studentid, $slotid) {
-        global $DB;
+    public static function save_booking($bookedslot, $exerciseid, $studentid, $slot) {
+        global $DB, $COURSE, $USER;
 
         // Parameter validation.
         $params = self::validate_parameters(self::save_booking_parameters(), array(
-                'bookedslots'=> $bookedslots,
+                'bookedslot' => $bookedslot,
                 'exerciseid' => $exerciseid,
-                'userid'     => $studentid,
-                'slodid'     => $slotid)
+                'userid'     => $studentid
+                )
             );
 
         $vault = new booking_vault();
@@ -76,17 +77,26 @@ class local_booking_external extends external_api {
 
         // add booking to the database.
         if ($result) {
-            $result = $vault->save_booking(new booking($exerciseid, $bookedslots, $studentid));
+            $result = $vault->save_booking(new booking($exerciseid, $slot, $studentid));
         }
 
         // update existing availability slots.
-        if ($result && $slotid != 0) {
-            $slotobj = new stdClass();
-            $slotobj->id = $slotid;
-            $slotobj->bookedslots = $bookedslots;
-            $slotobj->bookedstatus = 'tentative';
-            $result = $DB->update_record(self::DB_SLOTS, $slotobj);
+        if ($result) {
+            $slotobj = new slot(
+                $studentid,
+                $COURSE->id,
+                $slot[0],
+                $slot[1],
+                $slot[2],
+                $slot[3],
+                'tentative',
+                $exerciseid,
+                $USER->id
+            );
+            $result = $DB->insert_record(self::DB_SLOTS, $slotobj);
         }
+
+        // send emails to both student and instructor
 
         if ($result) {
             $transaction->allow_commit();
@@ -112,7 +122,7 @@ class local_booking_external extends external_api {
     public static function save_booking_parameters() {
         return new external_function_parameters(
             array(
-                'bookedslots' => new external_value(PARAM_RAW, 'The booked slots, comma delimited', VALUE_DEFAULT),
+                'bookedslot'  => new external_value(PARAM_RAW, 'The booked slot object array', VALUE_DEFAULT),
                 'exerciseid'  => new external_value(PARAM_INT, 'The exercise id', VALUE_DEFAULT),
                 'userid'      => new external_value(PARAM_INT, 'The student id', VALUE_DEFAULT),
                 'slotid'      => new external_value(PARAM_INT, 'The availability slot id', VALUE_DEFAULT),
