@@ -61,14 +61,19 @@ class booking implements booking_interface {
     protected $studentname;
 
     /**
-     * @var array $bookingdate The date of this booking.
+     * @var string $slots The booked slots' timestamps comma delimited.
      */
-    protected $bookingdate;
+    protected $booingslots;
 
     /**
      * @var bool $confirmed The booking is confirmed.
      */
     protected $confirmed;
+
+    /**
+     * @var int $bookingdate The date timestamp of this booking.
+     */
+    protected $bookingdate;
 
     /**
      * Constructor.
@@ -77,21 +82,23 @@ class booking implements booking_interface {
      * @param action_interface $action The action associated with this event.
      */
     public function __construct(
-        $exerciseid     = 0,
+        $exerciseid,
+        $bookedslots,
+        $studentid,
+        $studentname    = '',
         $instructorid   = 0,
         $instructorname = '',
-        $studentid      = 0,
-        $studentname    = '',
-        $bookingdate    = [],
-        $confirmed      = false
+        $confirmed      = false,
+        $bookingdate    = 0,
         ) {
         $this->exerciseid       = $exerciseid;
-        $this->instructorid     = $instructorid;
-        $this->instructorname   = $instructorname;
+        $this->bookedslots      = $bookedslots;
         $this->studentid        = $studentid;
         $this->studentname      = $studentname;
-        $this->bookingdate      = $bookingdate;
+        $this->instructorid     = $instructorid;
+        $this->instructorname   = $instructorname;
         $this->confirmed        = $confirmed;
+        $this->bookingdate      = $bookingdate;
     }
 
     // Getter functions
@@ -116,12 +123,16 @@ class booking implements booking_interface {
         return $this->studentname;
     }
 
-    public function get_bookingdate() {
-        return $this->bookingdate;
+    public function get_bookedslots() {
+        return $this->bookedslots;
     }
 
     public function confirmed() {
         return $this->confirmed;
+    }
+
+    public function get_bookingdate() {
+        return $this->bookingdate;
     }
 
     // Setter functions
@@ -172,11 +183,20 @@ class booking implements booking_interface {
     }
 
     /**
+     * Set the string of booked slots.
+     *
+     * @return array
+     */
+    public function set_bookedslots(string $bookedslots) {
+        $this->bookedslots = $bookedslots;
+    }
+
+    /**
      * Set the date array of the booking.
      *
      * @return array
      */
-    public function set_bookingdate(array $bookingdate) {
+    public function set_bookingdate(int $bookingdate) {
         $this->bookingdate = $bookingdate;
     }
 }

@@ -24,67 +24,78 @@
 
 namespace local_booking\local\session\data_access;
 
-use local_booking\local\session\entities\session;
+use local_booking\local\session\entities\booking;
 
-class session_vault implements session_vault_interface {
+class booking_vault implements booking_vault_interface {
 
     /** Table name for the persistent. */
-    const TABLE = 'local_booking_sessions';
+    const TABLE = 'local_booking';
 
     /**
-     * save a session
+     * get booked sessions for the instructor
      *
      * @param string $session
      * @return bool
      */
-    public function get_sessions($year = 0, $week = 0) {
+    public function get_bookings() {
         global $DB, $USER;
 
         $condition = [
             'userid' => $USER->id,
-            'year' => $year,
-            'week' => $week,
         ];
 
         return $DB->get_records(static::TABLE, $condition);
     }
 
     /**
-     * remove all records for a user for a
-     * specific year and week
+     * get booked sessions for a specific student
      *
-     * @param string $username The username.
+     * @param int $userid
      * @return bool
      */
-    public function delete_sessions($course = 0, $year = 0, $week = 0) {
+    public function get_booking($userid) {
         global $DB, $USER;
 
         $condition = [
             'userid' => $USER->id,
-            'courseid' => $course,
-            'year' => $year,
-            'week' => $week,
+            'studentid' => $userid,
+        ];
+
+        return $DB->get_records(static::TABLE, $condition);
+    }
+
+    /**
+     * remove all bookings for a user for a
+     *
+     * @param string $username The username.
+     * @return bool
+     */
+    public function delete_booking($userid) {
+        global $DB, $USER;
+
+        $condition = [
+            'userid' => $USER->id,
+            'studentid' => $userid,
         ];
 
         return $DB->delete_records(static::TABLE, $condition);
     }
 
     /**
-     * save a session
+     * save a booking
      *
-     * @param string $session
+     * @param {booking} $booking
      * @return bool
      */
-    public function save(session $session) {
+    public function save_booking(booking $booking) {
         global $DB, $USER;
 
         $sessionrecord = new \stdClass();
-        $sessionrecord->userid = $USER->id;
-        $sessionrecord->courseid = $session->get_courseid();
-        $sessionrecord->starttime = $session->get_starttime();
-        $sessionrecord->endtime = $session->get_endtime();
-        $sessionrecord->year = $session->get_year();
-        $sessionrecord->week = $session->get_week();
+        $sessionrecord->userid       = $USER->id;
+        $sessionrecord->studentid    = $booking->get_studentid();
+        $sessionrecord->exerciseid   = $booking->get_exerciseid();
+        $sessionrecord->booingslots  = $booking->get_bookedslots();
+        $sessionrecord->bookingdate  = time();
 
         return $DB->insert_record(static::TABLE, $sessionrecord);
     }

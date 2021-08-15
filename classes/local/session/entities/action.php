@@ -59,6 +59,8 @@ class action implements action_interface {
      * @param action_interface $action The action associated with this event.
      */
     public function __construct(string $actiontype, int $userid, $exerciseid) {
+        global $COURSE;
+
         if ($actiontype == 'grade') {
             $actionurl = new moodle_url('/mod/assign/view.php', [
                 'id' => $exerciseid,
@@ -70,6 +72,7 @@ class action implements action_interface {
         } elseif ($actiontype == 'book') {
             $actionurl = new moodle_url('/local/availability/view.php', [
                 'action' => 'book',
+                'course' => $COURSE->id,
                 'userid' => $userid,
             ]);
         }

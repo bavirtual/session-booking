@@ -71,11 +71,11 @@ interface booking_interface {
     public function get_studentname();
 
     /**
-     * Set the date array of the booking.
+     * Get the string of booked slots comma delimited.
      *
-     * @return array
+     * @return string
      */
-    public function get_bookingdate();
+    public function get_bookedslots();
 
     /**
      * Set the status of the booking Confirmed or Tentative.
@@ -83,6 +83,13 @@ interface booking_interface {
      * @return string
      */
     public function confirmed();
+
+    /**
+     * Get the date array of the booking.
+     *
+     * @return array
+     */
+    public function get_bookingdate();
 
     /**
      * Set the course exercise id for the booking.
@@ -120,9 +127,16 @@ interface booking_interface {
     public function set_studentname(string $studentname);
 
     /**
+     * Set the string of booked slots comma delimited.
+     *
+     * @return string
+     */
+    public function set_bookedslots(string $bookedslots);
+
+    /**
      * Set the date array of the booking.
      *
      * @return array
      */
-    public function set_bookingdate(array $bookingdate);
+    public function set_bookingdate(int $bookingdate);
 }

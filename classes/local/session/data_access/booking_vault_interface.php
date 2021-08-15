@@ -26,7 +26,7 @@ namespace local_booking\local\session\data_access;
 
 defined('MOODLE_INTERNAL') || die();
 
-use local_booking\local\session\entities\session;
+use local_booking\local\session\entities\booking;
 
 /**
  * Interface for an session vault class
@@ -34,44 +34,36 @@ use local_booking\local\session\entities\session;
  * @copyright  2017 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-interface session_vault_interface {
+interface booking_vault_interface {
 
     /**
-     * Get all sessions for a user that fall on a specific year and week.
+     * Get all booked sessions for the instructor.
      *
-     * @param int|null              $userid     sessions for this user
-     * @param int|null              $year       sessions that fall in this year
-     * @param int|null              $week       sessions that fall in this week
-     *
-     * @return session_interface[]     Array of session_interfaces.
+     * @return booing[]             Array of session_interfaces.
      */
-    public function get_sessions(
-        $year = 0,
-        $week = 0
-    );
+    public function get_bookings();
 
     /**
-     * Delete all sessions for a user that fall on a specific year and week.
+     * Get all booked sessions for a user that fall on a specific student.
      *
-     * @param int|null              $userid     sessions for this user
-     * @param int|null              $year       sessions that fall in this year
-     * @param int|null              $week       sessions that fall in this week
-     *
-     * @return result               result
+     * @param int                   $userid of the student in the booking.
+     * @return booking              A student booking.
      */
-    public function delete_sessions(
-        $year = 0,
-        $week = 0
-    );
+    public function get_booking($userid);
 
     /**
-     * Saves the passed session
+     * Delete all sessions for a specific student.
      *
-     * If using this function for pagination then you can provide the last session that you've seen
-     * ($aftersession) and it will be used to appropriately offset the result set so that you don't
-     * receive the same sessions again.
-     *
-     * @param session_interface $session
+     * @param   int                 $userid     sessions for this user
+     * @return  result              $result
      */
-    public function save(session $session);
+    public function delete_booking($userid);
+
+    /**
+     * Saves the passed booked session
+     *
+     * @param   booking_interface   $session
+     * @return  result              $result
+     */
+    public function save_booking(booking $booking);
 }

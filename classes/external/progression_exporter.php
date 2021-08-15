@@ -209,7 +209,7 @@ class progression_exporter extends exporter {
 
         $sql = 'SELECT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
                     'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
-                    ud.data AS simulator
+                    ud.data AS simulator, ue.timemodified AS enroldate
                 FROM {' . self::DB_USER . '} u
                 INNER JOIN {' . self::DB_ROLE_ASSIGN . '} ra on u.id = ra.userid
                 INNER JOIN {' . self::DB_ROLE . '} r on r.id = ra.roleid
@@ -227,8 +227,7 @@ class progression_exporter extends exporter {
                         FROM {' . self::DB_GROUPS_MEM . '} gm
                         INNER JOIN {' . self::DB_GROUPS . '} g on g.id = gm.groupid
                         WHERE g.name = "OnHold"
-                        )
-                ORDER BY ue.enrolid ASC';
+                        )';
 
                 $students = $DB->get_records_sql($sql);
 
