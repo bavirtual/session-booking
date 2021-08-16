@@ -27,12 +27,15 @@ defined('MOODLE_INTERNAL') || die();
 
 $messageproviders = array(
     // Notify the student that a session has been booked by the instructor.
-    'notification' => array(
-        'capability' => 'local/booking:emailnotifybooking'
+    'booking_notification' => array(
+        'capability' => 'local/booking:emailnotify',
+        'defaults' => array(
+            'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
+        ),
     ),
 
     // Confirm booking to the instructor.
-    'confirmation' => array(
-        'capability' => 'local/booking:emailconfirmbooking',
+    'booking_confirmation' => array(
+        'capability' => 'local/booking:emailconfirm',
     ),
 );

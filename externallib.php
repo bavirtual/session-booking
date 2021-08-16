@@ -114,7 +114,7 @@ class local_booking_external extends external_api {
             $transaction->allow_commit();
             \core\notification::success(get_string('bookingsavesuccess', 'local_booking'));
         } else {
-            $transaction->rollback(new moodle_exception('Error while booking a session.'));
+            $transaction->rollback(new moodle_exception(get_string('bookingsaveunable', 'local_booking')));
             \core\notification::warning(get_string('bookingsaveunable', 'local_booking'));
         }
 

@@ -232,7 +232,14 @@ class student_exporter extends exporter {
         global $DB;
 
         $exercisevalues = array_values($this->courseexercises);
-        $exerciseid = count($this->studentgrades) > 0 ? end($this->studentgrades)->exerciseid : array_shift($exercisevalues)->exerciseid;
+        // find the next exercise for the student
+        if (count($this->studentgrades) > 0) {
+            $lastexercise = end($this->studentgrades)->exerciseid;
+            $exerciseid = $exercisevalues[array_search($lastexercise, array_column($exercisevalues, 'exerciseid'))+1]->exerciseid;
+        } else {
+            $exerciseid = array_shift($exercisevalues)->exerciseid;
+        }
+
         $hasbookings = $DB->count_records(self::DB_BOOKINGS, ['studentid' => $this->studentid]) > 0;
         $action = new action($hasbookings ? 'grade' : 'book', $this->studentid, $exerciseid);
 

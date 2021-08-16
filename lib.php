@@ -115,25 +115,25 @@ function send_booking_notification($studentid, $exerciseid, $sessiondate) {
     global $USER;
 
     // notification message data
-    $data = [
+    $data = (object) array(
         'instructor'    => get_fullusername($USER->id),
         'sessiondate'   => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
         'exercise'      => get_exercise_name($exerciseid),
         'confirmurl'    => (new \moodle_url('/local/availability/'))->out(false),
-    ];
+    );
 
     $message = new \core\message\message();
     $message->component = 'local_booking';
-    $message->name = 'notification';
+    $message->name = 'booking_notification';
     $message->userfrom = core_user::get_noreply_user();
     $message->userto = $studentid;
-    $message->subject = get_string('emailnotification', 'local_booking');
-    $message->fullmessage = get_string('emailnotificationmsg', 'local_booking', $data);
+    $message->subject = get_string('emailnotify', 'local_booking');
+    $message->fullmessage = get_string('emailnotifymsg', 'local_booking', $data);
     $message->fullmessageformat = FORMAT_MARKDOWN;
-    $message->fullmessagehtml = get_string('emailnotificationhtml', 'local_booking', $data);
-    $message->smallmessage = get_string('emailnotificationmsgsmall', 'local_booking');
+    $message->fullmessagehtml = get_string('emailnotifyhtml', 'local_booking', $data);
+    $message->smallmessage = get_string('emailnotifymsgsmall', 'local_booking');
     $message->notification = 1; // Because this is a notification generated from Moodle, not a user-to-user message
-    $message->contexturl = $data['confirmurl'];
+    $message->contexturl = $data->confirmurl;
     $message->contexturlname = get_string('studentavialability', 'local_booking');
     $content = array('*' => array('header' => ' testing ', 'footer' => ' testing '));
     $message->set_additional_content('email', $content);
@@ -151,25 +151,25 @@ function send_booking_confirmation($studentid, $exerciseid, $sessiondate) {
     global $USER;
 
     // confirmation message data
-    $data = [
+    $data = (object) array(
         'student'       => get_fullusername($studentid),
         'sessiondate'   => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
         'exercise'      => get_exercise_name($exerciseid),
         'bookingurl'    => (new \moodle_url('/local/booking/'))->out(false),
-    ];
+    );
 
     $message = new \core\message\message();
     $message->component = 'local_booking';
-    $message->name = 'confirmation';
+    $message->name = 'booking_confirmation';
     $message->userfrom = core_user::get_noreply_user();
     $message->userto = $USER->id;
-    $message->subject = get_string('emailconfirmation', 'local_booking');
-    $message->fullmessage = get_string('emailconfirmationnmsg', 'local_booking', $data);
+    $message->subject = get_string('emailconfirm', 'local_booking');
+    $message->fullmessage = get_string('emailconfirmnmsg', 'local_booking', $data);
     $message->fullmessageformat = FORMAT_MARKDOWN;
-    $message->fullmessagehtml = get_string('emailconfirmationhtml', 'local_booking', $data);
+    $message->fullmessagehtml = get_string('emailconfirmhtml', 'local_booking', $data);
     $message->smallmessage = get_string('pluginname', 'local_booking');
     $message->notification = 1; // Because this is a notification generated from Moodle, not a user-to-user message
-    $message->contexturl = $data['bookingurl'];
+    $message->contexturl = $data->bookingurl;
     $message->contexturlname = get_string('pluginname', 'local_booking');
     $content = array('*' => array('header' => ' testing header ', 'footer' => ' testing footer'));
     $message->set_additional_content('email', $content);
