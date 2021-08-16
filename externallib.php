@@ -27,6 +27,7 @@
 
 use local_booking\local\session\data_access\booking_vault;
 use local_booking\local\session\entities\booking;
+use local_availability\local\slot\data_access\slot_vault;
 use local_availability\local\slot\entities\slot;
 
 defined('MOODLE_INTERNAL') || die;
@@ -58,7 +59,7 @@ class local_booking_external extends external_api {
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
     public static function save_booking($slottobook, $exerciseid, $studentid) {
-        global $DB, $COURSE, $USER;
+        global $DB, $USER;
 
         // Parameter validation.
         $params = self::validate_parameters(self::save_booking_parameters(), array(
@@ -68,33 +69,38 @@ class local_booking_external extends external_api {
                 )
             );
 
-        $vault = new booking_vault();
+        $bookingvault = new booking_vault();
+        $slotvault = new slot_vault();
         $warnings = array();
 
         $transaction = $DB->start_delegated_transaction();
 
         // remove all week's slots for the user to avoid updates
-        $result = $vault->delete_booking($studentid);
+        $result = $bookingvault->delete_booking($studentid);
 
         // add a new tentatively booked slot for the student.
-        if ($result && $slottobook['slotid'] != 0) {
-            $slotobj = new slot(
+        $sessiondata = [
+            'exercise'  => get_exercise_name($exerciseid),
+            'instructor'=> get_fullusername($USER->id),
+            'status'    => get_string('tentative', 'local_booking'),
+        ];
+        if ($result) {
+            $slotobj = new slot(0,
                 $studentid,
-                $COURSE->id,
+                get_course_id($exerciseid),
                 $slottobook['starttime'],
                 $slottobook['endtime'],
                 $slottobook['year'],
                 $slottobook['week'],
-                'tentative',
-                'exercise ' . get_exercise_name($exerciseid) . ' with instructor ' . get_fullusername($USER->id)
+                get_string('statustentative', 'local_booking'),
+                get_string('bookinginfo', 'local_booking', $sessiondata)
             );
-            $bookedslotid = $DB->insert_record(self::DB_SLOTS, $slotobj);
-            $bookedslot = $DB->get_record(self::DB_SLOTS, ['id' => $bookedslotid]);
+            $bookedslot = $slotvault->get_slot($slotvault->save($slotobj));
         }
 
         // add new booking by the instructor.
         if ($result) {
-            $result = $vault->save_booking(new booking($exerciseid, $bookedslot, $studentid));
+            $result = $bookingvault->save_booking(new booking($exerciseid, $bookedslot, $studentid));
         }
 
         // send emails to both student and instructor
@@ -108,7 +114,7 @@ class local_booking_external extends external_api {
             $transaction->allow_commit();
             \core\notification::success(get_string('bookingsavesuccess', 'local_booking'));
         } else {
-            $transaction->rollback();
+            $transaction->rollback(new moodle_exception('Error while booking a session.'));
             \core\notification::warning(get_string('bookingsaveunable', 'local_booking'));
         }
 
@@ -134,7 +140,6 @@ class local_booking_external extends external_api {
                             'endtime' => new external_value(PARAM_INT, 'booked slot end time', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
                             'year' => new external_value(PARAM_INT, 'booked slot year', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
                             'week' => new external_value(PARAM_INT, 'booked slot week', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
-                            'slotid' => new external_value(PARAM_INT, 'reference to the student slot', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
                         ), 'booking'),
                 'exerciseid'  => new external_value(PARAM_INT, 'The exercise id', VALUE_DEFAULT),
                 'studentid'   => new external_value(PARAM_INT, 'The student id', VALUE_DEFAULT),

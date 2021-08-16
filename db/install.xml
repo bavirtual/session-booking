@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/booking/db" VERSION="20210815" COMMENT="XMLDB file for Moodle local/booking"
+<XMLDB PATH="local/booking/db" VERSION="20210816" COMMENT="XMLDB file for Moodle local/booking"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -10,9 +10,8 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Instructor user id of the booking"/>
         <FIELD NAME="studentid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Student user id of the booking"/>
         <FIELD NAME="exerciseid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Id of the assignment course module"/>
-        <FIELD NAME="bookedslots" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" COMMENT="Slots timestamp being booked"/>
-        <FIELD NAME="confirmed" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Has the booking been confirmed"/>
         <FIELD NAME="slotid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The slot id field"/>
+        <FIELD NAME="confirmed" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Has the booking been confirmed"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Timestamp when the booking was created/modified"/>
       </FIELDS>
       <KEYS>

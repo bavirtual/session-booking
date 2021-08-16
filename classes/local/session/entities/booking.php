@@ -25,7 +25,7 @@
 
 namespace local_booking\local\session\entities;
 
-use local_availability\local\slot\entities\slot;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -80,14 +80,14 @@ class booking implements booking_interface {
     /**
      * Constructor.
      *
-     * @param int            $exerciseid     The exercise id associated with the booking.
-     * @param slot_interface $slot           The slot associated with this booking.
-     * @param int            $studentid      The student id associated with this booking..
-     * @param string         studentname     The student name.
-     * @param int            $instructorid   The instructor id who made this booking.
-     * @param string         $instructorname The instructor name.
-     * @param bool           $confirmed      The confimration status of this booking.
-     * @param int            $bookingdate    The booking timestamp.
+     * @param int       $exerciseid     The exercise id associated with the booking.
+     * @param stdClass  $slot           The slot associated with this booking.
+     * @param int       $studentid      The student id associated with this booking..
+     * @param string    studentname     The student name.
+     * @param int       $instructorid   The instructor id who made this booking.
+     * @param string    $instructorname The instructor name.
+     * @param bool      $confirmed      The confimration status of this booking.
+     * @param int       $bookingdate    The booking timestamp.
      */
     public function __construct(
         $exerciseid,
@@ -157,9 +157,9 @@ class booking implements booking_interface {
     /**
      * Set the id of booked slot.
      *
-     * @return slot
+     * @return stdClass
      */
-    public function set_slot(slot $slot) {
+    public function set_slot(stdClass $slot) {
         $this->slot = $slot;
     }
 

@@ -68,9 +68,9 @@ function get_fullusername($studentid) {
     $sql = 'SELECT ' . $DB->sql_concat('u.firstname', '" "',
                 'u.lastname', '" "', 'u.alternatename') . ' AS username
             FROM {' . DB_USER . '} u
-            WHERE u.userid = ' . $studentid;
+            WHERE u.id = ' . $studentid;
 
-    return $DB->get_records_sql($sql)->username;
+    return $DB->get_record_sql($sql)->username;
 }
 
 /**
@@ -82,12 +82,28 @@ function get_exercise_name($exerciseid) {
     global $DB;
 
     // Get the student's grades
-    $sql = 'SELECT name AS exercisename
+    $sql = 'SELECT a.name AS exercisename
             FROM {' . DB_ASSIGN . '} a
             INNER JOIN {' . DB_COURSE_MODULES . '} cm on a.id = cm.instance
             WHERE cm.id = ' . $exerciseid;
 
-    return $DB->get_records_sql($sql)->exercisename;
+    return $DB->get_record_sql($sql)->exercisename;
+}
+
+/**
+ * Returns course id of the passed course
+ *
+ * @return string  The BAV exercise name.
+ */
+function get_course_id($exerciseid) {
+    global $DB;
+
+    // Get the student's grades
+    $sql = 'SELECT cm.course AS courseid
+            FROM {' . DB_COURSE_MODULES . '} cm
+            WHERE cm.id = ' . $exerciseid;
+
+    return $DB->get_record_sql($sql)->courseid;
 }
 
 /**
@@ -111,14 +127,14 @@ function send_booking_notification($studentid, $exerciseid, $sessiondate) {
     $message->name = 'notification';
     $message->userfrom = core_user::get_noreply_user();
     $message->userto = $studentid;
-    $message->subject = 'Booking notification';
-    $message->fullmessage = '{$data->instructor} has booked a session on {$data->sessiondate} for \'{$data->exercise}\'. Please confirm this booking by click on this link: {$data->confirmurl}';
+    $message->subject = get_string('emailnotification', 'local_booking');
+    $message->fullmessage = get_string('emailnotificationmsg', 'local_booking', $data);
     $message->fullmessageformat = FORMAT_MARKDOWN;
-    $message->fullmessagehtml = '{$data->instructor} has booked a session on {$data->sessiondate} for \'{$data->exercise}\'\<br><br><a href=\'{$data->confirmurl}\'>Please confirm this booking</a>.';
-    $message->smallmessage = 'Session booking';
+    $message->fullmessagehtml = get_string('emailnotificationhtml', 'local_booking', $data);
+    $message->smallmessage = get_string('emailnotificationmsgsmall', 'local_booking');
     $message->notification = 1; // Because this is a notification generated from Moodle, not a user-to-user message
     $message->contexturl = $data['confirmurl'];
-    $message->contexturlname = 'Student Availability';
+    $message->contexturlname = get_string('studentavialability', 'local_booking');
     $content = array('*' => array('header' => ' testing ', 'footer' => ' testing '));
     $message->set_additional_content('email', $content);
 
@@ -147,14 +163,14 @@ function send_booking_confirmation($studentid, $exerciseid, $sessiondate) {
     $message->name = 'confirmation';
     $message->userfrom = core_user::get_noreply_user();
     $message->userto = $USER->id;
-    $message->subject = 'Session booking confirmation';
-    $message->fullmessage = '\'{$data->exercise}\' session booked on {$data->sessiondate} for {$data->student}';
+    $message->subject = get_string('emailconfirmation', 'local_booking');
+    $message->fullmessage = get_string('emailconfirmationnmsg', 'local_booking', $data);
     $message->fullmessageformat = FORMAT_MARKDOWN;
-    $message->fullmessagehtml = '\'{$data->exercise}\' session booked on {$data->sessiondate} for {$data->student}';
-    $message->smallmessage = 'Session booking';
+    $message->fullmessagehtml = get_string('emailconfirmationhtml', 'local_booking', $data);
+    $message->smallmessage = get_string('pluginname', 'local_booking');
     $message->notification = 1; // Because this is a notification generated from Moodle, not a user-to-user message
     $message->contexturl = $data['bookingurl'];
-    $message->contexturlname = 'Student Availability';
+    $message->contexturlname = get_string('pluginname', 'local_booking');
     $content = array('*' => array('header' => ' testing header ', 'footer' => ' testing footer'));
     $message->set_additional_content('email', $content);
 
