@@ -97,7 +97,7 @@ class booking implements booking_interface {
         $instructorid   = 0,
         $instructorname = '',
         $confirmed      = false,
-        $bookingdate    = 0,
+        $bookingdate    = 0
         ) {
         $this->exerciseid       = $exerciseid;
         $this->slot             = $slot;

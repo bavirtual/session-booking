@@ -50,20 +50,21 @@ class local_booking_external extends external_api {
      * Save booked slots. Delete existing ones for the user then update
      * any existing slots if applicable with slot values
      *
-     * @param {object} $bookedslot Object containing booked slots.
-     * @param int $slots A list of slots to create.
-     * @param int $slots A list of slots to create.
+     * @param {object} $bookedslot array containing booked slots.
+     * @param int $exerciseid The exercise the session is for.
+     * @param int $studentid The student id assocaited with the slot.
+     * @param int $refslotid The session slot associated.
      * @return array array of slots created.
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
-    public static function save_booking($bookedslot, $exerciseid, $studentid, $slot) {
+    public static function save_booking($slottobook, $exerciseid, $studentid) {
         global $DB, $COURSE, $USER;
 
         // Parameter validation.
         $params = self::validate_parameters(self::save_booking_parameters(), array(
-                'bookedslot' => $bookedslot,
+                'bookedslot' => $slottobook,
                 'exerciseid' => $exerciseid,
-                'userid'     => $studentid
+                'studentid'  => $studentid
                 )
             );
 
@@ -75,28 +76,33 @@ class local_booking_external extends external_api {
         // remove all week's slots for the user to avoid updates
         $result = $vault->delete_booking($studentid);
 
-        // add booking to the database.
-        if ($result) {
-            $result = $vault->save_booking(new booking($exerciseid, $slot, $studentid));
-        }
-
-        // update existing availability slots.
-        if ($result) {
+        // add a new tentatively booked slot for the student.
+        if ($result && $slottobook['slotid'] != 0) {
             $slotobj = new slot(
                 $studentid,
                 $COURSE->id,
-                $slot[0],
-                $slot[1],
-                $slot[2],
-                $slot[3],
+                $slottobook['starttime'],
+                $slottobook['endtime'],
+                $slottobook['year'],
+                $slottobook['week'],
                 'tentative',
-                $exerciseid,
-                $USER->id
+                'exercise ' . get_exercise_name($exerciseid) . ' with instructor ' . get_fullusername($USER->id)
             );
-            $result = $DB->insert_record(self::DB_SLOTS, $slotobj);
+            $bookedslotid = $DB->insert_record(self::DB_SLOTS, $slotobj);
+            $bookedslot = $DB->get_record(self::DB_SLOTS, ['id' => $bookedslotid]);
+        }
+
+        // add new booking by the instructor.
+        if ($result) {
+            $result = $vault->save_booking(new booking($exerciseid, $bookedslot, $studentid));
         }
 
         // send emails to both student and instructor
+        if ($result) {
+            $sessiondate = new DateTime('@' . $slottobook['starttime']);
+            $result = send_booking_notification($studentid, $exerciseid, $sessiondate);
+            $result = send_booking_confirmation($studentid, $exerciseid, $sessiondate);
+        }
 
         if ($result) {
             $transaction->allow_commit();
@@ -122,10 +128,16 @@ class local_booking_external extends external_api {
     public static function save_booking_parameters() {
         return new external_function_parameters(
             array(
-                'bookedslot'  => new external_value(PARAM_RAW, 'The booked slot object array', VALUE_DEFAULT),
+                'bookedslot'  => new external_single_structure(
+                        array(
+                            'starttime' => new external_value(PARAM_INT, 'booked slot start time', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
+                            'endtime' => new external_value(PARAM_INT, 'booked slot end time', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
+                            'year' => new external_value(PARAM_INT, 'booked slot year', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
+                            'week' => new external_value(PARAM_INT, 'booked slot week', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
+                            'slotid' => new external_value(PARAM_INT, 'reference to the student slot', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
+                        ), 'booking'),
                 'exerciseid'  => new external_value(PARAM_INT, 'The exercise id', VALUE_DEFAULT),
-                'userid'      => new external_value(PARAM_INT, 'The student id', VALUE_DEFAULT),
-                'slotid'      => new external_value(PARAM_INT, 'The availability slot id', VALUE_DEFAULT),
+                'studentid'   => new external_value(PARAM_INT, 'The student id', VALUE_DEFAULT),
             )
         );
     }

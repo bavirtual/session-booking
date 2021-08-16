@@ -74,6 +74,7 @@ class action implements action_interface {
                 'action' => 'book',
                 'course' => $COURSE->id,
                 'userid' => $userid,
+                'exid'   => $exerciseid,
             ]);
         }
 

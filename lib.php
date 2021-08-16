@@ -14,6 +14,22 @@ defined('MOODLE_INTERNAL') || die();
 use \local_booking\external\progression_exporter;
 
 /**
+ * Process user  table name.
+ */
+const DB_USER = 'user';
+
+/**
+ * Process assign table name.
+ */
+const DB_ASSIGN = 'assign';
+
+/**
+ * Process course modules table name.
+ */
+const DB_COURSE_MODULES = 'course_modules';
+
+
+/**
  * Get the calendar view output.
  *
  * @param   \calendar_information $calendar The calendar being represented
@@ -38,6 +54,112 @@ function get_progression_view($courseid, $categoryid) {
     $data = $progression->export($renderer);
 
     return [$data, $template];
+}
+
+/**
+ * Returns full username
+ *
+ * @return string  The full BAV username (first, last, and BAWID)
+ */
+function get_fullusername($studentid) {
+    global $DB;
+
+    // Get the student's grades
+    $sql = 'SELECT ' . $DB->sql_concat('u.firstname', '" "',
+                'u.lastname', '" "', 'u.alternatename') . ' AS username
+            FROM {' . DB_USER . '} u
+            WHERE u.userid = ' . $studentid;
+
+    return $DB->get_records_sql($sql)->username;
+}
+
+/**
+ * Returns exercise assignment name
+ *
+ * @return string  The BAV exercise name.
+ */
+function get_exercise_name($exerciseid) {
+    global $DB;
+
+    // Get the student's grades
+    $sql = 'SELECT name AS exercisename
+            FROM {' . DB_ASSIGN . '} a
+            INNER JOIN {' . DB_COURSE_MODULES . '} cm on a.id = cm.instance
+            WHERE cm.id = ' . $exerciseid;
+
+    return $DB->get_records_sql($sql)->exercisename;
+}
+
+/**
+ * Sends an email notifying the student
+ *
+ * @return int  The notification message id.
+ */
+function send_booking_notification($studentid, $exerciseid, $sessiondate) {
+    global $USER;
+
+    // notification message data
+    $data = [
+        'instructor'    => get_fullusername($USER->id),
+        'sessiondate'   => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
+        'exercise'      => get_exercise_name($exerciseid),
+        'confirmurl'    => (new \moodle_url('/local/availability/'))->out(false),
+    ];
+
+    $message = new \core\message\message();
+    $message->component = 'local_booking';
+    $message->name = 'notification';
+    $message->userfrom = core_user::get_noreply_user();
+    $message->userto = $studentid;
+    $message->subject = 'Booking notification';
+    $message->fullmessage = '{$data->instructor} has booked a session on {$data->sessiondate} for \'{$data->exercise}\'. Please confirm this booking by click on this link: {$data->confirmurl}';
+    $message->fullmessageformat = FORMAT_MARKDOWN;
+    $message->fullmessagehtml = '{$data->instructor} has booked a session on {$data->sessiondate} for \'{$data->exercise}\'\<br><br><a href=\'{$data->confirmurl}\'>Please confirm this booking</a>.';
+    $message->smallmessage = 'Session booking';
+    $message->notification = 1; // Because this is a notification generated from Moodle, not a user-to-user message
+    $message->contexturl = $data['confirmurl'];
+    $message->contexturlname = 'Student Availability';
+    $content = array('*' => array('header' => ' testing ', 'footer' => ' testing '));
+    $message->set_additional_content('email', $content);
+
+    // Actually send the message
+    return message_send($message);
+}
+
+/**
+ * Sends an email confirming booking to the instructor
+ *
+ * @return int  The notification message id.
+ */
+function send_booking_confirmation($studentid, $exerciseid, $sessiondate) {
+    global $USER;
+
+    // confirmation message data
+    $data = [
+        'student'       => get_fullusername($studentid),
+        'sessiondate'   => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
+        'exercise'      => get_exercise_name($exerciseid),
+        'bookingurl'    => (new \moodle_url('/local/booking/'))->out(false),
+    ];
+
+    $message = new \core\message\message();
+    $message->component = 'local_booking';
+    $message->name = 'confirmation';
+    $message->userfrom = core_user::get_noreply_user();
+    $message->userto = $USER->id;
+    $message->subject = 'Session booking confirmation';
+    $message->fullmessage = '\'{$data->exercise}\' session booked on {$data->sessiondate} for {$data->student}';
+    $message->fullmessageformat = FORMAT_MARKDOWN;
+    $message->fullmessagehtml = '\'{$data->exercise}\' session booked on {$data->sessiondate} for {$data->student}';
+    $message->smallmessage = 'Session booking';
+    $message->notification = 1; // Because this is a notification generated from Moodle, not a user-to-user message
+    $message->contexturl = $data['bookingurl'];
+    $message->contexturlname = 'Student Availability';
+    $content = array('*' => array('header' => ' testing header ', 'footer' => ' testing footer'));
+    $message->set_additional_content('email', $content);
+
+    // Actually send the message
+    return message_send($message);
 }
 
 /**

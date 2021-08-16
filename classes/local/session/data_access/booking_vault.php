@@ -94,7 +94,7 @@ class booking_vault implements booking_vault_interface {
         $sessionrecord->userid       = $USER->id;
         $sessionrecord->studentid    = $booking->get_studentid();
         $sessionrecord->exerciseid   = $booking->get_exerciseid();
-        $sessionrecord->slotid       = $booking->get_slot()->get_id();
+        $sessionrecord->slotid       = ($booking->get_slot())->get_id();
         $sessionrecord->bookingdate  = time();
 
         return $DB->insert_record(static::TABLE, $sessionrecord);
