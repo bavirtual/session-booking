@@ -15,11 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Contains event class for displaying the day on month view.
+ * Session Booking Plugin
  *
- * @package   local_booking
- * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    local_booking
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_booking\external;
@@ -29,6 +30,8 @@ defined('MOODLE_INTERNAL') || die();
 use local_booking\external\session_exporter;
 use local_booking\local\session\entities\action;
 use core\external\exporter;
+use local_booking\local\session\data_access\booking_vault;
+use local_booking\local\session\data_access\student_vault;
 use renderer_base;
 
 /**
@@ -39,26 +42,6 @@ use renderer_base;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class student_exporter extends exporter {
-
-    /**
-     * Process user enrollments table name.
-     */
-    const DB_GRADES = 'assign_grades';
-
-    /**
-     * Process user enrollments table name.
-     */
-    const DB_COURSE_MODS = 'course_modules';
-
-    /**
-     * Process user  table name.
-     */
-    const DB_USER = 'user';
-
-    /**
-     * Process user enrollments table name.
-     */
-    const DB_BOOKINGS = 'local_booking';
 
     /**
      * @var int $studentid An id of the student.
@@ -81,6 +64,15 @@ class student_exporter extends exporter {
     protected $studentgrades;
 
     /**
+     * @var booking_vault $bookingvault A vault to access booking data.
+     */
+    protected $bookingvault;
+
+    /**
+     * @var student_vault $studentvault A vault to access student data.
+     */
+    protected $studentvault;
+    /**
      * Constructor.
      *
      * @param mixed $data An array of student data.
@@ -90,6 +82,9 @@ class student_exporter extends exporter {
         $this->courseid = $courseid;
         $this->studentid = $data['studentid'];
         $this->courseexercises = $related['courseexercises'];
+        $this->bookingvault = new booking_vault();
+        $this->studentvault = new student_vault();
+
         parent::__construct($data, $related);
     }
 
@@ -135,6 +130,9 @@ class student_exporter extends exporter {
             'actionname' => [
                 'type' => PARAM_RAW,
             ],
+            'actionbook' => [
+                'type' => PARAM_BOOL,
+            ],
         ];
     }
 
@@ -153,6 +151,7 @@ class student_exporter extends exporter {
             'actionurl' => $action->get_url()->out(false),
             'actiontype' => $action->get_type(),
             'actionname' => $action->get_name(),
+            'actionbook' => $action->get_type() == 'book',
         ];
 
         return $return;
@@ -177,9 +176,7 @@ class student_exporter extends exporter {
      * @return  $submissions[]
      */
     protected function get_sessions($output) {
-
-        $this->studentgrades = $this->get_student_grades();
-
+        $this->studentgrades = $this->studentvault->get_grades($this->studentid);
 
         foreach ($this->courseexercises as $exercise) {
             $studentinfo = [];
@@ -189,35 +186,13 @@ class student_exporter extends exporter {
                 'courseid'    => $this->courseid,
                 'exerciseid'  => $exercise->exerciseid,
                 'grades'      => $this->studentgrades,
-                'bookings'    => null,
+                'booking'     => $this->bookingvault->get_booking($this->studentid),
             ];
             $exercisesession = new session_exporter($studentinfo, $this->related);
             $sessions[] = $exercisesession->export($output);
         }
 
         return $sessions;
-    }
-
-    /**
-     * Checks if the slot date is out
-     * of week lookahead bounds
-     *
-     * @return {Object}[]
-     */
-    protected function get_student_grades() {
-        global $DB;
-
-        // Get the student's grades
-        $sql = 'SELECT cm.id AS exerciseid, ag.assignment AS assignid,
-                    ag.userid, ag.grade, ag.timemodified AS gradedate,
-                    u.id AS instructorid, ' . $DB->sql_concat('u.firstname', '" "',
-                    'u.lastname', '" "', 'u.alternatename') . ' AS instructorname
-                FROM {' . self::DB_GRADES . '} ag
-                INNER JOIN {' . self::DB_COURSE_MODS . '} cm on ag.assignment = cm.instance
-                INNER JOIN {' . self::DB_USER . '} u on ag.grader = u.id
-                WHERE cm.module = 1 AND ag.userid = ' . $this->studentid;
-
-        return $DB->get_records_sql($sql);
     }
 
     /**
@@ -229,9 +204,8 @@ class student_exporter extends exporter {
      * @return {Object}
      */
     protected function get_next_action() {
-        global $DB;
-
         $exercisevalues = array_values($this->courseexercises);
+
         // find the next exercise for the student
         if (count($this->studentgrades) > 0) {
             $lastexercise = end($this->studentgrades)->exerciseid;
@@ -240,8 +214,9 @@ class student_exporter extends exporter {
             $exerciseid = array_shift($exercisevalues)->exerciseid;
         }
 
-        $hasbookings = $DB->count_records(self::DB_BOOKINGS, ['studentid' => $this->studentid]) > 0;
-        $action = new action($hasbookings ? 'grade' : 'book', $this->studentid, $exerciseid);
+        // next action depends if the student has any booking
+        $hasbooking = !empty($this->bookingvault->get_booking($this->studentid));
+        $action = new action($hasbooking ? 'grade' : 'book', $this->studentid, $exerciseid);
 
         return $action;
     }

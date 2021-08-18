@@ -38,4 +38,9 @@ $messageproviders = array(
     'booking_confirmation' => array(
         'capability' => 'local/booking:emailconfirm',
     ),
+
+    // Notify instructor of student confirmation of booked session.
+    'instructor_notification' => array(
+        'capability' => 'local/booking:emailconfirm',
+    ),
 );

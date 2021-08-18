@@ -15,14 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Session Booking Plugin
+ * Add event handlers of graded submissions for bookings
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @category   event
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require('../config.php');
-$PAGE->set_url('/local/booking/view.php');
-redirect($CFG->wwwroot.'/local/booking/view.php');
+
+defined('MOODLE_INTERNAL') || die();
+
+$observers = array(
+
+    array(
+        'eventname' => '\mod_assign\event\submission_graded',
+        'callback' => '\local_booking\grading_observer::submission_graded',
+    ),
+);

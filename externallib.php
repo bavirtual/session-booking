@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
- * External student booking calendar APIs
+ * Session Booking Plugin
  *
  * @package    local_booking
- * @category   external
- * @copyright  2012 Ankit Agarwal
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @since Moodle 2.5
  */
 
 use local_booking\local\session\data_access\booking_vault;
@@ -69,25 +67,29 @@ class local_booking_external extends external_api {
                 )
             );
 
+        $result = false;
         $bookingvault = new booking_vault();
         $slotvault = new slot_vault();
         $warnings = array();
+        $courseid = get_course_id($exerciseid);
+
+        require_login($courseid, false);
 
         $transaction = $DB->start_delegated_transaction();
-
-        // remove all week's slots for the user to avoid updates
-        $result = $bookingvault->delete_booking($studentid);
 
         // add a new tentatively booked slot for the student.
         $sessiondata = [
             'exercise'  => get_exercise_name($exerciseid),
             'instructor'=> get_fullusername($USER->id),
-            'status'    => get_string('tentative', 'local_booking'),
+            'status'    => ucwords(get_string('statustentative', 'local_booking')),
         ];
-        if ($result) {
+
+        // remove all week's slots for the user to avoid updates first
+        // add new booked slot for the user
+        if ($bookingvault->delete_booking($studentid, $exerciseid)) {
             $slotobj = new slot(0,
                 $studentid,
-                get_course_id($exerciseid),
+                $courseid,
                 $slottobook['starttime'],
                 $slottobook['endtime'],
                 $slottobook['year'],
@@ -96,19 +98,19 @@ class local_booking_external extends external_api {
                 get_string('bookinginfo', 'local_booking', $sessiondata)
             );
             $bookedslot = $slotvault->get_slot($slotvault->save($slotobj));
+
+            // add new booking by the instructor.
+            if (!empty($bookedslot)) {
+                if ($bookingvault->save_booking(new booking($exerciseid, $bookedslot, $studentid, $slottobook['starttime']))) {
+                    // send emails to both student and instructor
+                    $sessiondate = new DateTime('@' . $slottobook['starttime']);
+                    if (send_booking_notification($studentid, $exerciseid, $sessiondate)) {
+                        $result = send_instructor_confirmation($studentid, $exerciseid, $sessiondate);
+                    }
+                }
+            }
         }
 
-        // add new booking by the instructor.
-        if ($result) {
-            $result = $bookingvault->save_booking(new booking($exerciseid, $bookedslot, $studentid));
-        }
-
-        // send emails to both student and instructor
-        if ($result) {
-            $sessiondate = new DateTime('@' . $slottobook['starttime']);
-            $result = send_booking_notification($studentid, $exerciseid, $sessiondate);
-            $result = send_booking_confirmation($studentid, $exerciseid, $sessiondate);
-        }
 
         if ($result) {
             $transaction->allow_commit();

@@ -23,6 +23,24 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require('../config.php');
-$PAGE->set_url('/local/booking/view.php');
-redirect($CFG->wwwroot.'/local/booking/view.php');
+namespace local_booking\local\session\data_access;
+
+defined('MOODLE_INTERNAL') || die();
+
+interface student_vault_interface {
+
+    /**
+     * Get all active students from the database.
+     *
+     * @return {Object}[]          Array of database records.
+     */
+    public function get_students();
+
+    /**
+     * Get grades for a specific student.
+     *
+     * @param int       $studentid  The student id.
+     * @return grade[]              A student booking.
+     */
+    public function get_grades($studentid);
+}

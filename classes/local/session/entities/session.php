@@ -100,6 +100,6 @@ class session implements session_interface {
     }
 
     public function empty() {
-        return !($this->hasbooking() || $this->hasgrade());
+        return (!$this->hasbooking() && !$this->hasgrade());
     }
 }

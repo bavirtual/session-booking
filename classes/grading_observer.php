@@ -15,14 +15,38 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Session Booking Plugin
+ * Group observers.
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @category   event
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require('../config.php');
-$PAGE->set_url('/local/booking/view.php');
-redirect($CFG->wwwroot.'/local/booking/view.php');
+namespace local_booking;
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot . '/local/booking/lib.php');
+
+/**
+ * Group observers class.
+ *
+ * @package    local_booking
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @category   event handler
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class grading_observer {
+
+    /**
+     * A submission has been graded.
+     *
+     * @param \mode\assign\submission_graded $event The event.
+     * @return void
+     */
+    public static function submission_graded($event) {
+        booking_process_submission_graded($event->contextinstanceid, $event->relateduserid);
+    }
+}

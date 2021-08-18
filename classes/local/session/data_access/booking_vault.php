@@ -15,11 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Contains event class for displaying the week view.
+ * Session Booking Plugin
  *
- * @package   local_booking
- * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    local_booking
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_booking\local\session\data_access;
@@ -35,33 +36,24 @@ class booking_vault implements booking_vault_interface {
      * get booked sessions for the instructor
      *
      * @param string $session
-     * @return bool
+     * @return array {Object}
      */
     public function get_bookings() {
         global $DB, $USER;
 
-        $condition = [
-            'userid' => $USER->id,
-        ];
-
-        return $DB->get_records(static::TABLE, $condition);
+        return $DB->get_records(static::TABLE, ['userid' => $USER->id]);
     }
 
     /**
      * get booked sessions for a specific student
      *
      * @param int $userid
-     * @return bool
+     * @return Object
      */
     public function get_booking($userid) {
-        global $DB, $USER;
+        global $DB;
 
-        $condition = [
-            'userid' => $USER->id,
-            'studentid' => $userid,
-        ];
-
-        return $DB->get_records(static::TABLE, $condition);
+        return $DB->get_records(static::TABLE, ['studentid' => $userid]);
     }
 
     /**
@@ -70,12 +62,12 @@ class booking_vault implements booking_vault_interface {
      * @param string $username The username.
      * @return bool
      */
-    public function delete_booking($userid) {
-        global $DB, $USER;
+    public function delete_booking($userid, $exerciseid) {
+        global $DB;
 
         $condition = [
-            'userid' => $USER->id,
-            'studentid' => $userid,
+            'studentid'  => $userid,
+            'exerciseid' => $exerciseid,
         ];
 
         return $DB->delete_records(static::TABLE, $condition);
@@ -95,8 +87,26 @@ class booking_vault implements booking_vault_interface {
         $sessionrecord->studentid    = $booking->get_studentid();
         $sessionrecord->exerciseid   = $booking->get_exerciseid();
         $sessionrecord->slotid       = $booking->get_slot()->id;
-        $sessionrecord->bookingdate  = time();
+        $sessionrecord->timemodified = time();
 
         return $DB->insert_record(static::TABLE, $sessionrecord);
+    }
+
+    /**
+     * Confirm the passed book
+     *
+     * @param   int                 $studentid
+     * @param   int                 $exerciseid
+     * @return  bool                $result
+     */
+    public function confirm_booking(int $studentid, int $exerciseid) {
+        global $DB;
+
+        $sql = 'UPDATE {' . static::TABLE . '}
+                SET confirmed = 1
+                WHERE studentid = ' . $studentid . '
+                AND exerciseid = ' . $exerciseid;
+
+        return $DB->execute($sql);
     }
 }

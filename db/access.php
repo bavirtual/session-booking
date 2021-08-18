@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -28,6 +27,16 @@ defined('MOODLE_INTERNAL') || die();
 
 $capabilities = array(
 
+    'local/booking:view' => array(
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'coursecreator' => CAP_ALLOW,
+        )
+    ),
+
     'local/booking:emailnotify' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
@@ -40,21 +49,9 @@ $capabilities = array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
-            'instructor' => CAP_ALLOW,
-            'seniorinstructor' => CAP_ALLOW,
-            'flighttrainingmanager' => CAP_ALLOW,
-        )
-    ),
-
-    'local/booking:view' => array(
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
-            'teacher' => CAP_ALLOW,
-            'instructor' => CAP_ALLOW,
-            'seniorinstructor' => CAP_ALLOW,
-            'flighttrainingmanager' => CAP_ALLOW,
+            'coursecreator' => CAP_ALLOW,
         )
     ),
 );

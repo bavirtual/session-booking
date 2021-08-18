@@ -15,10 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * session vault interface
+ * Session Booking Plugin
  *
  * @package    local_booking
- * @copyright  2017 Ryan Wyllie <ryan@moodle.com>
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,18 +29,12 @@ defined('MOODLE_INTERNAL') || die();
 
 use local_booking\local\session\entities\booking;
 
-/**
- * Interface for an session vault class
- *
- * @copyright  2017 Ryan Wyllie <ryan@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 interface booking_vault_interface {
 
     /**
      * Get all booked sessions for the instructor.
      *
-     * @return booing[]             Array of session_interfaces.
+     * @return booking[]             Array of session_interfaces.
      */
     public function get_bookings();
 
@@ -54,16 +49,26 @@ interface booking_vault_interface {
     /**
      * Delete all sessions for a specific student.
      *
-     * @param   int                 $userid     sessions for this user
-     * @return  result              $result
+     * @param   int                 $userid     The student id associated with the booking.
+     * @param   int                 $exerciseid The exercise id associated with the booking.
+     * @return  bool                $result
      */
-    public function delete_booking($userid);
+    public function delete_booking($userid, $exerciseid);
 
     /**
      * Saves the passed booked session
      *
      * @param   booking_interface   $session
-     * @return  result              $result
+     * @return  bool                $result
      */
     public function save_booking(booking $booking);
+
+    /**
+     * Confirm the passed book
+     *
+     * @param   int                 $studentid
+     * @param   int                 $exerciseid
+     * @return  bool                $result
+     */
+    public function confirm_booking(int $studentid, int $exerciseid);
 }

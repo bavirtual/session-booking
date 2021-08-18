@@ -29,7 +29,8 @@
  *
  * @package    local_booking
  * @category   webservice
- * @copyright  2009 Petr Skodak
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

@@ -15,11 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Contains event class for displaying the day on month view.
+ * Session Booking Plugin
  *
- * @package   local_booking
- * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    local_booking
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_booking\external;
@@ -55,6 +56,9 @@ class session_exporter extends exporter {
         $type = \core_calendar\type_factory::get_calendar_instance();
 
         $grade = null;
+        $booking = null;
+
+        // Get the student's last graded session if available
         if (count($data['grades']) > 0) {
             if (array_search($data['exerciseid'], array_column($data['grades'], 'exerciseid')) !== false) {
                 $grade = new grade(
@@ -68,19 +72,46 @@ class session_exporter extends exporter {
             }
         }
 
-        $booking = null;
+        // Get the student's booking if available
+        if (empty($grade) && count($data['booking']) > 0) {
+            $bookings = array_reverse($data['booking']);
+            $bookingobj = array_pop($bookings);
+            if ($bookingobj->exerciseid == $data['exerciseid']) {
+                $booking = $bookingobj;
+            }
+        }
 
-        $sessionstatus = $grade !== null ? 'graded' : ($booking !== null ? $booking->get_status() : '');
-        $timestamp = $grade !== null ? $grade->get_gradedate()[0] : ($booking !== null ? $booking->get_bookingdate()[0] : time());
-        $sessiondate = new \DateTime('@' . $timestamp);
+        // collect session information
+        $sessionstatus = '';
+        $sessionstatustooltip = '';
+        $sessiondate = new \DateTime('@' . time());
+        if ($grade !== null) {
+            $sessionstatus = 'graded';
+            $sessiondate = new \DateTime('@' . $grade->get_gradedate()[0]);
+            $gradeinfo = [
+                'instructor' => $grade->get_gradername(),
+                'sessiondate' => $sessiondate->format('j M \'y')
+            ];
+            $sessionstatustooltip = get_string('sessiongradeddby', 'local_booking', $gradeinfo);
+        } else if ($booking !== null) {
+            $sessionstatus = $booking->confirmed ? 'booked' : 'tentative';
+            $infostatus = $booking->confirmed ? 'statusbooked' : 'statustentative';
+            $sessiondate = new \DateTime('@' . $booking->timemodified);
+            $bookinginfo = [
+                'instructor'    => get_fullusername($booking->userid),
+                'sessiondate'   => $sessiondate->format('j M \'y'),
+                'bookingstatus' => ucwords(get_string($infostatus, 'local_booking')),
+            ];
+            $sessionstatustooltip = get_string('sessionbookedby', 'local_booking', $bookinginfo);
+        }
 
         $this->session = new session($grade, $booking, $sessionstatus, $sessiondate);
-        $sessionempty = $this->session->empty();
 
         $data = [
             'sessionstatus' => $sessionstatus,
-            'sessiondate'   => !$sessionempty ? $sessiondate->format('d/m/y') : '',
-            'sessionempty'  => $sessionempty,
+            'sessiondate'   => !$this->session->empty() ? $sessiondate->format('j M \'y') : '',
+            'sessionempty'  => $this->session->empty(),
+            'sessionstatustooltip'  => $sessionstatustooltip,
         ];
         parent::__construct($data, $related);
     }
@@ -104,6 +135,10 @@ class session_exporter extends exporter {
                 'type' => PARAM_BOOL,
                 'default' => true,
             ],
+            'sessionstatustooltip' => [
+                'type' => PARAM_RAW,
+                'default' => '',
+            ],
         ];
     }
     /**
@@ -113,10 +148,6 @@ class session_exporter extends exporter {
      */
     protected static function define_other_properties() {
         return [
-            'popovertitle' => [
-                'type' => PARAM_RAW,
-                'default' => '',
-            ],
             'graded' => [
                 'type' => PARAM_BOOL,
             ],
@@ -140,10 +171,9 @@ class session_exporter extends exporter {
     protected function get_other_values(renderer_base $output) {
 
         $return = [
-            'popovertitle'  => $this->get_popover_title(),
             'graded'        => $this->session->hasgrade(),
-            'booked'        => $this->session->hasbooking() && $this->session->booking->confirmed(),
-            'tentative'     => $this->session->hasbooking() && !$this->session->booking->confirmed(),
+            'booked'        => $this->session->hasbooking() && $this->session->get_booking()->confirmed,
+            'tentative'     => $this->session->hasbooking() && !$this->session->get_booking()->confirmed,
         ];
 
         return $return;
@@ -158,24 +188,5 @@ class session_exporter extends exporter {
         return array(
             'context' => 'context',
         );
-    }
-
-    /**
-     * Get the title for this popover.
-     *
-     * @return string
-     */
-    protected function get_popover_title() {
-        $title = null;
-
-        if (!$this->session->empty()) {
-            if ($this->session->hasgrade()) {
-                $title = get_string('sessiongradeddby', 'local_booking') . ' ' . $this->session->get_grade()->get_gradername();
-            } else if ($this->session->hasbooking()) {
-                $title = get_string('sessionbookedby', 'local_booking') . ' ' . $this->session->get_booking()->get_instructorname();
-            }
-        }
-
-        return $title;
     }
 }

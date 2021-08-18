@@ -93,20 +93,20 @@ class booking implements booking_interface {
         $exerciseid,
         $slot,
         $studentid,
+        $bookingdate,
         $studentname    = '',
         $instructorid   = 0,
         $instructorname = '',
-        $confirmed      = false,
-        $bookingdate    = 0
+        $confirmed      = false
         ) {
         $this->exerciseid       = $exerciseid;
         $this->slot             = $slot;
         $this->studentid        = $studentid;
+        $this->bookingdate      = $bookingdate;
         $this->studentname      = $studentname;
         $this->instructorid     = $instructorid;
         $this->instructorname   = $instructorname;
         $this->confirmed        = $confirmed;
-        $this->bookingdate      = $bookingdate;
     }
 
     // Getter functions

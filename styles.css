@@ -1,17 +1,38 @@
+/**
+ * @package    local_booking
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 .booking-header {
     text-align: center;
 }
 
 .booking-truncate {
-    width: 1px;
-    padding-left: 4px;
-    white-space: nowrap;
+    font-size: smaller;
+    font-weight: bold;
+    height: 30px;
+    max-width: 200px;
+    padding: 4px;
     overflow: hidden;
+    text-align: left;
+    text-decoration: none;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #000;
 }
 
 .session {
     background-color: white;
+}
+
+.session-date {
+    display: block;
+    padding: 0;
+    margin: 0 0 0 0;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .session-graded {
@@ -27,6 +48,7 @@
 }
 
 .session-button {
+    height: 25px;
     width: 75px;
     color: white;
     font-size: smaller;
