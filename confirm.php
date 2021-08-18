@@ -25,6 +25,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
+require_once(__DIR__ . '/../../local/availability/lib.php');
 
 use local_availability\local\slot\data_access\slot_vault;
 use local_booking\local\session\data_access\booking_vault;

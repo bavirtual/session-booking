@@ -31,7 +31,7 @@ use local_booking\external\session_exporter;
 use local_booking\local\session\entities\action;
 use core\external\exporter;
 use local_booking\local\session\data_access\booking_vault;
-use local_booking\local\session\data_access\student_vault;
+use local_availability\local\slot\data_access\student_vault;
 use renderer_base;
 
 /**

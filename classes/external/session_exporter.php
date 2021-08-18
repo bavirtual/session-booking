@@ -32,6 +32,8 @@ use core\external\exporter;
 use local_booking\local\session\entities\session;
 use local_booking\local\session\entities\grade;
 
+require_once($CFG->dirroot . '/local/availability/lib.php');
+
 /**
  * Class for displaying the day on month view.
  *

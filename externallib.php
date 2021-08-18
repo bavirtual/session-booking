@@ -31,6 +31,7 @@ use local_availability\local\slot\entities\slot;
 defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot . '/local/booking/lib.php');
+require_once($CFG->dirroot . '/local/availability/lib.php');
 
 /**
  * Session Booking Plugin

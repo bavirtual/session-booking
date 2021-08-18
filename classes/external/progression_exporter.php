@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 use local_booking\external\exercise_name_exporter;
 use local_booking\external\student_exporter;
 use core\external\exporter;
-use local_booking\local\session\data_access\student_vault;
+use local_availability\local\slot\data_access\student_vault;
 use renderer_base;
 use moodle_url;
 

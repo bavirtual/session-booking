@@ -25,14 +25,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once(__DIR__ . '/../../local/availability/lib.php');
+
 use local_availability\local\slot\data_access\slot_vault;
 use \local_booking\external\progression_exporter;
 use local_booking\local\session\data_access\booking_vault;
-
-/**
- * Process user  table name.
- */
-const DB_USER = 'user';
 
 /**
  * Process user  table name.
@@ -86,23 +83,6 @@ function booking_process_submission_graded($exerciseid, $studentid) {
 
     $bookingvault->delete_booking($studentid, $exerciseid);
     $slotvault->delete_slots(get_course_id($exerciseid), 0, 0, $studentid, false);
-}
-
-/**
- * Returns full username
- *
- * @return string  The full BAV username (first, last, and BAWID)
- */
-function get_fullusername($userid) {
-    global $DB;
-
-    // Get the student's grades
-    $sql = 'SELECT ' . $DB->sql_concat('u.firstname', '" "',
-                'u.lastname', '" "', 'u.alternatename') . ' AS username
-            FROM {' . DB_USER . '} u
-            WHERE u.id = ' . $userid;
-
-    return $DB->get_record_sql($sql)->username;
 }
 
 /**
