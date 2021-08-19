@@ -35,11 +35,12 @@ use local_booking\local\session\entities\grade;
 require_once($CFG->dirroot . '/local/availability/lib.php');
 
 /**
- * Class for displaying the day on month view.
+ * Class for displaying each session in progression view.
  *
- * @package   core_calendar
- * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   local_booking
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class session_exporter extends exporter {
 

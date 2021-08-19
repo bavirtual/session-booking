@@ -1,19 +1,4 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
  * Session Booking Plugin
  *
@@ -25,10 +10,12 @@
 
 $string['book'] = 'Book';
 $string['booking'] = 'Booking';
+$string['bookingactive'] = 'My Active Bookings';
+$string['bookingcancel'] = 'Cancel';
 $string['booking:view'] = 'View session bookings';
 $string['booking:emailnotify'] = 'Booking notification';
 $string['booking:emailconfirm'] = 'Session booking confirmation';
-$string['bookingconfirmmsg'] = 'Session confirmed for \'{$a->exercise}\' with instructor {$a->instructor}.';
+$string['bookingconfirmmsg'] = '{$a->status} session on \'{$a->exercise}\' with instructor {$a->instructor}.';
 $string['bookinginfo'] = '{$a->status} session on \'{$a->exercise}\' with instructor {$a->instructor}';
 $string['bookingsavesuccess'] = 'Booking saved.';
 $string['bookingsaveunable'] = 'Unable to save booking!';
@@ -45,6 +32,8 @@ $string['emailinstconfirm'] = 'Booked session confirmed by Student';
 $string['emailinstconfirmsubject'] = '{$a->coursename} - Student confirmed booking: \'{$a->exercise}\'';
 $string['emailinstconfirmnmsg'] = '{$a->student} confirmed session booked on {$a->sessiondate} for \'{$a->exercise}\'.';
 $string['emailinstconfirmhtml'] = '<font face="sans-serif"><p>{$a->coursename} -> Assignment -> {$a->exercise}</p><hr /><p><strong>{$a->student}</strong> confirmed booked session on <strong>{$a->sessiondate}</strong> for \'<i>{$a->exercise}</i>\'.';
+$string['enroldate'] = 'Enrol Date';
+$string['exercise'] = 'Exercise';
 $string['exercisetitles'] = 'Course exercise titles:';
 $string['exercisetitlesdesc'] = 'titles delimited by commas';
 $string['pluginname'] = 'Session Booking';
@@ -54,13 +43,16 @@ $string['progression'] = 'Students Progression';
 $string['messageprovider:booking_notification'] = 'Session booked notification';
 $string['messageprovider:booking_confirmation'] = 'Booked session instructor confirmation';
 $string['messageprovider:instructor_notification'] = 'Student confirmation of booked session';
+$string['mystudents'] = 'My Assigned Trainees';
 $string['sessionaction'] = 'Action';
+$string['sessiondate'] = 'Session Date';
 $string['sessionbookedby'] = 'Session date: {$a->sessiondate} {$a->bookingstatus}: booked by \'{$a->instructor}\'';
-$string['sessiongradeddby'] = 'Session date: {$a->sessiondate} Graded by \'{$a->instructor}\'';
+$string['sessiongradeddby'] = 'Graded date: {$a->sessiondate} Graded by \'{$a->instructor}\'';
 $string['simulator'] = 'Sim';
 $string['statusbooked'] = 'confirmed';
 $string['statustentative'] = 'tentative';
 $string['studentavialability'] = 'Student Availability';
 $string['students'] = 'Trainees';
 $string['title'] = 'Session Booking';
+$string['zulutime'] = 'Zulu';
 

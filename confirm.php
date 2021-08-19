@@ -56,6 +56,7 @@ if ($bookingvault->confirm_booking($studentid, $exerciseid)) {
     $strdata = [
         'exercise'  => get_exercise_name($exerciseid),
         'instructor'=> get_fullusername($instructorid),
+        'status'    => ucwords(get_string('statusbooked', 'local_booking')),
     ];
     $bookinginfo = get_string('bookingconfirmmsg', 'local_booking', $strdata);
     $result = $slotvault->confirm_slot($booking->slotid, $bookinginfo);

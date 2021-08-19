@@ -35,11 +35,12 @@ use local_availability\local\slot\data_access\student_vault;
 use renderer_base;
 
 /**
- * Class for displaying the day on month view.
+ * Class for displaying each student row in progression view.
  *
  * @package   local_booking
- * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class student_exporter extends exporter {
 

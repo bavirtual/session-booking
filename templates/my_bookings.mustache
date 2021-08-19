@@ -31,13 +31,67 @@
     {
     }
 }}
-
-<div id="session-booking-{{uniqid}}" data-template="local_booking/progression_detail">
-    {{> local_booking/week_detail}}
+<div{{!
+}} class="bookingwrapper"{{!
+}}{{#courseid}} data-courseid="{{courseid}}"{{/courseid}}{{!
+}}{{#categoryid}} data-categoryid="{{categoryid}}"{{/categoryid}}{{!
+}} data-context-id="{{defaulteventcontext}}"{{!
+}}>
+{{> core/overlay_loading}}
+<br/><p><h3>{{#str}}bookingactive,local_booking{{/str}}</h3></p>
+<table id="bookings-detail-{{uniqid}}" data-region="instructor-bookings" class="calendartable booking-table table-hover" style="width: 100%;">
+    <thead>
+        <tr>
+            <th class="header booking-header text-xs-center">
+                <span class="media-body" aria-hidden="true">{{#str}}students,local_booking{{/str}}</span>
+            </th>
+            <th class="header booking-header text-xs-center">
+                <span class="media-body" aria-hidden="true">{{#str}}exercise,local_booking{{/str}}</span>
+            </th>
+            <th class="header booking-header text-xs-center" style="width: 120px;">
+                <span class="media-body" aria-hidden="true">{{#str}}sessiondate,local_booking{{/str}}</span>
+            </th>
+            <th class="header booking-header text-xs-center" style="width: 100px;">
+                <span class="media-body" aria-hidden="true">{{#str}}zulutime,local_booking{{/str}}</span>
+            </th>
+            <th class="header booking-header text-xs-center" style="width: 100px;">
+                <span class="media-body" aria-hidden="true">{{#str}}bookingcancel,local_booking{{/str}}</span>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+    {{#activebookings}}
+        <tr data-region="booking-data"{{!
+        }}{{#bookingid}} data-bookingid="{{bookingid}}"{{/bookingid}}{{!
+        !}}>
+            <td class="text-md-left" style="padding: 10px; width: 40%;">
+                <span>{{studentname}}</span>
+            </td>
+            <td class="text-sm-center" style="padding: 4px; width: 500px;">
+                <span><i>{{exercise}}</i></span>
+            </td>
+            <td class="text-sm-center" style="padding: 4px; width: 140px;">
+                <span>{{sessiondate}}</span>
+            </td>
+            <td class="text-sm-center" style="padding: 4px; width: 140px;">
+                <span>{{sessiontime}}</span>
+            </td>
+            <td>
+                <div class="singlebutton">
+                    <a href="{{actionurl}}">
+                    <button class="session-button session-button-cancel" style="float: right; margin: 4px 0 0 0;"
+                        data-region="cancel-button"
+                        id="cancel_button"{{uniqid}}
+                        title="">
+                        <i class="fa fa-window-close" style="padding-right: 5px;"></i>
+                        {{actionname}}
+                    </button>
+                     </a>
+                </div>
+            </td>
+        </tr>
+    {{/activebookings}}
+    </tbody>
+</table>
 </div>
 
-{{#js}}
-require(['jquery', 'local_booking/booking'], function($, Booking) {
-    Booking.init($("#session-booking-{{uniqid}}"));
-});
-{{/js}}

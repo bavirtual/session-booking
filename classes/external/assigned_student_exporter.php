@@ -28,45 +28,59 @@ namespace local_booking\external;
 defined('MOODLE_INTERNAL') || die();
 
 use core\external\exporter;
+use DateTime;
 
 /**
- * Class for displaying each exercise session in progression view.
+ * Class for displaying instructor's booked sessions view.
  *
  * @package   local_booking
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class exercise_name_exporter extends exporter {
+class assigned_student_exporter extends exporter {
 
     /**
      * Constructor.
      *
-     * @param array $names The list of exercise names.
+     * @param mixed $data An array of student progress data.
+     * @param array $related Related objects.
      */
-    public function __construct($data) {
-        parent::__construct($data, []);
+    public function __construct($data, $related) {
+        $student = $data['student'];
+        $enroldate = new DateTime('@' . $student->enroldate);
+
+        $data = [
+        'studentname'   => $student->fullname,
+        'simulator'     => $student->simulator,
+        'enroldate'     => $enroldate->format('M j\, Y'),
+        ];
+
+        parent::__construct($data, $related);
     }
 
-    /**
-     * Return the list of properties.
-     *
-     * @return array
-     */
     protected static function define_properties() {
         return [
-            'exerciseid' => [
-                'type' => PARAM_INT,
-            ],
-            'exercisename' => [
+            'studentname' => [
                 'type' => PARAM_RAW,
             ],
-            'exercisetitle' => [
+            'simulator' => [
                 'type' => PARAM_RAW,
             ],
-            'exercisetype' => [
+            'enroldate' => [
                 'type' => PARAM_RAW,
             ],
         ];
+    }
+
+    /**
+     * Returns a list of objects that are related.
+     *
+     * @return array
+     */
+    protected static function define_related() {
+        return array(
+            'context' => 'context',
+        );
     }
 }

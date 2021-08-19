@@ -5,10 +5,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/* Booking grid */
+.booking-table tr {
+    border: 1px solid lightgray;
+    border-collapse: collapse;
+}
 .booking-header {
     text-align: center;
 }
-
 .booking-truncate {
     font-size: smaller;
     font-weight: bold;
@@ -22,11 +26,9 @@
     white-space: nowrap;
     color: #000;
 }
-
 .session {
     background-color: white;
 }
-
 .session-date {
     display: block;
     padding: 0;
@@ -34,19 +36,17 @@
     overflow: hidden;
     white-space: nowrap;
 }
-
 .session-graded {
     background-color: cornflowerblue;
 }
-
 .session-booked {
     background-color: green;
 }
-
 .session-tentative {
     background-color: coral;
 }
 
+/* Buttons */
 .session-button {
     height: 25px;
     width: 75px;
@@ -62,21 +62,24 @@
     transition: ease background-color 250ms;
     cursor: pointer;
 }
-
 .session-button-grade {
     background-color: #1565c0;
     transition: ease background-color 250ms;
 }
-
 .session-button-grade:hover {
     background-color: #0d47a1;
 }
-
 .session-button-book {
     background-color: black;
     transition: ease background-color 250ms;
 }
-
 .session-button-book:hover {
     background-color: darkgray;
+}
+.session-button-cancel {
+    background-color: #c40a0a;
+    transition: ease background-color 250ms;
+}
+.session-button-cancel:hover {
+    background-color: #9b2828;
 }

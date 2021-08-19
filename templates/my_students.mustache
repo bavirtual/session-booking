@@ -15,11 +15,11 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template local_booking/week_navigation
+    @template booking/calendar_week
 
-    Calendar month navigation.
+    Calendar week view for blocks.
 
-    The purpose of this template is to render the navigation to switch to previous and next week.
+    The purpose of this template is to render the main, detailed weekly view.
 
     Classes required for JS:
     * none
@@ -31,34 +31,42 @@
     {
     }
 }}
-<div id="week-navigation-{{uniqid}}" class="controls">
-    <div class="calendar-controls">
-        <a{{!
-            }} href="{{previousperiodlink}}"{{!
-            }} class="arrow_link previous"{{!
-            }} title="{{#str}}weekprev, local_booking{{/str}}"{{!
-            }} data-year="{{previousperiod.year}}"{{!
-            }} data-week="{{previousweek}}"{{!
-            }} data-time="{{previousweekts}}"{{!
-            }}>
-            <span class="arrow">{{{larrow}}}</span>
-            &nbsp;
-            <span class="arrow_text">{{previousperiodname}}</span>
-        </a>
-        <span class="hide"> | </span>
-        <h2 class="current">{{periodname}}</h2>
-        <span class="hide"> | </span>
-        <a{{!
-            }} href="{{nextperiodlink}}"{{!
-            }} class="arrow_link next"{{!
-            }} title="{{#str}}weeknext, local_booking{{/str}}"{{!
-            }} data-year="{{nextperiod.year}}"{{!
-            }} data-week="{{nextweek}}"{{!
-            }} data-time="{{nextweekts}}"{{!
-            }}>
-            <span class="arrow_text">{{nextperiodname}}</span>
-            &nbsp;
-            <span class="arrow">{{{rarrow}}}</span>
-        </a>
-    </div>
+<div{{!
+}} class="bookingwrapper"{{!
+}}{{#courseid}} data-courseid="{{courseid}}"{{/courseid}}{{!
+}}{{#categoryid}} data-categoryid="{{categoryid}}"{{/categoryid}}{{!
+}} data-context-id="{{defaulteventcontext}}"{{!
+}}>
+<br/><p><h3>{{#str}}mystudents,local_booking{{/str}}</h3></p>
+<table id="students-detail-{{uniqid}}" data-region="instructor-students" class="calendartable booking-table table-hover" style="width: 100%;">
+    <thead>
+        <tr>
+            <th class="header booking-header text-xs-center">
+                <span class="media-body" aria-hidden="true">{{#str}}students,local_booking{{/str}}</span>
+            </th>
+            <th class="header booking-header text-xs-center">
+                <span class="media-body" aria-hidden="true">{{#str}}simulator,local_booking{{/str}}</span>
+            </th>
+            <th class="header booking-header text-xs-center">
+                <span class="media-body" aria-hidden="true">{{#str}}enroldate,local_booking{{/str}}</span>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+    {{#assignedstudents}}
+        <tr data-region="booking">
+            <td class="text-md-left" style="padding: 10px; width: 40%;">
+                <span>{{studentname}}</span>
+            </td>
+            <td class="text-sm-center" style="padding: 4px; width: 500px;">
+                <span><i>{{simulator}}</i></span>
+            </td>
+            <td class="text-sm-center" style="padding: 4px; width: 140px;">
+                <span>{{enroldate}}</span>
+            </td>
+        </tr>
+    {{/assignedstudents}}
+    </tbody>
+</table>
 </div>
+

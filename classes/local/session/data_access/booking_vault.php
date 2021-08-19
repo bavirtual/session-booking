@@ -29,19 +29,27 @@ use local_booking\local\session\entities\booking;
 
 class booking_vault implements booking_vault_interface {
 
-    /** Table name for the persistent. */
-    const TABLE = 'local_booking';
+    /** Bookings table name for the persistent. */
+    const DB_BOOKINGS = 'local_booking';
+
+    /** Availability Slots table name for the persistent. */
+    const DB_SLOTS = 'local_availability_slots';
 
     /**
      * get booked sessions for the instructor
      *
-     * @param string $session
+     * @param bool                   $userid of the student in the booking.
      * @return array {Object}
      */
-    public function get_bookings() {
+    public function get_bookings(bool $oldestfirst = false) {
         global $DB, $USER;
 
-        return $DB->get_records(static::TABLE, ['userid' => $USER->id]);
+        $sql = 'SELECT b.id, b.userid, b.studentid, b.exerciseid, b.slotid, b.confirmed, b.timemodified
+                FROM {' . static::DB_BOOKINGS. '} b
+                INNER JOIN {' . static::DB_SLOTS . '} s on s.id = b.slotid
+                WHERE b.userid = ' . $USER->id . ($oldestfirst ? ' ORDER BY s.starttime' : '');
+
+        return $DB->get_records_sql($sql);
     }
 
     /**
@@ -53,7 +61,7 @@ class booking_vault implements booking_vault_interface {
     public function get_booking($userid) {
         global $DB;
 
-        return $DB->get_records(static::TABLE, ['studentid' => $userid]);
+        return $DB->get_records(static::DB_BOOKINGS, ['studentid' => $userid]);
     }
 
     /**
@@ -70,7 +78,7 @@ class booking_vault implements booking_vault_interface {
             'exerciseid' => $exerciseid,
         ];
 
-        return $DB->delete_records(static::TABLE, $condition);
+        return $DB->delete_records(static::DB_BOOKINGS, $condition);
     }
 
     /**
@@ -89,7 +97,7 @@ class booking_vault implements booking_vault_interface {
         $sessionrecord->slotid       = $booking->get_slot()->id;
         $sessionrecord->timemodified = time();
 
-        return $DB->insert_record(static::TABLE, $sessionrecord);
+        return $DB->insert_record(static::DB_BOOKINGS, $sessionrecord);
     }
 
     /**
@@ -102,7 +110,7 @@ class booking_vault implements booking_vault_interface {
     public function confirm_booking(int $studentid, int $exerciseid) {
         global $DB;
 
-        $sql = 'UPDATE {' . static::TABLE . '}
+        $sql = 'UPDATE {' . static::DB_BOOKINGS . '}
                 SET confirmed = 1
                 WHERE studentid = ' . $studentid . '
                 AND exerciseid = ' . $exerciseid;

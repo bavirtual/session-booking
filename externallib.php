@@ -23,15 +23,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use local_booking\local\session\data_access\booking_vault;
-use local_booking\local\session\entities\booking;
-use local_availability\local\slot\data_access\slot_vault;
-use local_availability\local\slot\entities\slot;
-
 defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot . '/local/booking/lib.php');
-require_once($CFG->dirroot . '/local/availability/lib.php');
 
 /**
  * Session Booking Plugin
@@ -43,89 +37,31 @@ require_once($CFG->dirroot . '/local/availability/lib.php');
  */
 class local_booking_external extends external_api {
 
-    // Availability slots table name for.
-    const DB_SLOTS = 'local_availability_slots';
-
     /**
-     * Save booked slots. Delete existing ones for the user then update
-     * any existing slots if applicable with slot values
+     * Retrieve instructor's booking.
      *
-     * @param {object} $bookedslot array containing booked slots.
-     * @param int $exerciseid The exercise the session is for.
-     * @param int $studentid The student id assocaited with the slot.
-     * @param int $refslotid The session slot associated.
+     * @param int $courseid The course id for context.
+     * @param int $categoryid The category id for context.
      * @return array array of slots created.
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
-    public static function save_booking($slottobook, $exerciseid, $studentid) {
-        global $DB, $USER;
+    public static function get_mybookings($courseid, $categoryid) {
+        global $PAGE;
 
         // Parameter validation.
-        $params = self::validate_parameters(self::save_booking_parameters(), array(
-                'bookedslot' => $slottobook,
-                'exerciseid' => $exerciseid,
-                'studentid'  => $studentid
+        $params = self::validate_parameters(self::get_mybookings_parameters(), array(
+                'courseid' => $courseid,
+                'categoryid' => $categoryid,
                 )
             );
 
-        $result = false;
-        $bookingvault = new booking_vault();
-        $slotvault = new slot_vault();
-        $warnings = array();
-        $courseid = get_course_id($exerciseid);
+        $context = \context_course::instance($courseid);
+        self::validate_context($context);
+        $PAGE->set_url('/local/booking/');
 
-        require_login($courseid, false);
+        list($data, $template) = get_bookings_view($courseid, $categoryid);
 
-        $transaction = $DB->start_delegated_transaction();
-
-        // add a new tentatively booked slot for the student.
-        $sessiondata = [
-            'exercise'  => get_exercise_name($exerciseid),
-            'instructor'=> get_fullusername($USER->id),
-            'status'    => ucwords(get_string('statustentative', 'local_booking')),
-        ];
-
-        // remove all week's slots for the user to avoid updates first
-        // add new booked slot for the user
-        if ($bookingvault->delete_booking($studentid, $exerciseid)) {
-            $slotobj = new slot(0,
-                $studentid,
-                $courseid,
-                $slottobook['starttime'],
-                $slottobook['endtime'],
-                $slottobook['year'],
-                $slottobook['week'],
-                get_string('statustentative', 'local_booking'),
-                get_string('bookinginfo', 'local_booking', $sessiondata)
-            );
-            $bookedslot = $slotvault->get_slot($slotvault->save($slotobj));
-
-            // add new booking by the instructor.
-            if (!empty($bookedslot)) {
-                if ($bookingvault->save_booking(new booking($exerciseid, $bookedslot, $studentid, $slottobook['starttime']))) {
-                    // send emails to both student and instructor
-                    $sessiondate = new DateTime('@' . $slottobook['starttime']);
-                    if (send_booking_notification($studentid, $exerciseid, $sessiondate)) {
-                        $result = send_instructor_confirmation($studentid, $exerciseid, $sessiondate);
-                    }
-                }
-            }
-        }
-
-
-        if ($result) {
-            $transaction->allow_commit();
-            \core\notification::success(get_string('bookingsavesuccess', 'local_booking'));
-        } else {
-            $transaction->rollback(new moodle_exception(get_string('bookingsaveunable', 'local_booking')));
-            \core\notification::warning(get_string('bookingsaveunable', 'local_booking'));
-        }
-
-
-        return array(
-            'result' => $result,
-            'warnings' => $warnings
-        );
+        return $data;
     }
 
     /**
@@ -134,18 +70,11 @@ class local_booking_external extends external_api {
      * @return external_function_parameters.
      * @since Moodle 2.5
      */
-    public static function save_booking_parameters() {
+    public static function get_mybookings_parameters() {
         return new external_function_parameters(
             array(
-                'bookedslot'  => new external_single_structure(
-                        array(
-                            'starttime' => new external_value(PARAM_INT, 'booked slot start time', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
-                            'endtime' => new external_value(PARAM_INT, 'booked slot end time', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
-                            'year' => new external_value(PARAM_INT, 'booked slot year', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
-                            'week' => new external_value(PARAM_INT, 'booked slot week', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
-                        ), 'booking'),
-                'exerciseid'  => new external_value(PARAM_INT, 'The exercise id', VALUE_DEFAULT),
-                'studentid'   => new external_value(PARAM_INT, 'The student id', VALUE_DEFAULT),
+                'courseid'  => new external_value(PARAM_INT, 'The course id', VALUE_DEFAULT),
+                'categoryid'   => new external_value(PARAM_INT, 'The category id', VALUE_DEFAULT),
             )
         );
     }
@@ -156,12 +85,7 @@ class local_booking_external extends external_api {
      * @return external_description.
      * @since Moodle 2.5
      */
-    public static function save_booking_returns() {
-        return new external_single_structure(
-            array(
-                'result' => new external_value(PARAM_BOOL, get_string('processingresult', 'local_booking')),
-                'warnings' => new external_warnings()
-            )
-        );
+    public static function get_mybookings_returns() {
+        return \local_booking\external\bookings_exporter::get_read_structure();
     }
 }

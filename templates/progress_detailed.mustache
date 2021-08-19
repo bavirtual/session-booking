@@ -31,14 +31,13 @@
     {
     }
 }}
-
 <div{{!
-    }} class="bookingwrapper"{{!
+    }} class="calendarwrapper"{{!
     }}{{#courseid}} data-courseid="{{courseid}}"{{/courseid}}{{!
     }}{{#categoryid}} data-categoryid="{{categoryid}}"{{/categoryid}}{{!
     }} data-context-id="{{defaulteventcontext}}"{{!
     }}>
-    {{> core/overlay_loading}}
+    <p><h3>{{#str}}pluginname,local_booking{{/str}}</h3></p>
     <table id="progression-detail-{{uniqid}}" data-region="student-progression" class="table-hover table-bordered">
         <thead>
             <tr>
@@ -109,4 +108,3 @@
         </tbody>
     </table>
 </div>
-

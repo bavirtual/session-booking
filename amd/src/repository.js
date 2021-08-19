@@ -27,43 +27,16 @@ import Ajax from 'core/ajax';
  * only has to be any time during the target day because only the
  * date information is extracted, the time of the day is ignored.
  *
- * @param {string} weekSlots The URL encoded values from the form
- * @param {int} course The id of the associated course
- * @param {int} year The id of the event to update
- * @param {int} week A timestamp for some time during the target day
+ * @param {int} courseId    The id of the associated course
+ * @param {int} bookingId   The booking id to cancel
  * @return {promise}
  */
- export const saveSlots = (weekSlots, course, year, week) => {
+ export const cancelBooking = (courseId, bookingId) => {
     const request = {
-        methodname: 'local_booking_save_slots',
+        methodname: 'local_booking_cancel',
         args: {
-            slots: weekSlots,
-            courseid: course,
-            year: year,
-            week: week
-        }
-    };
-
-    return Ajax.call([request])[0];
-};
-
-/**
- * Change the start day for the given event id. The day timestamp
- * only has to be any time during the target day because only the
- * date information is extracted, the time of the day is ignored.
- *
- * @param {int} course The id of the associated course
- * @param {int} year The id of the event to update
- * @param {int} week A timestamp for some time during the target day
- * @return {promise}
- */
- export const clearSlots = (course, year, week) => {
-    const request = {
-        methodname: 'local_booking_delete_slots',
-        args: {
-            courseid: course,
-            year: year,
-            week: week
+            courseid: courseId,
+            bookingid: bookingId,
         }
     };
 
@@ -73,27 +46,17 @@ import Ajax from 'core/ajax';
 /**
  * Get calendar data for the month view.
  *
- * @method getCalendarMonthData
- * @param {number} year Year
- * @param {number} week Week
- * @param {number} time Timestamp
+ * @method getBookingsData
  * @param {number} courseId The course id.
  * @param {number} categoryId The category id.
- * @param {boolean} includeNavigation Whether to include navigation.
- * @param {boolean} mini Whether the month is in mini view.
  * @return {promise} Resolved with the month view data.
  */
-export const getCalendarWeekData = (year, week, time, courseId, categoryId, includeNavigation, mini) => {
+export const getBookingsData = (courseId, categoryId) => {
     const request = {
-        methodname: 'local_booking_get_weekly_view',
+        methodname: 'local_booking_get_mybookings_view',
         args: {
-            year,
-            week,
-            time,
             courseid: courseId,
             categoryid: categoryId,
-            includenavigation: includeNavigation,
-            mini,
         }
     };
 

@@ -58,29 +58,45 @@ class action implements action_interface {
      * @param event_interface  $event  The event to delegate to.
      * @param action_interface $action The action associated with this event.
      */
-    public function __construct(string $actiontype, int $userid, $exerciseid) {
+    public function __construct(string $actiontype, int $userid, int $refid) {
         global $COURSE;
 
-        if ($actiontype == 'grade') {
-            $actionurl = new moodle_url('/mod/assign/view.php', [
-                'id' => $exerciseid,
-                'rownum' => 0,
-                'action' => 'grader',
-                'userid' => $userid,
-            ]);
-
-        } elseif ($actiontype == 'book') {
-            $actionurl = new moodle_url('/local/availability/view.php', [
-                'action' => 'book',
-                'course' => $COURSE->id,
-                'userid' => $userid,
-                'exid'   => $exerciseid,
-            ]);
+        $actionurl = null;
+        $name = '';
+        // Load student(s) availability slots
+        switch ($actiontype) {
+            case 'grade':
+                $actionurl = new moodle_url('/mod/assign/view.php', [
+                    'id' => $refid,
+                    'rownum' => 0,
+                    'userid' => $userid,
+                    'action' => 'grader',
+                ]);
+                $name = get_string('grade', 'grades');
+                break;
+            case 'book':
+                $actionurl = new moodle_url('/local/availability/view.php', [
+                    'course' => $COURSE->id,
+                    'exid'   => $refid,
+                    'userid' => $userid,
+                    'action' => 'book',
+                ]);
+                $name = get_string('book', 'local_booking');
+                break;
+            case 'cancel':
+                $actionurl = new moodle_url('/local/booking/view.php', [
+                    'course' => $COURSE->id,
+                    'exid'   => $refid,
+                    'userid' => $userid,
+                    'action' => 'all',
+                ]);
+                $name = get_string('bookingcancel', 'local_booking');
+                break;
         }
 
         $this->type = $actiontype;
         $this->url = $actionurl;
-        $this->name = $actiontype == 'grade' ? get_string('grade', 'grades') : get_string('book', 'local_booking');
+        $this->name = $name;
     }
 
     public function get_type() {

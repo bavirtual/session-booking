@@ -34,9 +34,10 @@ interface booking_vault_interface {
     /**
      * Get all booked sessions for the instructor.
      *
+     * @param bool                   $userid of the student in the booking.
      * @return booking[]             Array of session_interfaces.
      */
-    public function get_bookings();
+    public function get_bookings(bool $oldestfirst = false);
 
     /**
      * Get all booked sessions for a user that fall on a specific student.

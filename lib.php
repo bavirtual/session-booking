@@ -27,8 +27,10 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/../../local/availability/lib.php');
 
-use local_availability\local\slot\data_access\slot_vault;
 use \local_booking\external\progression_exporter;
+use \local_booking\external\bookings_exporter;
+use \local_booking\external\assigned_students_exporter;
+use local_availability\local\slot\data_access\slot_vault;
 use local_booking\local\session\data_access\booking_vault;
 
 /**
@@ -47,13 +49,10 @@ const DB_ASSIGN = 'assign';
 const DB_COURSE_MODULES = 'course_modules';
 
 /**
- * Get the calendar view output.
+ * Get the student's progression view output.
  *
- * @param   \calendar_information $calendar The calendar being represented
- * @param   string  $view The type of calendar to have displayed
- * @param   bool    $includenavigation Whether to include navigation
- * @param   bool    $skipevents Whether to load the events or not
- * @param   int     $lookahead Overwrites site and users's lookahead setting.
+ * @param   int     $courseid the associated course.
+ * @param   int     $categoryid the course's category.
  * @return  array[array, string]
  */
 function get_progression_view($courseid, $categoryid) {
@@ -67,8 +66,56 @@ function get_progression_view($courseid, $categoryid) {
         'categoryid'=> $categoryid,
     ];
 
-    $progression = new progression_exporter($data, ['context' => \context_system::instance()]);
+    $progression = new progression_exporter($data, ['context' => \context_course::instance($courseid)]);
     $data = $progression->export($renderer);
+
+    return [$data, $template];
+}
+
+/**
+ * Get the student's progression view output.
+ *
+ * @param   int     $courseid the associated course.
+ * @param   int     $categoryid the course's category.
+ * @return  array[array, string]
+ */
+function get_bookings_view($courseid, $categoryid) {
+    global $PAGE;
+
+    $renderer = $PAGE->get_renderer('local_booking');
+
+    $template = 'local_booking/bookings';
+    $data = [
+        'courseid'  => $courseid,
+        'categoryid'=> $categoryid,
+    ];
+
+    $bookings = new bookings_exporter($data, ['context' => \context_course::instance($courseid)]);
+    $data = $bookings->export($renderer);
+
+    return [$data, $template];
+}
+
+/**
+ * Get instructor assigned students view output.
+ *
+ * @param   int     $courseid the associated course.
+ * @param   int     $categoryid the course's category.
+ * @return  array[array, string]
+ */
+function get_students_view($courseid, $categoryid) {
+    global $PAGE;
+
+    $renderer = $PAGE->get_renderer('local_booking');
+
+    $template = 'local_booking/my_students';
+    $data = [
+        'courseid'  => $courseid,
+        'categoryid'=> $categoryid,
+    ];
+
+    $students = new assigned_students_exporter($data, ['context' => \context_course::instance($courseid)]);
+    $data = $students->export($renderer);
 
     return [$data, $template];
 }

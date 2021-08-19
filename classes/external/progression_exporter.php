@@ -35,11 +35,12 @@ use renderer_base;
 use moodle_url;
 
 /**
- * Class for displaying the week view.
+ * Class for displaying students session progression view.
  *
  * @package   local_booking
- * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class progression_exporter extends exporter {
 
@@ -142,13 +143,13 @@ class progression_exporter extends exporter {
      * of the week.
      *
      * @param   renderer_base $output
-     * @return  day_name_exporter[]
+     * @return  student_exporter[]
      */
     protected function get_active_students($output) {
         $activestudents = [];
 
         $vault = new student_vault();
-        $students = $vault->get_students();
+        $students = $vault->get_active_students();
 
         $i = 0;
         foreach ($students as $student) {

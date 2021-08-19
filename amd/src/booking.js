@@ -14,55 +14,40 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This module is the highest level module for the calendar. It is
- * responsible for initialising all of the components required for
- * the calendar to run. It also coordinates the interaction between
- * components by listening for and responding to different events
- * triggered within the calendar UI.
+ * Session Booking Plugin
  *
- * @module     local_booking/calendar
- * @copyright  2017 Simey Lameze <simey@moodle.com>
+ * @package    local_booking
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 define([
             'jquery',
-            'core/ajax',
-            'core/str',
             'core/templates',
             'core/notification',
-            'core/custom_interaction_events',
             'local_booking/repository',
-            'local_booking/events',
             'local_booking/view_manager',
-            'local_booking/slot_actions',
+            'local_booking/selectors',
         ],
         function(
             $,
-            Ajax,
-            Str,
             Templates,
             Notification,
-            CustomEvents,
-            CalendarRepository,
-            CalendarEvents,
-            BookingViewManager,
-            SlotActions,
+            Repository,
+            ViewManager,
+            BookingSelectors,
         ) {
 
     var SELECTORS = {
         ROOT: "[data-region='calendar']",
         DAY: "[data-region='day']",
-        SAVE_BUTTON: "[data-region='save-button']",
-        COPY_BUTTON: "[data-region='copy-button']",
-        PASTE_BUTTON: "[data-region='paste-button']",
-        CLEAR_BUTTON: "[data-region='clear-button']",
+        CANCEL_BUTTON: "[data-region='cancel-button']",
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
         NEW_EVENT_BUTTON: "[data-action='new-event-button']",
-        DAY_CONTENT: "[data-region='day-content']",
+        BOOKING: "[data-region='booking-data']",
         LOADING_ICON: '.loading-icon',
-        VIEW_DAY_LINK: "[data-action='view-day-link']",
-        CALENDAR_MONTH_WRAPPER: ".calendarwrapper",
+        BOOKING_WRAPPER: ".bookingwrapper",
         TODAY: '.today',
     };
 
@@ -72,48 +57,43 @@ define([
      * @param {object} root The calendar root element
      */
     var registerEventListeners = function(root) {
-        // Listen the click on the Save buttons.
-        root.on('click', SELECTORS.SAVE_BUTTON, function() {
-            SlotActions.saveWeekSlots(root);
-        });
+        // Listen the click on the Cancel booking buttons.
+        root.on('click', SELECTORS.CANCEL_BUTTON, function() {
+            ViewManager.startLoading(root);
 
-        // Listen the click on the Copy buttons.
-        root.on('click', SELECTORS.COPY_BUTTON, function() {
-            SlotActions.copySlots(root);
-        });
-
-        // Listen the click on the Copy buttons.
-        root.on('click', SELECTORS.PASTE_BUTTON, function() {
-            SlotActions.pasteSlots(root);
-        });
-
-        // Listen the click on the Clear buttons.
-        root.on('click', SELECTORS.CLEAR_BUTTON, function() {
-            SlotActions.clearWeekSlots();
-        });
-
-        // Listen to click on the clickable slot areas/cells
-        var contextId = $(SELECTORS.CALENDAR_MONTH_WRAPPER).data('context-id');
-        if (contextId) {
-            // Bind click events to week calendar days.
-            root.on('click', SELECTORS.DAY, function(e) {
-                var target = $(e.target);
-                // Change marked state
-                if (typeof target !== 'undefined') {
-                    if (!target.is(SELECTORS.VIEW_DAY_LINK)) {
-                        SlotActions.setSlot(this);
+            // Get exercise id and the user id from the URL
+            const category = root.find(SELECTORS.BOOKING_WRAPPER).data('categoryid');
+            const course = root.find(SELECTORS.BOOKING_WRAPPER).data('courseid');
+            const booking = root.find(SELECTORS.BOOKING).data('bookingid');
+alert('cancelling booking::' + booking);
+            // Send the form data to the server for processing.
+            return Repository.cancelBooking(course, booking)
+                .then(function(response) {
+                    if (response.validationerror) {
+                        // eslint-disable-next-line no-alert
+                        alert('Errors encountered: Unable to cancel booking!');
                     }
+                    return;
                 }
+                .bind(this))
+                .always(function() {
+                    Notification.fetchNotifications();
+                    ViewManager.stopLoading(root);
+                    return ViewManager.refreshBookingsContent(root, course, category);
+                }
+                .bind(this))
+                .fail(Notification.exception);
+        });
 
-                e.preventDefault();
-            });
-        }
+        // Remove loading
+        const loadingIconContainer = root.find(BookingSelectors.containers.loadingIcon);
+        loadingIconContainer.addClass('hidden');
+
     };
 
     return {
         init: function(root) {
             root = $(root);
-            BookingViewManager.init(root);
             registerEventListeners(root);
         }
     };

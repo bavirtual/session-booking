@@ -35,12 +35,12 @@
  */
 
 $functions = array(
-    'local_booking_save' => array(
+    'local_booking_get_mybookings_view' => array(
         'classname' => 'local_booking_external',
         'classpath' => '/local/booking/externallib.php',
-        'methodname' => 'save_booking',
-        'description' => 'Save session booking',
-        'type' => 'write',
+        'methodname' => 'get_mybookings',
+        'description' => 'Retrieve intructor active bookings',
+        'type' => 'read',
         'ajax' => true,
         'capabilities' => '',
         'loginrequired' => true,
@@ -49,11 +49,11 @@ $functions = array(
 );
 
 $services = array(
-   'Session Booking save booked session web service'  => array(
-        'functions' => array('local_booking_save'), // Unused as we add the service in each function definition, third party services would use this.
+   'Session Booking retrieve instructor active bookings web service'  => array(
+        'functions' => array('local_booking_get_mybookings_view'), // Unused as we add the service in each function definition, third party services would use this.
         'enabled' => 1,         // if 0, then token linked to this service won't work
         'restrictedusers' => 0,
-        'shortname' => 'save_booking',
+        'shortname' => 'get_mybookings',
         'downloadfiles' => 0,
         'uploadfiles' => 0
     ),
