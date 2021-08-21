@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template availability/calendar_week
+    @template local_booking/bookings
 
     Calendar week view for blocks.
 
@@ -32,12 +32,12 @@
     }
 }}
 
-<div id="session-booking-{{uniqid}}" data-template="local_booking/my_bookings">
+<div id="bookings-{{uniqid}}" data-template="local_booking/my_bookings">
     {{> local_booking/my_bookings}}
 </div>
 
 {{#js}}
 require(['jquery', 'local_booking/booking'], function($, Booking) {
-    Booking.init($("#session-booking-{{uniqid}}"));
+    Booking.init($("#bookings-{{uniqid}}"));
 });
 {{/js}}

@@ -54,6 +54,7 @@ class booking_exporter extends exporter {
         $sessiondate = $this->get_session_date($booking->slotid);
 
         $data = [
+        'bookingid'     => $booking->id,
         'studentname'   => get_fullusername($booking->studentid),
         'exercise'      => get_exercise_name($booking->exerciseid),
         'sessiondate'   => $sessiondate->format('D M j'),
@@ -67,6 +68,9 @@ class booking_exporter extends exporter {
 
     protected static function define_properties() {
         return [
+            'bookingid' => [
+                'type' => PARAM_INT,
+            ],
             'studentname' => [
                 'type' => PARAM_RAW,
             ],

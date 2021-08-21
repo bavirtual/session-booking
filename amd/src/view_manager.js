@@ -42,15 +42,17 @@ export const refreshBookingsContent = (root, courseId, categoryId, target = null
 
     target = target || root.find(BookingsSelector.wrapper);
     template = template || root.attr('data-template');
+    M.util.js_pending([root.get('id'), courseId, categoryId].join('-'));
     return Repository.getBookingsData(courseId, categoryId)
         .then(context => {
-            context.viewingmonth = true;
+            context.viewingbooking = true;
             return Templates.render(template, context);
         })
         .then((html, js) => {
             return Templates.replaceNode(target, html, js);
         })
         .always(() => {
+            M.util.js_complete([root.get('id'), courseId, categoryId].join('-'));
             return stopLoading(root);
         })
         .fail(Notification.exception);

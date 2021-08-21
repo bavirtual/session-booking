@@ -96,6 +96,23 @@ function get_bookings_view($courseid, $categoryid) {
     return [$data, $template];
 }
 
+
+/**
+ * Get the student's progression view output.
+ *
+ * @param   int     $courseid the associated course.
+ * @param   int     $categoryid the course's category.
+ * @return  array[array, string]
+ */
+function output_mybookings_block($renderer, $courseid, $categoryid) {
+    list($data, $template) = get_bookings_view($courseid, $categoryid);
+    $block = new block_contents;
+    $block->content = $renderer->render_from_template($template, $data);
+    $block->footer = '';
+    $block->title = get_string('bookingactive', 'local_booking');
+    $renderer->add_pretend_bookings_block($block);
+}
+
 /**
  * Get instructor assigned students view output.
  *

@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template booking/calendar_week
+    @template local_booking/my_students
 
     Calendar week view for blocks.
 
@@ -31,12 +31,7 @@
     {
     }
 }}
-<div{{!
-}} class="bookingwrapper"{{!
-}}{{#courseid}} data-courseid="{{courseid}}"{{/courseid}}{{!
-}}{{#categoryid}} data-categoryid="{{categoryid}}"{{/categoryid}}{{!
-}} data-context-id="{{defaulteventcontext}}"{{!
-}}>
+<div>
 <br/><p><h3>{{#str}}mystudents,local_booking{{/str}}</h3></p>
 <table id="students-detail-{{uniqid}}" data-region="instructor-students" class="calendartable booking-table table-hover" style="width: 100%;">
     <thead>

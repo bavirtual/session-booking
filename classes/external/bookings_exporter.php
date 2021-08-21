@@ -133,7 +133,6 @@ class bookings_exporter extends exporter {
      * @return  booking_exporter[]
      */
     protected function get_bookings($output) {
-        global $USER;
         $bookings = [];
 
         $vault = new booking_vault();

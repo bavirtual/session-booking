@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template local/booking/calendar_week
+    @template local_booking/progression_detailed
 
     Calendar week view for blocks.
 
@@ -31,14 +31,9 @@
     {
     }
 }}
-<div{{!
-    }} class="calendarwrapper"{{!
-    }}{{#courseid}} data-courseid="{{courseid}}"{{/courseid}}{{!
-    }}{{#categoryid}} data-categoryid="{{categoryid}}"{{/categoryid}}{{!
-    }} data-context-id="{{defaulteventcontext}}"{{!
-    }}>
+<div>
     <p><h3>{{#str}}pluginname,local_booking{{/str}}</h3></p>
-    <table id="progression-detail-{{uniqid}}" data-region="student-progression" class="table-hover table-bordered">
+    <table id="progression-detail-{{uniqid}}" data-region="student-progression" data-testid="666" class="table-hover table-bordered">
         <thead>
             <tr>
                 <th class="header booking-header text-xs-center " style="width: 20px;">

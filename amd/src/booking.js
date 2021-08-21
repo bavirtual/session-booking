@@ -40,15 +40,11 @@ define([
         ) {
 
     var SELECTORS = {
-        ROOT: "[data-region='calendar']",
-        DAY: "[data-region='day']",
         CANCEL_BUTTON: "[data-region='cancel-button']",
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
-        NEW_EVENT_BUTTON: "[data-action='new-event-button']",
-        BOOKING: "[data-region='booking-data']",
+        BOOKING: "[data-region='booking-info']",
         LOADING_ICON: '.loading-icon',
         BOOKING_WRAPPER: ".bookingwrapper",
-        TODAY: '.today',
     };
 
     /**
@@ -58,14 +54,14 @@ define([
      */
     var registerEventListeners = function(root) {
         // Listen the click on the Cancel booking buttons.
-        root.on('click', SELECTORS.CANCEL_BUTTON, function() {
+        root.on('click', SELECTORS.CANCEL_BUTTON, function(e) {
             ViewManager.startLoading(root);
 
+            var target = e.target;
             // Get exercise id and the user id from the URL
             const category = root.find(SELECTORS.BOOKING_WRAPPER).data('categoryid');
             const course = root.find(SELECTORS.BOOKING_WRAPPER).data('courseid');
-            const booking = root.find(SELECTORS.BOOKING).data('bookingid');
-alert('cancelling booking::' + booking);
+            const booking = target.dataset.booking;
             // Send the form data to the server for processing.
             return Repository.cancelBooking(course, booking)
                 .then(function(response) {
@@ -79,6 +75,7 @@ alert('cancelling booking::' + booking);
                 .always(function() {
                     Notification.fetchNotifications();
                     ViewManager.stopLoading(root);
+alert('cancelling booking::' + booking);
                     return ViewManager.refreshBookingsContent(root, course, category);
                 }
                 .bind(this))

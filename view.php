@@ -53,10 +53,8 @@ if ($categoryid) {
 
 $PAGE->set_url($url);
 
-$course = get_course($courseid);
-
 if ($iscourse && !empty($courseid)) {
-    navigation_node::override_active_url(new moodle_url('/course/view.php', array('id' => $course->id)));
+    navigation_node::override_active_url(new moodle_url('/course/view.php', array('id' => $courseid)));
 } else if (!empty($categoryid)) {
     core_course_category::get($categoryid); // Check that category exists and can be accessed.
     $PAGE->set_category_by_id($categoryid);
@@ -76,6 +74,7 @@ $PAGE->set_heading($pluginname, 'local_booking');// . ' course id='  . $courseid
 $PAGE->add_body_class('path-local-booking');
 
 $renderer = $PAGE->get_renderer('local_booking');
+output_mybookings_block($renderer, $courseid, $categoryid);
 
 echo $OUTPUT->header();
 echo $renderer->start_layout();
@@ -84,11 +83,11 @@ echo html_writer::start_tag('div', array('class'=>'heightcontainer'));
 list($data, $template) = get_progression_view($courseid, $categoryid);
 echo $renderer->render_from_template($template, $data);
 
-list($data, $template) = get_bookings_view($courseid, $categoryid);
-echo $renderer->render_from_template($template, $data);
-
 list($data, $template) = get_students_view($courseid, $categoryid);
 echo $renderer->render_from_template($template, $data);
+
+// list($data, $template) = get_mybookings_block($renderer, $courseid, $categoryid);
+//echo $renderer->render_from_template($template, $data);
 
 echo html_writer::end_tag('div');
 
