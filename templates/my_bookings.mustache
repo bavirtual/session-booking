@@ -34,7 +34,6 @@
 <div{{!
 }} class="bookingwrapper"{{!
 }}{{#courseid}} data-courseid="{{courseid}}"{{/courseid}}{{!
-}}{{#categoryid}} data-categoryid="{{categoryid}}"{{/categoryid}}{{!
 }} data-context-id="{{defaulteventcontext}}"{{!
 }}>
 {{> core/overlay_loading}}
@@ -61,7 +60,7 @@
     </thead>
     <tbody>
     {{#activebookings}}
-        <tr data-region="booking-info" data-bookingid="{{bookingid}}">
+        <tr id="{{bookingid}}">
             <td class="text-md-left" style="padding: 10px; width: 40%;">
                 <span>{{studentname}}</span>
             </td>
@@ -76,11 +75,12 @@
             </td>
             <td>
                 <div class="singlebutton">
-                    <a href="{{actionurl}}">
                     <button class="session-button session-button-cancel" style="float: right; margin: 4px 0 0 0;"
                         data-region="cancel-button"
-                        id="cancel_button"{{uniqid}}
-                        data-booking="{{bookingid}}"
+                        id="cancel_button"
+                        data-bookingid="{{bookingid}}"
+                        data-studentid="{{studentid}}"
+                        data-exerciseid="{{exerciseid}}"
                         title="">
                         <i class="fa fa-window-close" style="padding-right: 5px;"></i>
                         {{actionname}}

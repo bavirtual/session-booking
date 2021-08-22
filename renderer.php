@@ -33,16 +33,6 @@ if (!defined('MOODLE_INTERNAL')) {
 class local_booking_renderer extends plugin_renderer_base {
 
     /**
-     * Adds a pretend block for instructor bookings
-     *
-     * @param block_contents $bc
-     * @param mixed $pos BLOCK_POS_RIGHT | BLOCK_POS_LEFT
-     */
-    public function add_pretend_bookings_block(block_contents $bc) {
-        $this->page->blocks->add_fake_block($bc, $this->page->blocks->get_default_region());
-    }
-
-    /**
      * Starts the standard layout for the page
      *
      * @return string

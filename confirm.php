@@ -25,12 +25,6 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
-require_once(__DIR__ . '/../../local/availability/lib.php');
-
-use local_availability\local\slot\data_access\slot_vault;
-use local_booking\local\session\data_access\booking_vault;
-
-global $DB;
 
 // Get URL parameters.
 $courseid     = optional_param('courseid', 0, PARAM_INT);
@@ -40,45 +34,15 @@ $instructorid = optional_param('insid', 0, PARAM_INT);
 
 require_login($courseid, false);
 
-// Get the student slot
-$bookingvault = new booking_vault();
-$slotvault = new slot_vault();
-
-$bookingobj = array_reverse((array) $bookingvault->get_booking($studentid));
-$booking = array_pop($bookingobj);
-
-// confirm the booking and redirect to the student's availability
-$transaction = $DB->start_delegated_transaction();
-
-$result = false;
-// update the booking by the instructor.
-if ($bookingvault->confirm_booking($studentid, $exerciseid)) {
-    $strdata = [
-        'exercise'  => get_exercise_name($exerciseid),
-        'instructor'=> get_fullusername($instructorid),
-        'status'    => ucwords(get_string('statusbooked', 'local_booking')),
-    ];
-    $bookinginfo = get_string('bookingconfirmmsg', 'local_booking', $strdata);
-    $result = $slotvault->confirm_slot($booking->slotid, $bookinginfo);
-
-    // notify the instructor of the student's confirmation
-    $sessiondate = new DateTime('@' . $booking->timemodified);
-    $result = $result && send_instructor_notification($studentid, $exerciseid, $sessiondate);
-}
+list($result, $confirmationmsg) = confirm_booking($exerciseid, $instructorid, $studentid);
 
 if ($result) {
-    $transaction->allow_commit();
-    \core\notification::success(get_string('bookingsavesuccess', 'local_booking'));
-} else {
-    $transaction->rollback(new moodle_exception(get_string('bookingsaveunable', 'local_booking')));
-    \core\notification::ERROR(get_string('bookingsaveunable', 'local_booking'));
+    // redirect
+    $url = new moodle_url('/local/availability/view.php', array(
+        'course'    => $courseid,
+        'time'      => $confirmationmsg,
+    ));
+
+    $PAGE->set_url($url);
+    redirect($url);
 }
-
-// redirect
-$url = new moodle_url('/local/availability/view.php', array(
-    'course'    => $courseid,
-    'time'      => $booking->timemodified,
-));
-
-$PAGE->set_url($url);
-redirect($url);

@@ -58,7 +58,19 @@ class booking_vault implements booking_vault_interface {
      * @param int $userid
      * @return Object
      */
-    public function get_booking($userid) {
+    public function get_booking($bookingid) {
+        global $DB;
+
+        return $DB->get_records(static::DB_BOOKINGS, ['id' => $bookingid]);
+    }
+
+    /**
+     * get booked sessions for a specific student
+     *
+     * @param int $userid
+     * @return Object
+     */
+    public function get_student_booking($userid) {
         global $DB;
 
         return $DB->get_records(static::DB_BOOKINGS, ['studentid' => $userid]);
@@ -70,7 +82,7 @@ class booking_vault implements booking_vault_interface {
      * @param string $username The username.
      * @return bool
      */
-    public function delete_booking($userid, $exerciseid) {
+    public function delete_student_booking($userid, $exerciseid) {
         global $DB;
 
         $condition = [
@@ -79,6 +91,18 @@ class booking_vault implements booking_vault_interface {
         ];
 
         return $DB->delete_records(static::DB_BOOKINGS, $condition);
+    }
+
+    /**
+     * remove all bookings for a user for a
+     *
+     * @param string $username The username.
+     * @return bool
+     */
+    public function delete_booking($bookingid) {
+        global $DB;
+
+        return $DB->delete_records(static::DB_BOOKINGS, ['id' => $bookingid]);
     }
 
     /**

@@ -28,6 +28,7 @@ namespace local_booking\external;
 defined('MOODLE_INTERNAL') || die();
 
 use \local_booking\local\session\data_access\booking_vault;
+use local_availability\local\slot\data_access\student_vault;
 use core\external\exporter;
 use renderer_base;
 use moodle_url;
@@ -43,6 +44,11 @@ use moodle_url;
 class bookings_exporter extends exporter {
 
     /**
+     * @var array $exercisenames An array of excersice ids and names for the course.
+     */
+    protected $exercisenames = [];
+
+    /**
      * Constructor.
      *
      * @param mixed $data An array of student progress data.
@@ -52,13 +58,10 @@ class bookings_exporter extends exporter {
 
         $url = new moodle_url('/local/booking/view.php', [
                 'courseid' => $data['courseid'],
+                'time' => time(),
             ]);
 
-        $data += [
-            'url'         => $url->out(false),
-            'hiddenclass' => true,
-            'visible'     => true,
-        ];
+        $data['url'] = $url->out(false);
 
         parent::__construct($data, $related);
     }
@@ -71,17 +74,6 @@ class bookings_exporter extends exporter {
             'courseid' => [
                 'type' => PARAM_INT,
             ],
-            'categoryid' => [
-                'type' => PARAM_INT,
-                'optional' => true,
-                'default' => 0,
-            ],
-            'hiddenclass' => [
-                'type'  => PARAM_BOOL,
-            ],
-            'visible' => [
-                'type' => PARAM_BOOL,
-            ],
         ];
     }
 
@@ -92,6 +84,14 @@ class bookings_exporter extends exporter {
      */
     protected static function define_other_properties() {
         return [
+            'exercisenames' => [
+                'type' => exercise_name_exporter::read_properties_definition(),
+                'multiple' => true,
+            ],
+            'activestudents' => [
+                'type' => student_exporter::read_properties_definition(),
+                'multiple' => true,
+            ],
             'activebookings' => [
                 'type' => booking_exporter::read_properties_definition(),
                 'multiple' => true,
@@ -108,7 +108,9 @@ class bookings_exporter extends exporter {
     protected function get_other_values(renderer_base $output) {
 
         $return = [
-            'activebookings'=> $this->get_bookings($output),
+            'exercisenames'  => $this->get_exercises($output),
+            'activestudents' => $this->get_active_students($output),
+            'activebookings' => $this->get_bookings($output),
         ];
 
         return $return;
@@ -122,7 +124,75 @@ class bookings_exporter extends exporter {
     protected static function define_related() {
         return array(
             'context' => 'context',
+            'exercises' => 'stdClass[]?',
         );
+    }
+
+    /**
+     * Retrieves exercises for the course
+     *
+     * @return array
+     */
+    protected function get_exercises($output) {
+        $this->exercisenames = get_exercise_names();
+
+        // get titles from the plugin settings which should be delimited by comma
+        $exercisetitles = explode(',', get_config('local_booking', 'exercisetitles'));
+
+        $exerciseslabels = [];
+
+        $i = 0;
+        foreach($this->exercisenames as $name) {
+            // break down each setting title by <br/> tag, until a better way is identified
+            $titleitem = explode('<br/>', $exercisetitles[$i]);
+            $name->title = $titleitem[0];
+            $name->type = $titleitem[1];
+            $data = [
+                'exerciseid'    => $name->exerciseid,
+                'exercisename'  => $name->exercisename,
+                'exercisetitle' => $name->title,
+                'exercisetype'  => $name->type,
+            ];
+            $i++;
+
+            $exercisename = new exercise_name_exporter($data);
+            $exerciseslabels[] = $exercisename->export($output);
+        }
+
+        return $exerciseslabels;
+    }
+
+    /**
+     * Get the list of day names for display, re-ordered from the first day
+     * of the week.
+     *
+     * @param   renderer_base $output
+     * @return  student_exporter[]
+     */
+    protected function get_active_students($output) {
+        $activestudents = [];
+
+        $vault = new student_vault();
+        $students = $vault->get_active_students();
+
+        $i = 0;
+        foreach ($students as $student) {
+            $i++;
+            $data = [];
+            $data = [
+                'sequence' => $i,
+                'studentid'   => $student->userid,
+                'studentname' => $student->fullname,
+                'simulator'   => $student->simulator,
+            ];
+            $student = new student_exporter($data, $this->data['courseid'], [
+                'context' => \context_system::instance(),
+                'courseexercises' => $this->exercisenames,
+            ]);
+            $activestudents[] = $student->export($output);
+        }
+
+        return $activestudents;
     }
 
     /**

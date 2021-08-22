@@ -69,11 +69,10 @@
                     <span class="media-body small" aria-hidden="true">{{simulator}}</span>
                 </td>
                 <td class="day text-sm-center text-md-left">
-                    <div class="singlebutton" style="float: right;">
+                    <div id="action-button-{{studentid}}" class="singlebutton" style="float: right;">
                         <a href="{{actionurl}}">
                         <button class="session-button session-button-{{actiontype}}"
                             data-region="action-button"
-                            id="action_button"{{uniqid}}
                             title="">
                             <i class="fa fa-{{#actionbook}}plane{{/actionbook}}{{^actionbook}}bookmark{{/actionbook}}" style="padding-right: 5px;"></i>
                             {{actionname}}
@@ -82,19 +81,18 @@
                     </div>
                 </td>
             {{#sessions}}
-                <td id="exercise-{{uniqid}}" class="text-sm-center"
+                <td class="text-sm-center"
                     data-exercise-status="{{sessionstatus}}"
                     {{^sessionempty}}
                     data-toggle="tooltip"
                     title="{{sessionstatustooltip}}"
-                    {{/sessionempty}}
-                    data-region="exercises">
-                    <div class="d-md-block text-xs-center">
-                        <span class="session-date media-body fa-inverse{{!
+                    {{/sessionempty}}>
+                    <div class="d-md-block text-xs-center" >
+                        <span id="exercise-{{studentid}}-{{exerciseid}}" class="session-date media-body fa-inverse{{!
                         }}{{#graded}} session-graded{{/graded}}{{!
                         }}{{#booked}} session-booked{{/booked}}{{!
                         }}{{#tentative}} session-tentative{{/tentative}}{{!
-                    }}">&nbsp;</span>
+                        }}">&nbsp;</span>
                     </div>
                 </td>
             {{/sessions}}

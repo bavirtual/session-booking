@@ -54,13 +54,15 @@ class booking_exporter extends exporter {
         $sessiondate = $this->get_session_date($booking->slotid);
 
         $data = [
-        'bookingid'     => $booking->id,
-        'studentname'   => get_fullusername($booking->studentid),
-        'exercise'      => get_exercise_name($booking->exerciseid),
-        'sessiondate'   => $sessiondate->format('D M j'),
-        'sessiontime'   => $sessiondate->format('H:i'),
-        'actionname'    => $action->get_name(),
-        'actionurl'     => $action->get_url()->out(false),
+        'bookingid'   => $booking->id,
+        'studentid'   => $booking->studentid,
+        'studentname' => get_fullusername($booking->studentid),
+        'exerciseid'  => $booking->exerciseid,
+        'exercise'    => get_exercise_name($booking->exerciseid),
+        'sessiondate' => $sessiondate->format('D M j'),
+        'sessiontime' => $sessiondate->format('H:i'),
+        'actionname'  => $action->get_name(),
+        'actionurl'   => $action->get_url()->out(false),
         ];
 
         parent::__construct($data, $related);
@@ -71,8 +73,14 @@ class booking_exporter extends exporter {
             'bookingid' => [
                 'type' => PARAM_INT,
             ],
+            'studentid' => [
+                'type' => PARAM_INT,
+            ],
             'studentname' => [
                 'type' => PARAM_RAW,
+            ],
+            'exerciseid' => [
+                'type' => PARAM_INT,
             ],
             'exercise' => [
                 'type' => PARAM_RAW,

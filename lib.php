@@ -27,11 +27,12 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/../../local/availability/lib.php');
 
-use \local_booking\external\progression_exporter;
 use \local_booking\external\bookings_exporter;
 use \local_booking\external\assigned_students_exporter;
 use local_availability\local\slot\data_access\slot_vault;
 use local_booking\local\session\data_access\booking_vault;
+use local_booking\local\session\entities\booking;
+use local_availability\local\slot\entities\slot;
 
 /**
  * Process user  table name.
@@ -55,22 +56,22 @@ const DB_COURSE_MODULES = 'course_modules';
  * @param   int     $categoryid the course's category.
  * @return  array[array, string]
  */
-function get_progression_view($courseid, $categoryid) {
-    global $PAGE;
+// function get_progression_view($courseid, $categoryid) {
+//     global $PAGE;
 
-    $renderer = $PAGE->get_renderer('local_booking');
+//     $renderer = $PAGE->get_renderer('local_booking');
 
-    $template = 'local_booking/progress_detailed';
-    $data = [
-        'courseid'  => $courseid,
-        'categoryid'=> $categoryid,
-    ];
+//     $template = 'local_booking/progress_detailed';
+//     $data = [
+//         'courseid'  => $courseid,
+//         'categoryid'=> $categoryid,
+//     ];
 
-    $progression = new progression_exporter($data, ['context' => \context_course::instance($courseid)]);
-    $data = $progression->export($renderer);
+//     $progression = new progression_exporter($data, ['context' => \context_course::instance($courseid)]);
+//     $data = $progression->export($renderer);
 
-    return [$data, $template];
-}
+//     return [$data, $template];
+// }
 
 /**
  * Get the student's progression view output.
@@ -79,7 +80,7 @@ function get_progression_view($courseid, $categoryid) {
  * @param   int     $categoryid the course's category.
  * @return  array[array, string]
  */
-function get_bookings_view($courseid, $categoryid) {
+function get_bookings_view($courseid) {
     global $PAGE;
 
     $renderer = $PAGE->get_renderer('local_booking');
@@ -87,30 +88,12 @@ function get_bookings_view($courseid, $categoryid) {
     $template = 'local_booking/bookings';
     $data = [
         'courseid'  => $courseid,
-        'categoryid'=> $categoryid,
     ];
 
     $bookings = new bookings_exporter($data, ['context' => \context_course::instance($courseid)]);
     $data = $bookings->export($renderer);
 
     return [$data, $template];
-}
-
-
-/**
- * Get the student's progression view output.
- *
- * @param   int     $courseid the associated course.
- * @param   int     $categoryid the course's category.
- * @return  array[array, string]
- */
-function output_mybookings_block($renderer, $courseid, $categoryid) {
-    list($data, $template) = get_bookings_view($courseid, $categoryid);
-    $block = new block_contents;
-    $block->content = $renderer->render_from_template($template, $data);
-    $block->footer = '';
-    $block->title = get_string('bookingactive', 'local_booking');
-    $renderer->add_pretend_bookings_block($block);
 }
 
 /**
@@ -120,7 +103,7 @@ function output_mybookings_block($renderer, $courseid, $categoryid) {
  * @param   int     $categoryid the course's category.
  * @return  array[array, string]
  */
-function get_students_view($courseid, $categoryid) {
+function get_students_view($courseid) {
     global $PAGE;
 
     $renderer = $PAGE->get_renderer('local_booking');
@@ -128,13 +111,173 @@ function get_students_view($courseid, $categoryid) {
     $template = 'local_booking/my_students';
     $data = [
         'courseid'  => $courseid,
-        'categoryid'=> $categoryid,
     ];
 
     $students = new assigned_students_exporter($data, ['context' => \context_course::instance($courseid)]);
     $data = $students->export($renderer);
 
     return [$data, $template];
+}
+
+/**
+ * Save a new booking for a student by the instructor.
+ *
+ * @param   array   $params an array containing the webservice parameters
+ * @return  bool
+ */
+function save_booking($params) {
+    global $DB, $USER;
+
+    $slottobook = $params['bookedslot'];
+    $exerciseid = $params['exerciseid'];
+    $studentid = $params['studentid'];
+
+    $result = false;
+    $bookingvault = new booking_vault();
+    $slotvault = new slot_vault();
+    $courseid = get_course_id($exerciseid);
+
+    require_login($courseid, false);
+
+    $transaction = $DB->start_delegated_transaction();
+
+    // add a new tentatively booked slot for the student.
+    $sessiondata = [
+        'exercise'  => get_exercise_name($exerciseid),
+        'instructor'=> get_fullusername($USER->id),
+        'status'    => ucwords(get_string('statustentative', 'local_booking')),
+    ];
+
+    // remove all week's slots for the user to avoid updates first
+    // add new booked slot for the user
+    if ($bookingvault->delete_booking($studentid, $exerciseid)) {
+        $slotobj = new slot(0,
+            $studentid,
+            $courseid,
+            $slottobook['starttime'],
+            $slottobook['endtime'],
+            $slottobook['year'],
+            $slottobook['week'],
+            get_string('statustentative', 'local_booking'),
+            get_string('bookinginfo', 'local_booking', $sessiondata)
+        );
+        $bookedslot = $slotvault->get_slot($slotvault->save($slotobj));
+
+        // add new booking by the instructor.
+        if (!empty($bookedslot)) {
+            if ($bookingvault->save_booking(new booking($exerciseid, $bookedslot, $studentid, $slottobook['starttime']))) {
+                // send emails to both student and instructor
+                $sessiondate = new DateTime('@' . $slottobook['starttime']);
+                if (send_booking_notification($studentid, $exerciseid, $sessiondate)) {
+                    $result = send_instructor_confirmation($studentid, $exerciseid, $sessiondate);
+                }
+            }
+        }
+    }
+
+    if ($result) {
+        $transaction->allow_commit();
+        $sessiondata['sessiondate'] = $sessiondate->format('D M j\, H:i');
+        $sessiondata['studentname'] = get_fullusername($studentid);
+        \core\notification::success(get_string('bookingsavesuccess', 'local_booking', $sessiondata));
+    } else {
+        $transaction->rollback(new moodle_exception(get_string('bookingsaveunable', 'local_booking')));
+        \core\notification::warning(get_string('bookingsaveunable', 'local_booking'));
+    }
+
+    return $result;
+}
+
+/**
+ * Confirm a booking for of a tentative session
+ *
+ * @param   int   $exerciseid   The exercise id being confirmed.
+ * @param   int   $instructorid The instructor id that booked the session.
+ * @param   int   $studentid    The student id being of the confirmed session.
+ * @return  array An array containing the result and confirmation message string.
+ */
+function confirm_booking($exerciseid, $instructorid, $studentid) {
+    global $DB;
+
+    // Get the student slot
+    $bookingvault = new booking_vault();
+    $slotvault = new slot_vault();
+
+    $bookingobj = array_reverse((array) $bookingvault->get_student_booking($studentid));
+    $booking = array_pop($bookingobj);
+
+    // confirm the booking and redirect to the student's availability
+    $transaction = $DB->start_delegated_transaction();
+
+    $result = false;
+    // update the booking by the instructor.
+    if ($bookingvault->confirm_booking($studentid, $exerciseid)) {
+        $strdata = [
+            'exercise'  => get_exercise_name($exerciseid),
+            'instructor'=> get_fullusername($instructorid),
+            'status'    => ucwords(get_string('statusbooked', 'local_booking')),
+        ];
+        $bookinginfo = get_string('bookingconfirmmsg', 'local_booking', $strdata);
+        $result = $slotvault->confirm_slot($booking->slotid, $bookinginfo);
+
+        // notify the instructor of the student's confirmation
+        $sessiondate = new DateTime('@' . $booking->timemodified);
+        $result = $result && send_instructor_notification($studentid, $exerciseid, $sessiondate);
+    }
+
+    if ($result) {
+        $transaction->allow_commit();
+        \core\notification::success(get_string('bookingsavesuccess', 'local_booking'));
+    } else {
+        $transaction->rollback(new moodle_exception(get_string('bookingsaveunable', 'local_booking')));
+        \core\notification::ERROR(get_string('bookingsaveunable', 'local_booking'));
+    }
+
+    return [$result, $booking->timemodified];
+}
+
+/**
+ * Cancel an instructor's existing booking
+ * @param   int   $booking  The booking id being cancelled.
+ * @return  bool  $resut    The cancellation result.
+ */
+function cancel_booking($bookingid) {
+    global $DB;
+
+    $vault = new booking_vault();
+    $slotvault = new slot_vault();
+
+    // get the booking to be deleted
+    $booking = ($vault->get_booking($bookingid))[$bookingid];
+
+    // get the associated slot to delete
+    $slot = $slotvault->get_slot($booking->slotid);
+
+    // start a transaction
+    $transaction = $DB->start_delegated_transaction();
+
+    $result = false;
+
+    if ($vault->delete_booking($bookingid)) {
+        // delete the slot
+        $result = $slotvault->delete_slot($slot->id);
+    }
+
+    $cancellationmsg = [
+        'studentname' => get_fullusername($booking->studentid),
+        'sessiondate' => (new DateTime('@' . $slot->starttime))->format('D M j\, H:i'),
+    ];
+
+    if ($result) {
+        $transaction->allow_commit();
+        // send email notification to the student of the booking cancellation
+        \core\notification::success(get_string('bookingcanceledsuccess', 'local_booking', $cancellationmsg));
+    } else {
+        $transaction->rollback(new moodle_exception(get_string('bookingsaveunable', 'local_booking')));
+        \core\notification::warning(get_string('bookingcanceledunable', 'local_booking'));
+    }
+
+    return $result;
 }
 
 /**
@@ -145,7 +288,7 @@ function booking_process_submission_graded($exerciseid, $studentid) {
     $bookingvault = new booking_vault();
     $slotvault = new slot_vault();
 
-    $bookingvault->delete_booking($studentid, $exerciseid);
+    $bookingvault->delete_student_booking($studentid, $exerciseid);
     $slotvault->delete_slots(get_course_id($exerciseid), 0, 0, $studentid, false);
 }
 

@@ -37,6 +37,9 @@ require_once($CFG->dirroot . '/local/booking/lib.php');
  */
 class local_booking_external extends external_api {
 
+    // Availability slots table name for.
+    const DB_SLOTS = 'local_availability_slots';
+
     /**
      * Retrieve instructor's booking.
      *
@@ -45,13 +48,12 @@ class local_booking_external extends external_api {
      * @return array array of slots created.
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
-    public static function get_mybookings($courseid, $categoryid) {
+    public static function get_bookings_view($courseid) {
         global $PAGE;
 
         // Parameter validation.
-        $params = self::validate_parameters(self::get_mybookings_parameters(), array(
+        $params = self::validate_parameters(self::get_bookings_view_parameters(), array(
                 'courseid' => $courseid,
-                'categoryid' => $categoryid,
                 )
             );
 
@@ -59,7 +61,7 @@ class local_booking_external extends external_api {
         self::validate_context($context);
         $PAGE->set_url('/local/booking/');
 
-        list($data, $template) = get_bookings_view($courseid, $categoryid);
+        list($data, $template) = get_bookings_view($courseid);
 
         return $data;
     }
@@ -70,11 +72,10 @@ class local_booking_external extends external_api {
      * @return external_function_parameters.
      * @since Moodle 2.5
      */
-    public static function get_mybookings_parameters() {
+    public static function get_bookings_view_parameters() {
         return new external_function_parameters(
             array(
                 'courseid'  => new external_value(PARAM_INT, 'The course id', VALUE_DEFAULT),
-                'categoryid'   => new external_value(PARAM_INT, 'The category id', VALUE_DEFAULT),
             )
         );
     }
@@ -85,7 +86,122 @@ class local_booking_external extends external_api {
      * @return external_description.
      * @since Moodle 2.5
      */
-    public static function get_mybookings_returns() {
+    public static function get_bookings_view_returns() {
         return \local_booking\external\bookings_exporter::get_read_structure();
+    }
+
+    /**
+     * Save booked slots. Delete existing ones for the user then update
+     * any existing slots if applicable with slot values
+     *
+     * @param {object} $bookedslot array containing booked slots.
+     * @param int $exerciseid The exercise the session is for.
+     * @param int $studentid The student id assocaited with the slot.
+     * @param int $refslotid The session slot associated.
+     * @return array array of slots created.
+     * @throws moodle_exception if user doesnt have the permission to create events.
+     */
+    public static function save_booking($slottobook, $exerciseid, $studentid) {
+
+        // Parameter validation.
+        $params = self::validate_parameters(self::save_booking_parameters(), array(
+                'bookedslot' => $slottobook,
+                'exerciseid' => $exerciseid,
+                'studentid'  => $studentid
+                )
+            );
+
+        $warnings = array();
+
+        return array(
+            'result' => save_booking($params),
+            'warnings' => $warnings
+        );
+    }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters.
+     * @since Moodle 2.5
+     */
+    public static function save_booking_parameters() {
+        return new external_function_parameters(
+            array(
+                'bookedslot'  => new external_single_structure(
+                        array(
+                            'starttime' => new external_value(PARAM_INT, 'booked slot start time', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
+                            'endtime' => new external_value(PARAM_INT, 'booked slot end time', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
+                            'year' => new external_value(PARAM_INT, 'booked slot year', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
+                            'week' => new external_value(PARAM_INT, 'booked slot week', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
+                        ), 'booking'),
+                'exerciseid'  => new external_value(PARAM_INT, 'The exercise id', VALUE_DEFAULT),
+                'studentid'   => new external_value(PARAM_INT, 'The student id', VALUE_DEFAULT),
+            )
+        );
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_description.
+     * @since Moodle 2.5
+     */
+    public static function save_booking_returns() {
+        return new external_single_structure(
+            array(
+                'result' => new external_value(PARAM_BOOL, get_string('processingresult', 'local_booking')),
+                'warnings' => new external_warnings()
+            )
+        );
+    }
+
+    /**
+     * Cancel an instructor's booking.
+     *
+     * @param int $bookingid
+     * @return array array of slots created.
+     * @throws moodle_exception if user doesnt have the permission to create events.
+     */
+    public static function cancel_booking($bookingid) {
+
+        // Parameter validation.
+        $params = self::validate_parameters(self::cancel_booking_parameters(), array('bookingid' => $bookingid,)
+        );
+
+        $warnings = array();
+        $result = cancel_booking($bookingid);
+
+        return array(
+            'result' => $result,
+            'warnings' => $warnings
+        );
+    }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters.
+     */
+    public static function cancel_booking_parameters() {
+        return new external_function_parameters(array(
+                'bookingid' => new external_value(PARAM_INT, 'The course id', VALUE_DEFAULT),
+            )
+        );
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_description.
+     * @since Moodle 2.5
+     */
+    public static function cancel_booking_returns() {
+        return new external_single_structure(
+            array(
+                'result' => new external_value(PARAM_BOOL, get_string('processingresult', 'local_booking')),
+                'warnings' => new external_warnings()
+            )
+        );
     }
 }

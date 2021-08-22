@@ -40,12 +40,20 @@ interface booking_vault_interface {
     public function get_bookings(bool $oldestfirst = false);
 
     /**
+     * Get a specific booking.
+     *
+     * @param int                   $bookingid of the student in the booking.
+     * @return booking              A student booking.
+     */
+    public function get_booking($bookingid);
+
+    /**
      * Get all booked sessions for a user that fall on a specific student.
      *
      * @param int                   $userid of the student in the booking.
      * @return booking              A student booking.
      */
-    public function get_booking($userid);
+    public function get_student_booking($userid);
 
     /**
      * Delete all sessions for a specific student.
@@ -54,7 +62,15 @@ interface booking_vault_interface {
      * @param   int                 $exerciseid The exercise id associated with the booking.
      * @return  bool                $result
      */
-    public function delete_booking($userid, $exerciseid);
+    public function delete_student_booking($userid, $exerciseid);
+
+    /**
+     * Delete a specific booking.
+     *
+     * @param   int                 $bookingid  The bookingid id to be deleted.
+     * @return  bool                $result
+     */
+    public function delete_booking($bookingid);
 
     /**
      * Saves the passed booked session

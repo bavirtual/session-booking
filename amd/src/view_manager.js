@@ -28,7 +28,41 @@ import * as Repository from 'local_booking/repository';
 import * as BookingsSelector from 'local_booking/selectors';
 
 /**
- * Refresh the week content.
+ * Cancel a specific booking and update UI.
+ *
+ * @method cancelBooking
+ * @param {object} root The My Bookings root element
+ * @param {object} e    The click event on the Cancel button
+ * @return {object} The create modal promise
+ */
+export const cancelBooking = (root, e) => {
+    startLoading(root);
+
+    var target = e.target;
+    // Get exercise id and the user id from the URL
+    const courseId = courseId || root.find(BookingsSelector.wrapper).data('courseid');
+    const bookingId = target.dataset.bookingid;
+
+    // Send the request data to the server for processing.
+    return Repository.cancelBooking(bookingId)
+        .then(function(response) {
+            if (response.validationerror) {
+                // eslint-disable-next-line no-alert
+                alert('Errors encountered: Unable to cancel booking!');
+            }
+            return refreshBookingsContent(root, courseId);
+        }
+        .bind(this))
+        .always(function() {
+            Notification.fetchNotifications();
+            stopLoading(root);
+        }
+        .bind(this))
+        .fail(Notification.exception);
+};
+
+/**
+ * Refresh bookings content.
  *
  * @param {object} root The root element.
  * @param {number} courseId The id of the course whose events are shown
@@ -44,7 +78,7 @@ export const refreshBookingsContent = (root, courseId, categoryId, target = null
     template = template || root.attr('data-template');
     M.util.js_pending([root.get('id'), courseId, categoryId].join('-'));
     return Repository.getBookingsData(courseId, categoryId)
-        .then(context => {
+        .then((context) => {
             context.viewingbooking = true;
             return Templates.render(template, context);
         })

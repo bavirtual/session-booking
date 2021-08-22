@@ -23,20 +23,18 @@
 import Ajax from 'core/ajax';
 
 /**
- * Change the start day for the given event id. The day timestamp
- * only has to be any time during the target day because only the
- * date information is extracted, the time of the day is ignored.
+ * Get sesison booking, my bookings, and my students data to view.
  *
- * @param {int} courseId    The id of the associated course
- * @param {int} bookingId   The booking id to cancel
- * @return {promise}
+ * @method getBookingsData
+ * @param {number} courseId The course id.
+ * @param {number} categoryId The category id.
+ * @return {promise} Resolved with the month view data.
  */
- export const cancelBooking = (courseId, bookingId) => {
+ export const getBookingsData = (courseId) => {
     const request = {
-        methodname: 'local_booking_cancel',
+        methodname: 'local_booking_get_bookings_view',
         args: {
             courseid: courseId,
-            bookingid: bookingId,
         }
     };
 
@@ -44,19 +42,16 @@ import Ajax from 'core/ajax';
 };
 
 /**
- * Get calendar data for the month view.
+ * Cancel a sepcific booking for a student.
  *
- * @method getBookingsData
- * @param {number} courseId The course id.
- * @param {number} categoryId The category id.
- * @return {promise} Resolved with the month view data.
+ * @param {int} bookingId   The booking id to cancel
+ * @return {promise}
  */
-export const getBookingsData = (courseId, categoryId) => {
+ export const cancelBooking = (bookingId) => {
     const request = {
-        methodname: 'local_booking_get_mybookings_view',
+        methodname: 'local_booking_cancel_booking',
         args: {
-            courseid: courseId,
-            categoryid: categoryId,
+            bookingid: bookingId,
         }
     };
 

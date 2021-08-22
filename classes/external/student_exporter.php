@@ -171,8 +171,7 @@ class student_exporter extends exporter {
     }
 
     /**
-     * Get the list of days
-     * of the week.
+     * Get the list of sessions for the course.
      *
      * @return  $submissions[]
      */
@@ -187,7 +186,7 @@ class student_exporter extends exporter {
                 'courseid'    => $this->courseid,
                 'exerciseid'  => $exercise->exerciseid,
                 'grades'      => $this->studentgrades,
-                'booking'     => $this->bookingvault->get_booking($this->studentid),
+                'booking'     => $this->bookingvault->get_student_booking($this->studentid),
             ];
             $exercisesession = new session_exporter($studentinfo, $this->related);
             $sessions[] = $exercisesession->export($output);
@@ -216,7 +215,7 @@ class student_exporter extends exporter {
         }
 
         // next action depends if the student has any booking
-        $hasbooking = !empty($this->bookingvault->get_booking($this->studentid));
+        $hasbooking = !empty($this->bookingvault->get_student_booking($this->studentid));
         $action = new action($hasbooking ? 'grade' : 'book', $this->studentid, $exerciseid);
 
         return $action;

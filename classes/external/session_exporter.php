@@ -111,6 +111,8 @@ class session_exporter extends exporter {
         $this->session = new session($grade, $booking, $sessionstatus, $sessiondate);
 
         $data = [
+            'studentid'     => $data['studentid'],
+            'exerciseid'    => $data['exerciseid'],
             'sessionstatus' => $sessionstatus,
             'sessiondate'   => !$this->session->empty() ? $sessiondate->format('j M \'y') : '',
             'sessionempty'  => $this->session->empty(),
@@ -126,6 +128,14 @@ class session_exporter extends exporter {
      */
     protected static function define_properties() {
         return [
+            'studentid' => [
+                'type' => PARAM_INT,
+                'default' => 0,
+            ],
+            'exerciseid' => [
+                'type' => PARAM_INT,
+                'default' => 0,
+            ],
             'sessionstatus' => [
                 'type' => PARAM_RAW,
                 'default' => '',

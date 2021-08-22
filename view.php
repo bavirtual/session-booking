@@ -74,22 +74,20 @@ $PAGE->set_heading($pluginname, 'local_booking');// . ' course id='  . $courseid
 $PAGE->add_body_class('path-local-booking');
 
 $renderer = $PAGE->get_renderer('local_booking');
-output_mybookings_block($renderer, $courseid, $categoryid);
 
 echo $OUTPUT->header();
 echo $renderer->start_layout();
 echo html_writer::start_tag('div', array('class'=>'heightcontainer'));
 
-list($data, $template) = get_progression_view($courseid, $categoryid);
+// list($data, $template) = get_progression_view($courseid, $categoryid);
+// echo $renderer->render_from_template($template, $data);
+
+list($data, $template) = get_bookings_view($courseid);
 echo $renderer->render_from_template($template, $data);
 
-list($data, $template) = get_students_view($courseid, $categoryid);
+list($data, $template) = get_students_view($courseid);
 echo $renderer->render_from_template($template, $data);
-
-// list($data, $template) = get_mybookings_block($renderer, $courseid, $categoryid);
-//echo $renderer->render_from_template($template, $data);
 
 echo html_writer::end_tag('div');
-
 echo $renderer->complete_layout();
 echo $OUTPUT->footer();
