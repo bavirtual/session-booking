@@ -51,7 +51,7 @@ class booking_exporter extends exporter {
     public function __construct($data, $related) {
         $booking = $data['booking'];
         $action = new action('cancel', $booking->studentid, $booking->exerciseid);
-        $sessiondate = $this->get_session_date($booking->slotid);
+        $sessiondate = get_session_date($booking->slotid);
 
         $data = [
         'bookingid'   => $booking->id,
@@ -109,20 +109,5 @@ class booking_exporter extends exporter {
         return array(
             'context' => 'context',
         );
-    }
-
-
-    /**
-     * Returns a list of objects that are related.
-     *
-     * @return DateTime
-     */
-    protected static function get_session_date(int $slotid) {
-        $vault = new slot_vault();
-        $slot = $vault->get_slot($slotid);
-
-        $sessiondate = new DateTime('@' . $slot->starttime);
-
-        return $sessiondate;
     }
 }

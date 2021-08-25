@@ -34,13 +34,24 @@ $messageproviders = array(
         ),
     ),
 
-    // Confirm booking to the instructor.
+    // Confirm to the instructor booking made by him/her.
     'booking_confirmation' => array(
         'capability' => 'local/booking:emailconfirm',
     ),
 
     // Notify instructor of student confirmation of booked session.
     'instructor_notification' => array(
-        'capability' => 'local/booking:emailconfirm',
+        'capability' => 'local/booking:emailnotify',
+        'defaults' => array(
+            'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
+        ),
+    ),
+
+    // Notify student of cancelled session.
+    'session_cancellation' => array(
+        'capability' => 'local/booking:emailnotify',
+        'defaults' => array(
+            'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
+        ),
     ),
 );

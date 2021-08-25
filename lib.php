@@ -56,30 +56,6 @@ const DB_COURSE_MODULES = 'course_modules';
  * @param   int     $categoryid the course's category.
  * @return  array[array, string]
  */
-// function get_progression_view($courseid, $categoryid) {
-//     global $PAGE;
-
-//     $renderer = $PAGE->get_renderer('local_booking');
-
-//     $template = 'local_booking/progress_detailed';
-//     $data = [
-//         'courseid'  => $courseid,
-//         'categoryid'=> $categoryid,
-//     ];
-
-//     $progression = new progression_exporter($data, ['context' => \context_course::instance($courseid)]);
-//     $data = $progression->export($renderer);
-
-//     return [$data, $template];
-// }
-
-/**
- * Get the student's progression view output.
- *
- * @param   int     $courseid the associated course.
- * @param   int     $categoryid the course's category.
- * @return  array[array, string]
- */
 function get_bookings_view($courseid) {
     global $PAGE;
 
@@ -220,17 +196,25 @@ function confirm_booking($exerciseid, $instructorid, $studentid) {
         $bookinginfo = get_string('bookingconfirmmsg', 'local_booking', $strdata);
         $result = $slotvault->confirm_slot($booking->slotid, $bookinginfo);
 
+        $slot = $slotvault->get_slot($booking->slotid);
+        $url = new \moodle_url('/local/availability/view.php', array(
+            'time'  => $slot->starttime,
+            'course'=> $slot->courseid,
+            'week'  => $slot->week,
+        ));
+
         // notify the instructor of the student's confirmation
-        $sessiondate = new DateTime('@' . $booking->timemodified);
-        $result = $result && send_instructor_notification($studentid, $exerciseid, $sessiondate);
+        $sessiondate = get_session_date($booking->slotid);
+        $strdata['sessiondate'] = $sessiondate->format('D M j\, H:i');
+        $result = $result && send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid, $url);
     }
 
     if ($result) {
         $transaction->allow_commit();
-        \core\notification::success(get_string('bookingsavesuccess', 'local_booking'));
+        \core\notification::success(get_string('bookingconfirmsuccess', 'local_booking', $strdata));
     } else {
-        $transaction->rollback(new moodle_exception(get_string('bookingsaveunable', 'local_booking')));
-        \core\notification::ERROR(get_string('bookingsaveunable', 'local_booking'));
+        $transaction->rollback(new moodle_exception(get_string('bookingconfirmunable', 'local_booking')));
+        \core\notification::ERROR(get_string('bookingconfirmunable', 'local_booking'));
     }
 
     return [$result, $booking->timemodified];
@@ -242,7 +226,9 @@ function confirm_booking($exerciseid, $instructorid, $studentid) {
  * @return  bool  $resut    The cancellation result.
  */
 function cancel_booking($bookingid) {
-    global $DB;
+    global $DB, $COURSE;
+
+    require_login($COURSE->id, false);
 
     $vault = new booking_vault();
     $slotvault = new slot_vault();
@@ -263,14 +249,16 @@ function cancel_booking($bookingid) {
         $result = $slotvault->delete_slot($slot->id);
     }
 
+    $sessiondate = new DateTime('@' . $slot->starttime);
     $cancellationmsg = [
         'studentname' => get_fullusername($booking->studentid),
-        'sessiondate' => (new DateTime('@' . $slot->starttime))->format('D M j\, H:i'),
+        'sessiondate' => $sessiondate->format('D M j\, H:i'),
     ];
 
     if ($result) {
         $transaction->allow_commit();
         // send email notification to the student of the booking cancellation
+        send_session_cancellation($booking->studentid, $booking->exerciseid, $sessiondate);
         \core\notification::success(get_string('bookingcanceledsuccess', 'local_booking', $cancellationmsg));
     } else {
         $transaction->rollback(new moodle_exception(get_string('bookingsaveunable', 'local_booking')));
@@ -288,6 +276,7 @@ function booking_process_submission_graded($exerciseid, $studentid) {
     $bookingvault = new booking_vault();
     $slotvault = new slot_vault();
 
+    // update the booking status from active to inactive
     $bookingvault->delete_student_booking($studentid, $exerciseid);
     $slotvault->delete_slots(get_course_id($exerciseid), 0, 0, $studentid, false);
 }
@@ -342,6 +331,20 @@ function get_course_id($exerciseid) {
             WHERE cm.id = ' . $exerciseid;
 
     return $DB->get_record_sql($sql)->courseid;
+}
+
+/**
+ * Returns the date of the slot session.
+ *
+ * @return DateTime
+ */
+function get_session_date(int $slotid) {
+    $vault = new slot_vault();
+    $slot = $vault->get_slot($slotid);
+
+    $sessiondate = new DateTime('@' . $slot->starttime);
+
+    return $sessiondate;
 }
 
 /**
@@ -413,25 +416,56 @@ function send_instructor_confirmation($studentid, $exerciseid, $sessiondate) {
  *
  * @return int  The notification message id.
  */
-function send_instructor_notification($studentid, $exerciseid, $sessiondate) {
+function send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid, $url) {
     global $COURSE;
 
     // notification message data
     $data = (object) array(
-        'coursename'    => $COURSE->shortname,
-        'student'       => get_fullusername($studentid),
-        'sessiondate'   => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
-        'exercise'      => get_exercise_name($exerciseid),
+        'coursename'        => $COURSE->shortname,
+        'student'           => get_fullusername($studentid),
+        'sessiondate'       => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
+        'exercise'          => get_exercise_name($exerciseid),
+        'availabilityurl'   => $url->out(false),
     );
 
     return send_message(
         'instructor_notification',
-        $studentid,
+        $instructorid,
         $COURSE->id,
         get_string('emailinstconfirmsubject', 'local_booking', $data),
         get_string('emailinstconfirmnmsg', 'local_booking', $data),
         get_string('emailinstconfirmhtml', 'local_booking', $data),
-        $data->confirmurl,
+        $data->availabilityurl,
+        get_string('studentavialability', 'local_booking'),
+        array('*' => array('header' => ' testing ', 'footer' => ' testing ')));
+}
+
+/**
+ * Sends an email notifying the student of
+ * the cancelled session.
+ *
+ * @return int  The notification message id.
+ */
+function send_session_cancellation($studentid, $exerciseid, $sessiondate) {
+    global $USER, $COURSE;
+
+    // notification message data
+    $data = (object) array(
+        'coursename'    => $COURSE->shortname,
+        'instructor'    => get_fullusername($USER->id),
+        'sessiondate'   => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
+        'exercise'      => get_exercise_name($exerciseid),
+        'courseurl'    => (new \moodle_url('/course/view.php', array('id'=> $COURSE->id)))->out(false),
+    );
+
+    return send_message(
+        'session_cancellation',
+        $studentid,
+        $COURSE->id,
+        get_string('emailcancel', 'local_booking', $data),
+        get_string('emailcancelmsg', 'local_booking', $data),
+        get_string('emailcancelhtml', 'local_booking', $data),
+        $data->courseurl,
         get_string('studentavialability', 'local_booking'),
         array('*' => array('header' => ' testing ', 'footer' => ' testing ')));
 }

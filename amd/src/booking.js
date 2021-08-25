@@ -44,7 +44,7 @@ define([
         // Listen the click on the Cancel booking buttons.
         root.on('click', SELECTORS.CANCEL_BUTTON, function(e) {
             // eslint-disable-next-line no-alert
-            if (confirm('Cancel booking?')) {
+            if (confirm('Cancel booked session?')) {
                 ViewManager.cancelBooking(root, e);
             }
         });

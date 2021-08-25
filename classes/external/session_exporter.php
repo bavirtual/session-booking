@@ -99,7 +99,7 @@ class session_exporter extends exporter {
         } else if ($booking !== null) {
             $sessionstatus = $booking->confirmed ? 'booked' : 'tentative';
             $infostatus = $booking->confirmed ? 'statusbooked' : 'statustentative';
-            $sessiondate = new \DateTime('@' . $booking->timemodified);
+            $sessiondate = get_session_date($booking->slotid);
             $bookinginfo = [
                 'instructor'    => get_fullusername($booking->userid),
                 'sessiondate'   => $sessiondate->format('j M \'y'),

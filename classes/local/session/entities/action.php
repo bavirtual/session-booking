@@ -80,15 +80,13 @@ class action implements action_interface {
                     'exid'   => $refid,
                     'userid' => $userid,
                     'action' => 'book',
+                    'view' => 'user',
                 ]);
                 $name = get_string('book', 'local_booking');
                 break;
             case 'cancel':
                 $actionurl = new moodle_url('/local/booking/view.php', [
                     'course' => $COURSE->id,
-                    'exid'   => $refid,
-                    'userid' => $userid,
-                    'action' => 'all',
                 ]);
                 $name = get_string('bookingcancel', 'local_booking');
                 break;
