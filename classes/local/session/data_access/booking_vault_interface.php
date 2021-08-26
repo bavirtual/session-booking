@@ -53,16 +53,25 @@ interface booking_vault_interface {
      * @param int                   $userid of the student in the booking.
      * @return booking              A student booking.
      */
-    public function get_student_booking($userid);
+    public function get_student_booking($studentid);
 
     /**
      * Delete all sessions for a specific student.
      *
-     * @param   int                 $userid     The student id associated with the booking.
+     * @param   int                 $studentid  The student id associated with the booking.
      * @param   int                 $exerciseid The exercise id associated with the booking.
      * @return  bool                $result
      */
-    public function delete_student_booking($userid, $exerciseid);
+    public function set_booking_inactive($userid, $exerciseid);
+
+    /**
+     * Delete a student's booking.
+     *
+     * @param   int                 $studentid  The student id associated with the booking.
+     * @param   int                 $exerciseid The exercise id associated with the booking.
+     * @return  bool                $result
+     */
+    public function delete_student_booking($studentid, $exerciseid);
 
     /**
      * Delete a specific booking.

@@ -47,7 +47,9 @@ class booking_vault implements booking_vault_interface {
         $sql = 'SELECT b.id, b.userid, b.studentid, b.exerciseid, b.slotid, b.confirmed, b.timemodified
                 FROM {' . static::DB_BOOKINGS. '} b
                 INNER JOIN {' . static::DB_SLOTS . '} s on s.id = b.slotid
-                WHERE b.userid = ' . $USER->id . ($oldestfirst ? ' ORDER BY s.starttime' : '');
+                WHERE b.userid = ' . $USER->id . '
+                AND b.active = 1' .
+                ($oldestfirst ? ' ORDER BY s.starttime' : '');
 
         return $DB->get_records_sql($sql);
     }
@@ -73,7 +75,7 @@ class booking_vault implements booking_vault_interface {
     public function get_student_booking($userid) {
         global $DB;
 
-        return $DB->get_records(static::DB_BOOKINGS, ['studentid' => $userid]);
+        return $DB->get_records(static::DB_BOOKINGS, ['studentid' => $userid, 'active' => '1']);
     }
 
     /**
@@ -82,15 +84,30 @@ class booking_vault implements booking_vault_interface {
      * @param string $username The username.
      * @return bool
      */
-    public function delete_student_booking($userid, $exerciseid) {
+    public function set_booking_inactive($studentid, $exerciseid) {
         global $DB;
 
-        $condition = [
-            'studentid'  => $userid,
-            'exerciseid' => $exerciseid,
-        ];
+        $sql = 'UPDATE {' . static::DB_BOOKINGS . '}
+                SET active = 0
+                WHERE studentid = ' . $studentid . '
+                AND exerciseid = ' . $exerciseid;
 
-        return $DB->delete_records(static::DB_BOOKINGS, $condition);
+        return $DB->execute($sql);
+    }
+    /**
+     * remove all bookings for a user for a
+     *
+     * @param string $username The username.
+     * @return bool
+     */
+    public function delete_student_booking($studentid, $exerciseid) {
+        global $DB;
+
+        return $DB->delete_records(static::DB_BOOKINGS, [
+            'studentid' => $studentid,
+            'exerciseid'=> $exerciseid,
+            'active'    => '1',
+        ]);
     }
 
     /**

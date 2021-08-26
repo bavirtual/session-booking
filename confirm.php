@@ -34,13 +34,14 @@ $instructorid = optional_param('insid', 0, PARAM_INT);
 
 require_login($courseid, false);
 
-list($result, $confirmationmsg) = confirm_booking($exerciseid, $instructorid, $studentid);
+list($result, $time, $week) = confirm_booking($exerciseid, $instructorid, $studentid);
 
 if ($result) {
     // redirect
     $url = new moodle_url('/local/availability/view.php', array(
         'course'    => $courseid,
-        'time'      => $confirmationmsg,
+        'time'      => $time,
+        'week'      => $week,
     ));
 
     $PAGE->set_url($url);

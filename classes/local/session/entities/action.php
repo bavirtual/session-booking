@@ -97,15 +97,39 @@ class action implements action_interface {
         $this->name = $name;
     }
 
+    /**
+     * Get the type of the action.
+     *
+     * @return string
+     */
     public function get_type() {
         return $this->type;
     }
 
+    /**
+     * Get the URL of the action.
+     *
+     * @return \moodle_url
+     */
     public function get_url() {
         return $this->url;
     }
 
+    /**
+     * Get the name of the action.
+     *
+     * @return string
+     */
     public function get_name() {
         return $this->name;
+    }
+
+    /**
+     * Set the action type.
+     *
+     * @param string $type the time to set the action to
+     */
+    public function set_type(string $type) {
+        $this->type = $type;
     }
 }

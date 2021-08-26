@@ -52,6 +52,7 @@ $string['enroldate'] = 'Enrol Date';
 $string['exercise'] = 'Exercise';
 $string['exercisetitles'] = 'Course exercise titles:';
 $string['exercisetitlesdesc'] = 'titles delimited by commas';
+$string['incompletelessontooltip'] = 'The student has incomplete lessons';
 $string['pluginname'] = 'Session Booking';
 $string['processingresult'] = 'The processing result';
 $string['progression'] = 'Students Progression';

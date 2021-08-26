@@ -74,6 +74,9 @@
     transition: ease background-color 250ms;
 }
 .session-button-book:hover {
+    background-color: gray;
+}
+.session-button-disabled {
     background-color: darkgray;
 }
 .session-button-cancel {
@@ -82,4 +85,7 @@
 }
 .session-button-cancel:hover {
     background-color: #9b2828;
+}
+.disabled-link {
+    pointer-events: none;
 }

@@ -25,6 +25,9 @@
 
 namespace local_booking\external;
 
+require_once($CFG->dirroot . '/local/availability/lib.php');
+require_once($CFG->dirroot . '/lib/completionlib.php');
+
 defined('MOODLE_INTERNAL') || die();
 
 use local_booking\external\session_exporter;
@@ -134,6 +137,9 @@ class student_exporter extends exporter {
             'actionbook' => [
                 'type' => PARAM_BOOL,
             ],
+            'lessonincomplete' => [
+                'type' => PARAM_BOOL,
+            ],
         ];
     }
 
@@ -144,15 +150,23 @@ class student_exporter extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
+        $hasincompletelessons = false;
         $sessions = $this->get_sessions($output);
         $action = $this->get_next_action();
 
+        // check if the student to be book has incomplete lessons
+        if ($action->get_type() == 'book') {
+            $hasincompletelessons = !has_completed_lessons($this->studentid);
+            if ($hasincompletelessons) { $action->set_type('disabled'); }
+        }
+
         $return = [
-            'sessions' => $sessions,
-            'actionurl' => $action->get_url()->out(false),
-            'actiontype' => $action->get_type(),
-            'actionname' => $action->get_name(),
-            'actionbook' => $action->get_type() == 'book',
+            'sessions'         => $sessions,
+            'actionurl'        => $action->get_url()->out(false),
+            'actiontype'       => $action->get_type(),
+            'actionname'       => $action->get_name(),
+            'actionbook'       => $action->get_type() == 'book',
+            'lessonincomplete' => $hasincompletelessons,
         ];
 
         return $return;
@@ -201,6 +215,7 @@ class student_exporter extends exporter {
      * students with booked session is a grading
      * action, otherwise it is a booking action
      *
+     * @param  bool  $disable create a disabled action
      * @return {Object}
      */
     protected function get_next_action() {
@@ -216,7 +231,8 @@ class student_exporter extends exporter {
 
         // next action depends if the student has any booking
         $hasbooking = !empty($this->bookingvault->get_student_booking($this->studentid));
-        $action = new action($hasbooking ? 'grade' : 'book', $this->studentid, $exerciseid);
+        $actiontype = $hasbooking ? 'grade' : 'book';
+        $action = new action($actiontype, $this->studentid, $exerciseid);
 
         return $action;
     }

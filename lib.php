@@ -124,9 +124,9 @@ function save_booking($params) {
         'status'    => ucwords(get_string('statustentative', 'local_booking')),
     ];
 
-    // remove all week's slots for the user to avoid updates first
     // add new booked slot for the user
-    if ($bookingvault->delete_booking($studentid, $exerciseid)) {
+    // remove all week's slots for the user to avoid having to update
+    if ($bookingvault->delete_student_booking($studentid, $exerciseid)) {
         $slotobj = new slot(0,
             $studentid,
             $courseid,
@@ -217,7 +217,7 @@ function confirm_booking($exerciseid, $instructorid, $studentid) {
         \core\notification::ERROR(get_string('bookingconfirmunable', 'local_booking'));
     }
 
-    return [$result, $booking->timemodified];
+    return [$result, $slot->starttime, $slot->week];
 }
 
 /**
@@ -277,7 +277,7 @@ function booking_process_submission_graded($exerciseid, $studentid) {
     $slotvault = new slot_vault();
 
     // update the booking status from active to inactive
-    $bookingvault->delete_student_booking($studentid, $exerciseid);
+    $bookingvault->set_booking_inactive($studentid, $exerciseid);
     $slotvault->delete_slots(get_course_id($exerciseid), 0, 0, $studentid, false);
 }
 

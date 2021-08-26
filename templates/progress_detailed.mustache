@@ -68,12 +68,15 @@
                 <td class="day text-sm-center">
                     <span class="media-body small" aria-hidden="true">{{simulator}}</span>
                 </td>
-                <td class="day text-sm-center text-md-left">
+                <td class="day text-sm-center text-md-left"
+                    {{#lessonincomplete}}
+                    data-toggle="tooltip"
+                    title="{{#str}}incompletelessontooltip,local_booking{{/str}}">
+                    {{/lessonincomplete}}
                     <div id="action-button-{{studentid}}" class="singlebutton" style="float: right;">
-                        <a href="{{actionurl}}">
+                        <a href="{{actionurl}}"{{#lessonincomplete}} class="disabled-link"{{/lessonincomplete}}>
                         <button class="session-button session-button-{{actiontype}}"
                             data-region="action-button"
-                            title="">
                             <i class="fa fa-{{#actionbook}}plane{{/actionbook}}{{^actionbook}}bookmark{{/actionbook}}" style="padding-right: 5px;"></i>
                             {{actionname}}
                         </button>

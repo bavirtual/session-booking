@@ -54,4 +54,11 @@ interface action_interface {
      * @return string
      */
     public function get_name();
+
+    /**
+     * Set the action type.
+     *
+     * @param string $type the time to set the action to
+     */
+    public function set_type(string $type);
 }
