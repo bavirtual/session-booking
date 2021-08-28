@@ -76,6 +76,7 @@ class student_exporter extends exporter {
      * @var student_vault $studentvault A vault to access student data.
      */
     protected $studentvault;
+
     /**
      * Constructor.
      *
@@ -101,6 +102,9 @@ class student_exporter extends exporter {
         return [
             'sequence' => [
                 'type' => PARAM_INT,
+            ],
+            'sequencetooltip' => [
+                'type' => PARAM_RAW,
             ],
             'studentid' => [
                 'type' => PARAM_INT,

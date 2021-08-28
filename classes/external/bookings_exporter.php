@@ -30,6 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 use \local_booking\local\session\data_access\booking_vault;
 use local_availability\local\slot\data_access\student_vault;
 use core\external\exporter;
+use local_booking\local\session\entities\priority;
 use renderer_base;
 use moodle_url;
 
@@ -173,17 +174,26 @@ class bookings_exporter extends exporter {
         $activestudents = [];
 
         $vault = new student_vault();
-        $students = $vault->get_active_students();
+        $students = $this->prioritze($vault->get_active_students());
 
         $i = 0;
         foreach ($students as $student) {
             $i++;
+            $sequencetooltip = [
+                'score'     => $student->priority->get_score(),
+                'recency'   => $student->priority->get_recency_days(),
+                'slots'     => $student->priority->get_slot_count(),
+                'activity'  => $student->priority->get_activity_count(false),
+                'completion'=> $student->priority->get_completions(),
+            ];
+
             $data = [];
             $data = [
-                'sequence' => $i,
-                'studentid'   => $student->userid,
-                'studentname' => $student->fullname,
-                'simulator'   => $student->simulator,
+                'sequence'        => $i,
+                'sequencetooltip' => get_string('sequencetooltip', 'local_booking', $sequencetooltip),
+                'studentid'       => $student->userid,
+                'studentname'     => $student->fullname,
+                'simulator'       => $student->simulator,
             ];
             $student = new student_exporter($data, $this->data['courseid'], [
                 'context' => \context_system::instance(),
@@ -191,6 +201,26 @@ class bookings_exporter extends exporter {
             ]);
             $activestudents[] = $student->export($output);
         }
+
+        return $activestudents;
+    }
+
+    /**
+     * Prioritize the list of active students
+     * based on highest scores.
+     *
+     * @param   array   $activestudents
+     */
+    protected function prioritze($activestudents) {
+        // Get student booking priority
+        foreach ($activestudents as $student) {
+            $priority = new priority($student->userid);
+            $student->priority = $priority;
+        }
+
+        usort($activestudents, function($st1, $st2) {
+            return $st1->priority->get_score() < $st2->priority->get_score();
+        });
 
         return $activestudents;
     }

@@ -48,10 +48,20 @@ $string['emailcancel'] = '{$a->coursename} session booking cancellation: \'{$a->
 $string['emailcancelmsg'] = '{$a->instructor} has cancelled your booked session scheduled for {$a->sessiondate} on \'{$a->exercise}\'.';
 $string['emailcancelhtml'] = '<font face="sans-serif"><p>{$a->coursename} -> Assignment -> {$a->exercise}</p><hr /><p>{$a->instructor} has cancelled your booked session scheduled for <strong>{$a->sessiondate}</strong> on \'<i>{$a->exercise}</i>\'.</p></p></p></font><hr />';
 
-$string['enroldate'] = 'Enrol Date';
-$string['exercise'] = 'Exercise';
+// plugin settings
 $string['exercisetitles'] = 'Course exercise titles:';
 $string['exercisetitlesdesc'] = 'titles delimited by commas';
+$string['recencydaysweight'] = 'Recency prioritization weight multiplier';
+$string['recencydaysweightdesc'] = 'multipler to calculate prioritization for session recency';
+$string['slotcountweight'] = 'Slot count weight multiplier';
+$string['slotcountweightdesc'] = 'multiplier to calculate prioritization for availability slots';
+$string['activitycountweight'] = 'Course activity weight multiplier';
+$string['activitycountweightdesc'] = 'multiplier to calculate prioritization for course activity';
+$string['completionweight'] = 'Lesson completion weight multiplier';
+$string['completionweightdesc'] = 'multiplier to calculate prioritization of lesson completion';
+
+$string['enroldate'] = 'Enrol Date';
+$string['exercise'] = 'Exercise';
 $string['incompletelessontooltip'] = 'The student has incomplete lessons';
 $string['pluginname'] = 'Session Booking';
 $string['processingresult'] = 'The processing result';
@@ -60,6 +70,8 @@ $string['messageprovider:booking_notification'] = 'Session booked notification';
 $string['messageprovider:booking_confirmation'] = 'Booked session instructor confirmation';
 $string['messageprovider:instructor_notification'] = 'Student confirmation of booked session';
 $string['mystudents'] = 'My Assigned Trainees';
+$string['sequencetooltip'] = 'Score: {$a->score}<br/>Last session: {$a->recency} days<br/>Course activity: {$a->activity} views
+<br/>Availability: {$a->slots} posts<br/>Completion: {$a->completion} lessons';
 $string['sessionaction'] = 'Action';
 $string['sessiondate'] = 'Session Date';
 $string['sessionbookedby'] = 'Session date: {$a->sessiondate} {$a->bookingstatus}: booked by \'{$a->instructor}\'';

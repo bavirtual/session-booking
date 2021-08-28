@@ -35,6 +35,26 @@ use local_booking\local\session\entities\booking;
 use local_availability\local\slot\entities\slot;
 
 /**
+ * LOCAL_BOOKING_RECENCYWEIGHT - constant value for session recency weight multipler
+ */
+define('LOCAL_BOOKING_RECENCYWEIGHT', 10);
+
+/**
+ * LOCAL_BOOKING_SLOTSWEIGHT - constant value for session availability slots weight multipler
+ */
+define('LOCAL_BOOKING_SLOTSWEIGHT', 10);
+
+/**
+ * LOCAL_BOOKING_ACTIVITYWEIGHT - constant value for course activity weight multipler
+ */
+define('LOCAL_BOOKING_ACTIVITYWEIGHT', 1);
+
+/**
+ * LOCAL_BOOKING_COMPLETIONWEIGHT - constant value for lesson completion weight multipler
+ */
+define('LOCAL_BOOKING_COMPLETIONWEIGHT', 10);
+
+/**
  * Process user  table name.
  */
 const DB_BOOKING = 'local_booking';
@@ -378,7 +398,7 @@ function send_booking_notification($studentid, $exerciseid, $sessiondate) {
         get_string('emailnotifyhtml', 'local_booking', $data),
         $data->confirmurl,
         get_string('studentavialability', 'local_booking'),
-        array('*' => array('header' => ' testing ', 'footer' => ' testing ')));
+        array('*' => array('header' => get_string('pluginname', 'local_booking'), 'footer' => get_string('pluginname', 'local_booking'))));
 }
 
 /**
@@ -407,7 +427,7 @@ function send_instructor_confirmation($studentid, $exerciseid, $sessiondate) {
             get_string('emailconfirmhtml', 'local_booking', $data),
             $data->bookingurl,
             get_string('pluginname', 'local_booking'),
-            array('*' => array('header' => ' testing header ', 'footer' => ' testing footer')));
+            array('*' => array('header' => get_string('pluginname', 'local_booking'), 'footer' => get_string('pluginname', 'local_booking'))));
 }
 
 /**
@@ -425,7 +445,7 @@ function send_instructor_notification($studentid, $exerciseid, $sessiondate, $in
         'student'           => get_fullusername($studentid),
         'sessiondate'       => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
         'exercise'          => get_exercise_name($exerciseid),
-        'availabilityurl'   => $url->out(false),
+        'bookingurl'   => $url->out(false),
     );
 
     return send_message(
@@ -435,9 +455,9 @@ function send_instructor_notification($studentid, $exerciseid, $sessiondate, $in
         get_string('emailinstconfirmsubject', 'local_booking', $data),
         get_string('emailinstconfirmnmsg', 'local_booking', $data),
         get_string('emailinstconfirmhtml', 'local_booking', $data),
-        $data->availabilityurl,
+        $data->bookingurl,
         get_string('studentavialability', 'local_booking'),
-        array('*' => array('header' => ' testing ', 'footer' => ' testing ')));
+        array('*' => array('header' => get_string('pluginname', 'local_booking'), 'footer' => get_string('pluginname', 'local_booking'))));
 }
 
 /**
@@ -467,7 +487,7 @@ function send_session_cancellation($studentid, $exerciseid, $sessiondate) {
         get_string('emailcancelhtml', 'local_booking', $data),
         $data->courseurl,
         get_string('studentavialability', 'local_booking'),
-        array('*' => array('header' => ' testing ', 'footer' => ' testing ')));
+        array('*' => array('header' => get_string('pluginname', 'local_booking'), 'footer' => get_string('pluginname', 'local_booking'))));
 }
 
 /**
@@ -490,7 +510,7 @@ function send_message($messagename, $touser, $courseid, $subject, $fullmessage, 
     $message->smallmessage      = '';
     $message->contexturl        = $url;
     $message->contexturlname    = $urlname;
-    // $message->set_additional_content('email', $content);
+    $message->set_additional_content('email', $content);
 
     return message_send($message) != 0;
 }
@@ -516,7 +536,7 @@ function local_booking_extend_navigation(global_navigation $navigation) {
             $node->key = 'booking';
             $node->type = navigation_node::NODETYPE_LEAF;
             $node->forceopen = true;
-            $node->icon = new  pix_icon('i/emojicategorytravelplaces', '');  // e/table_props  e/split_cells
+            $node->icon = new  pix_icon('i/emojicategorytravelplaces', '');  // pix_icon('i/book', '');
 
             $parent->add_node($node);
         }

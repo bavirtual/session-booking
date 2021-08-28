@@ -59,7 +59,10 @@
         <tbody>
         {{#activestudents}}
             <tr data-region="student">
-                <td class="text-sm-center">
+                <td class="text-sm-center"
+                    data-toggle="tooltip"
+                    title="{{sequencetooltip}}"
+                    data-html="true">
                     <span class="media-body small" aria-hidden="true">{{sequence}}</span>
                 </td>
                 <td class="booking-truncate">

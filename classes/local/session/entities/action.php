@@ -30,7 +30,7 @@ use moodle_url;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Class representing an course exercise session action.
+ * Class representing a course exercise session action.
  *
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

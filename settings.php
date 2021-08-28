@@ -37,5 +37,37 @@ if ($hassiteconfig) {
         );
     }
 
+    if ($ADMIN->fulltree) {
+        // last session recency days weight multiplier
+        $settingspage->add(new admin_setting_configtext('local_booking/recencydaysweight',
+            new lang_string('recencydaysweight', 'local_booking'), new lang_string('recencydaysweightdesc', 'local_booking'),
+            10, PARAM_INT)
+        );
+    }
+
+    if ($ADMIN->fulltree) {
+        // slot count weight multiplier
+        $settingspage->add(new admin_setting_configtext('local_booking/slotcountweight',
+            new lang_string('slotcountweight', 'local_booking'), new lang_string('slotcountweightdesc', 'local_booking'),
+            10, PARAM_INT)
+        );
+    }
+
+    if ($ADMIN->fulltree) {
+        // activity count weight multiplier
+        $settingspage->add(new admin_setting_configtext('local_booking/activitycountweight',
+            new lang_string('activitycountweight', 'local_booking'), new lang_string('activitycountweightdesc', 'local_booking'),
+            1, PARAM_INT)
+        );
+    }
+
+    if ($ADMIN->fulltree) {
+        // lesson completion weight multiplier
+        $settingspage->add(new admin_setting_configtext('local_booking/completionweight',
+            new lang_string('completionweight', 'local_booking'), new lang_string('completionweightdesc', 'local_booking'),
+            10, PARAM_INT)
+        );
+    }
+
     $ADMIN->add('localplugins', $settingspage);
 }
