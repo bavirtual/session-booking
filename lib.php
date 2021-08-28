@@ -585,44 +585,6 @@ function random_color() {
 }
 
 /**
- * Extends the navigation with the availability item
- *
- * @param global_navigation $navigation The global navigation node to extend
- */
-
-function local_booking_extend_navigation(global_navigation $navigation) {
-    global $COURSE, $USER;
-
-    $context = context_course::instance($COURSE->id);
-
-    if (has_capability('local/booking:view', $context)) {
-    // $node = $navigation->find('availability', navigation_node::TYPE_CUSTOM);
-        $node = $navigation->find('availability', navigation_node::NODETYPE_LEAF);
-        if (!$node && $COURSE->id!==SITEID) {
-            // form URL and parameters
-            $params = array('course'=>$COURSE->id);
-            if (has_capability('local/booking:viewall', $context, $USER->id, false)) {
-                $params['view'] = 'all';
-            } else {
-                $params['time'] = (get_restriction_enddate($USER->id))->getTimestamp();
-            }
-            $url = new moodle_url('/local/booking/availability.php', $params);
-
-            $parent = $navigation->find($COURSE->id, navigation_node::TYPE_COURSE);
-            $node = navigation_node::create(get_string('availability', 'local_booking'), $url);
-            $node->key = 'availability';
-            $node->type = navigation_node::NODETYPE_LEAF;
-            // $node->showinflatnavigation = true;
-            $node->forceopen = true;
-            // $node->icon = new  image_icon('local_booking:e/insert', '');
-            $node->icon = new  pix_icon('e/insert_date', '');
-            // $node->icon = new  pix_icon('calendar', '', 'local_booking', ['class' => 'icon fa fa-calendar fa-fw', 'data-test' => 'something']);
-            $parent->add_node($node);
-        }
-    }
-}
-
-/**
  * Returns course id of the passed course
  *
  * @return string  The BAV exercise name.
@@ -659,12 +621,38 @@ function get_session_date(int $slotid) {
  */
 
 function local_booking_extend_navigation(global_navigation $navigation) {
-    global $COURSE;
+    global $COURSE, $USER;
 
-    $systemcontext = context_course::instance($COURSE->id);
+    $context = context_course::instance($COURSE->id);
 
-    if (has_capability('local/booking:view', $systemcontext)) {
-    // $node = $navigation->find('booking', navigation_node::TYPE_CUSTOM);
+    // Add student availability navigation node
+    if (has_capability('local/booking:view', $context)) {
+        $node = $navigation->find('availability', navigation_node::NODETYPE_LEAF);
+        if (!$node && $COURSE->id!==SITEID) {
+            // form URL and parameters
+            $params = array('course'=>$COURSE->id);
+            if (has_capability('local/booking:viewall', $context, $USER->id, false)) {
+                $params['view'] = 'all';
+            } else {
+                $params['time'] = (get_restriction_enddate($USER->id))->getTimestamp();
+            }
+            $url = new moodle_url('/local/booking/availability.php', $params);
+
+            $parent = $navigation->find($COURSE->id, navigation_node::TYPE_COURSE);
+            $node = navigation_node::create(get_string('availability', 'local_booking'), $url);
+            $node->key = 'availability';
+            $node->type = navigation_node::NODETYPE_LEAF;
+            // $node->showinflatnavigation = true;
+            $node->forceopen = true;
+            // $node->icon = new  image_icon('local_booking:e/insert', '');
+            $node->icon = new  pix_icon('e/insert_date', '');
+            // $node->icon = new  pix_icon('calendar', '', 'local_booking', ['class' => 'icon fa fa-calendar fa-fw', 'data-test' => 'something']);
+            $parent->add_node($node);
+        }
+    }
+
+    // Add instructor booking navigation node
+    if (has_capability('local/booking:view', $context)) {
         $node = $navigation->find('booking', navigation_node::NODETYPE_LEAF);
         if (!$node && $COURSE->id!==SITEID) {
             $parent = $navigation->find($COURSE->id, navigation_node::TYPE_COURSE);
