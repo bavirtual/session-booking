@@ -8,6 +8,30 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// Booking
+$string['crontask'] = 'Background processing for session booking';
+$string['enroldate'] = 'Enrol Date';
+$string['exercise'] = 'Exercise';
+$string['incompletelessontooltip'] = 'The student has incomplete lessons';
+$string['pluginname'] = 'Session Booking';
+$string['progression'] = 'Students Progression';
+$string['messageprovider:booking_notification'] = 'Session booked notification';
+$string['messageprovider:booking_confirmation'] = 'Booked session instructor confirmation';
+$string['messageprovider:instructor_notification'] = 'Student confirmation of booked session';
+$string['mystudents'] = 'My Assigned Trainees';
+$string['sequencetooltip'] = 'Score: {$a->score}<br/>Last session: {$a->recency} days<br/>Course activity: {$a->activity} views
+<br/>Availability: {$a->slots} posts<br/>Completion: {$a->completion} lessons';
+$string['sessionaction'] = 'Action';
+$string['sessiondate'] = 'Session Date';
+$string['sessionbookedby'] = 'Session date: {$a->sessiondate} {$a->bookingstatus}: booked by \'{$a->instructor}\'';
+$string['sessiongradeddby'] = 'Graded date: {$a->sessiondate} Graded by \'{$a->instructor}\'';
+$string['simulator'] = 'Sim';
+$string['statusbooked'] = 'confirmed';
+$string['statustentative'] = 'tentative';
+$string['studentavialability'] = 'Student Availability';
+$string['students'] = 'Trainees';
+$string['title'] = 'Session Booking';
+$string['zulutime'] = 'Zulu';
 $string['book'] = 'Book';
 $string['booking'] = 'Booking';
 $string['bookingactive'] = 'My Active Bookings';
@@ -48,7 +72,7 @@ $string['emailcancel'] = '{$a->coursename} session booking cancellation: \'{$a->
 $string['emailcancelmsg'] = '{$a->instructor} has cancelled your booked session scheduled for {$a->sessiondate} on \'{$a->exercise}\'.';
 $string['emailcancelhtml'] = '<font face="sans-serif"><p>{$a->coursename} -> Assignment -> {$a->exercise}</p><hr /><p>{$a->instructor} has cancelled your booked session scheduled for <strong>{$a->sessiondate}</strong> on \'<i>{$a->exercise}</i>\'.</p></p></p></font><hr />';
 
-// plugin settings
+// settings
 $string['exercisetitles'] = 'Course exercise titles:';
 $string['exercisetitlesdesc'] = 'titles delimited by commas';
 $string['recencydaysweight'] = 'Recency prioritization weight multiplier';
@@ -60,27 +84,39 @@ $string['activitycountweightdesc'] = 'multiplier to calculate prioritization for
 $string['completionweight'] = 'Lesson completion weight multiplier';
 $string['completionweightdesc'] = 'multiplier to calculate prioritization of lesson completion';
 
-$string['enroldate'] = 'Enrol Date';
-$string['exercise'] = 'Exercise';
-$string['incompletelessontooltip'] = 'The student has incomplete lessons';
-$string['pluginname'] = 'Session Booking';
+// Availability posting
+$string['availability'] = 'Availability';
+$string['availability:view'] = 'View availability slots';
+$string['availability:viewall'] = 'View all students availability slots';
+$string['availabilityallview'] = 'View everyone\'s availability';
+$string['buttonsave'] = 'Save';
+$string['buttoncopy'] = 'Copy';
+$string['buttonpaste'] = 'Paste';
+$string['buttonclear'] = 'Clear';
+$string['defaultmake'] = 'Make default';
+$string['defaultload'] = 'Load default';
+$string['firstsession'] = 'First session time:';
+$string['firstsessiondesc'] = 'first allowable session time';
+$string['flightsim'] = 'Flight Simulation';
+$string['lastsession'] = 'Last session time:';
+$string['lastsessiondesc'] = 'last allowable session time';
+$string['lessonsincomplete'] = 'Lesson incomplete: Please complete pending lessons, othewise instructors will not see your availability.';
+$string['restrictionend'] = 'Next session restriction:';
+$string['restrictionenddesc'] = 'days from last booked session';
+$string['local'] = 'Local';
+$string['loading'] = 'Loading slots...';
 $string['processingresult'] = 'The processing result';
-$string['progression'] = 'Students Progression';
-$string['messageprovider:booking_notification'] = 'Session booked notification';
-$string['messageprovider:booking_confirmation'] = 'Booked session instructor confirmation';
-$string['messageprovider:instructor_notification'] = 'Student confirmation of booked session';
-$string['mystudents'] = 'My Assigned Trainees';
-$string['sequencetooltip'] = 'Score: {$a->score}<br/>Last session: {$a->recency} days<br/>Course activity: {$a->activity} views
-<br/>Availability: {$a->slots} posts<br/>Completion: {$a->completion} lessons';
-$string['sessionaction'] = 'Action';
-$string['sessiondate'] = 'Session Date';
-$string['sessionbookedby'] = 'Session date: {$a->sessiondate} {$a->bookingstatus}: booked by \'{$a->instructor}\'';
-$string['sessiongradeddby'] = 'Graded date: {$a->sessiondate} Graded by \'{$a->instructor}\'';
-$string['simulator'] = 'Sim';
-$string['statusbooked'] = 'confirmed';
-$string['statustentative'] = 'tentative';
-$string['studentavialability'] = 'Student Availability';
-$string['students'] = 'Trainees';
-$string['title'] = 'Session Booking';
-$string['zulutime'] = 'Zulu';
-
+$string['save'] = 'Save Availability';
+$string['slotsdeletesuccess'] = 'Slots deleted.';
+$string['slotsdeleteunable'] = 'Unable to delete slots!';
+$string['slotssavesuccess'] = 'Slots saved.';
+$string['slotssaveunable'] = 'Unable to save slots!';
+$string['slotsstatusbooked'] = 'Booked';
+$string['slotsstatustentative'] = 'Tentative';
+$string['strftimeweekinyear'] = 'Week %W';
+$string['week'] = 'Week';
+$string['weeklytitle'] = 'Weekly Availability';
+$string['weeksahead'] = 'Weeks Lookahead:';
+$string['weeksaheaddesc'] = 'allowable weeks lookahead of availability recording. 0=Unlimited';
+$string['weekprev'] = 'Previous week';
+$string['weeknext'] = 'Next week';

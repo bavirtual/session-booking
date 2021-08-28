@@ -26,7 +26,7 @@
 namespace local_booking\local\session\data_access;
 
 use DateTime;
-use \local_availability\local\slot\data_access\student_vault;
+use \local_booking\local\slot\data_access\student_vault;
 
 class analytics_vault implements analytics_vault_interface {
 
@@ -34,7 +34,7 @@ class analytics_vault implements analytics_vault_interface {
     const DB_BOOKINGS = 'local_booking';
 
     // Availability Slots table name for querynig
-    const DB_SLOTS = 'local_availability_slots';
+    const DB_SLOTS = 'local_booking_slots';
 
     // Moodle logstore log table name for querying
     const DB_LOGSTORE = 'logstore_standard_log';

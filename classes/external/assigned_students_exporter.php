@@ -27,7 +27,7 @@ namespace local_booking\external;
 
 defined('MOODLE_INTERNAL') || die();
 
-use local_availability\local\slot\data_access\student_vault;
+use local_booking\local\slot\data_access\student_vault;
 use core\external\exporter;
 use renderer_base;
 use moodle_url;

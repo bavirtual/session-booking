@@ -89,3 +89,214 @@
 .disabled-link {
     pointer-events: none;
 }
+
+/* Availability calendar */
+.slot-month-day {
+    border-top: 0;
+    font-weight: normal;
+}
+.slot-unavailable {
+    background-color: rgb(244, 243, 243);
+}
+.slot-selected {
+    background-color: #e9f3e9;
+}
+.slot-booked {
+    background-color: black;
+    border-top: 1px solid black;
+    color: white;
+}
+.slot-tentative {
+    background-color: gray;
+    border-top: 1px solid gray;
+    color: black;
+}
+
+/* Availability posting buttons */
+.slot-action-button {
+    color: white;
+    padding: 5px 15px;
+    margin: 5px 5px;
+    border-width: 0px;
+    outline: 0;
+    box-shadow: 0px 2px 2px lightgray;
+    transition: ease background-color 250ms;
+    cursor: pointer;
+}
+.slot-action-book {
+    width: 150px;
+}
+.slot-button {
+    width: 75px;
+    color: white;
+    font-size: smaller;
+    font-weight: bold;
+    padding: 2px 5px;
+    margin: 10px 0px 0px 0px;
+    border-radius: 5px;
+    border-width: 0px;
+    outline: 0;
+    float: right;
+    box-shadow: 0px 2px 2px lightgray;
+    transition: ease background-color 250ms;
+    cursor: pointer;
+}
+.slot-button-red {
+    background-color: #c40a0a;
+}
+.slot-button-red:hover {
+    background-color: #9b2828;
+}
+.slot-button-blue {
+    background-color: #1565c0;
+    transition: ease background-color 250ms;
+}
+.slot-button-blue:hover {
+    background-color: #0d47a1;
+}
+.slot-button-gray {
+    background-color: rgb(168, 167, 167);
+}
+.slot-button-black {
+    background-color: black;
+    transition: ease background-color 250ms;
+}
+.slot-button-black:hover {
+    background-color: darkgray;
+}
+
+/* availability calendar */
+.path-availability .calendartable {
+    width: 100%;
+    table-layout: fixed;
+}
+.path-availability .calendartable tr:not(:first-child):last-child td:not(:nth-child(1)):not(:nth-child(2)) {
+    border-bottom: 2px solid grey;
+}
+.path-availability .calendartable th,
+.path-availability .calendartable td {
+    width: 14%;
+    vertical-align: top;
+    text-align: center;
+    border: 0;
+}
+.path-availability .calendartable .zulutime,
+.path-availability .calendartable .localtime {
+    width: 60px;
+    vertical-align: bottom;
+}
+.path-availability .calendartable .zulutime {
+    color: rgb(122, 26, 26);
+}
+.path-availability .calendar-controls .previous,
+.path-availability .calendar-controls .next,
+.path-availability .calendar-controls .current {
+    display: block;
+    float: left;
+    width: 12%;
+}
+.path-availability .calendar-controls .previous {
+    text-align: left;
+    border: 1px solid transparent;
+}
+.path-availability .calendar-controls .current {
+    text-align: center;
+    width: 76%;
+}
+.path-availability .calendar-controls .next {
+    text-align: right;
+    border: 1px solid transparent;
+}
+.path-availability .maincalendar {
+    vertical-align: top;
+    padding: 0;
+}
+.path-availability .maincalendar .bottom {
+    text-align: center;
+    padding: 5px 0 0 0;
+}
+.path-availability .maincalendar .heightcontainer {
+    height: 100%;
+    position: relative;
+}
+.path-availability .maincalendar .calendarmonth {
+    width: 98%;
+    margin: 10px auto;
+}
+.path-availability .maincalendar .calendarmonth ul {
+    margin: 0;
+    padding: 0;
+}
+.path-availability .maincalendar .calendarmonth ul li {
+    list-style-type: none;
+}
+.path-availability .maincalendar .calendarmonth ul li > a {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    display: inline-block;
+}
+.path-availability .maincalendar .calendarmonth ul li > a:hover {
+    text-decoration: none;
+}
+.path-availability .maincalendar .calendarmonth ul li > a:hover .eventname {
+    text-decoration: underline;
+}
+.path-availability .maincalendar .calendarmonth ul li .icon {
+    margin-left: 0.22em;
+    margin-right: 0.22em;
+    vertical-align: initial;
+}
+.path-availability .maincalendar .calendarmonth ul li .calendar-circle {
+    width: 12px;
+    height: 12px;
+    border-radius: 6px;
+    vertical-align: middle;
+    display: inline-block;
+}
+.path-availability .maincalendar .calendarmonth td {
+    height: 2em;
+}
+.path-availability .maincalendar .calendarmonth .zulutimeslot {
+    font-weight: bold;
+    font-size: smaller;
+}
+.path-availability .maincalendar .calendarmonth .clickable:hover {
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+}
+.path-availability .maincalendar .calendar-controls .previous,
+.path-availability .maincalendar .calendar-controls .next {
+    width: 30%;
+}
+.path-availability .maincalendar .calendar-controls .current {
+    width: 39.95%;
+}
+.path-availability .maincalendar .controls {
+    width: 98%;
+    margin: 10px auto;
+}
+.path-availability .maincalendar .calendar_event_category:hover a,
+.path-availability .maincalendar .calendar_event_course:hover a,
+.path-availability .maincalendar .calendar_event_site:hover a,
+.path-availability .maincalendar .calendar_event_group:hover a,
+.path-availability .maincalendar .calendar_event_user:hover a {
+    color: #0a477e;
+    text-decoration: underline;
+}
+.path-availability .maincalendar .calendartable td,
+.path-availability .maincalendar .calendartable li {
+    padding: 0 4px 4px 4px;
+}
+.path-availability .maincalendar .calendartable li {
+    text-align: left;
+}
+.path-availability .maincalendar .header {
+    overflow: hidden;
+}
+.path-availability .maincalendar .header .buttons {
+    float: right;
+}
+.path-availability .maincalendar .event .card-header img {
+    vertical-align: baseline;
+}

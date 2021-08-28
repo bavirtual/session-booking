@@ -69,5 +69,35 @@ if ($hassiteconfig) {
         );
     }
 
+    if ($ADMIN->fulltree) {
+        // hours in the day 24-hour format
+        $options = array();
+        for ($i = 0; $i <= 23; $i++) {
+            $options[] = substr('00'. $i, -2).':00';
+        }
+        // first allowable session time
+        $settingspage->add(new admin_setting_configselect('local_availability/firstsession',
+            new lang_string('firstsession', 'local_availability'), new lang_string('firstsessiondesc', 'local_availability'),
+            8, $options)
+        );
+        // last allowable session time
+        $settingspage->add(new admin_setting_configselect('local_availability/lastsession',
+            new lang_string('lastsession', 'local_availability'), new lang_string('lastsessiondesc', 'local_availability'),
+            23, $options)
+        );
+
+        // availability recording days after last session restriction
+        $settingspage->add(new admin_setting_configtext('local_availability/restrictionend',
+            new lang_string('restrictionend', 'local_availability'), new lang_string('restrictionenddesc', 'local_availability'),
+            12, PARAM_INT)
+        );
+
+        // availability recording weeks ahead
+        $settingspage->add(new admin_setting_configtext('local_availability/weeksahead',
+            new lang_string('weeksahead', 'local_availability'), new lang_string('weeksaheaddesc', 'local_availability'),
+            3, PARAM_INT)
+        );
+    }
+
     $ADMIN->add('localplugins', $settingspage);
 }

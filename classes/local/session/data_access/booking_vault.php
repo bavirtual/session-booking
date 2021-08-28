@@ -33,7 +33,7 @@ class booking_vault implements booking_vault_interface {
     const DB_BOOKINGS = 'local_booking';
 
     /** Availability Slots table name for the persistent. */
-    const DB_SLOTS = 'local_availability_slots';
+    const DB_SLOTS = 'local_booking_slots';
 
     /**
      * get booked sessions for the instructor

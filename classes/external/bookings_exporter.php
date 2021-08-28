@@ -27,7 +27,7 @@ namespace local_booking\external;
 
 defined('MOODLE_INTERNAL') || die();
 
-use \local_booking\local\session\data_access\booking_vault;
+use local_booking\local\session\data_access\booking_vault;
 use local_availability\local\slot\data_access\student_vault;
 use core\external\exporter;
 use local_booking\local\session\entities\priority;

@@ -75,7 +75,7 @@ class action implements action_interface {
                 $name = get_string('grade', 'grades');
                 break;
             case 'book':
-                $actionurl = new moodle_url('/local/availability/view.php', [
+                $actionurl = new moodle_url('/local/booking/availability.php', [
                     'course' => $COURSE->id,
                     'exid'   => $refid,
                     'userid' => $userid,

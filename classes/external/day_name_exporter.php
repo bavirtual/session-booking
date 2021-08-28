@@ -35,7 +35,17 @@ use core\external\exporter;
  * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class exercise_name_exporter extends exporter {
+class day_name_exporter extends exporter {
+
+    /**
+     * @var int $dayno The day number.
+     */
+    protected $dayno;
+
+    /**
+     * @var int $dayno The day number.
+     */
+    protected $dayofmonth;
 
     /**
      * @var string $shortname The formatted short name of the day.
@@ -53,7 +63,7 @@ class exercise_name_exporter extends exporter {
      * @param int $dayno The day number.
      * @param array $names The list of names.
      */
-    public function __construct($dayno, $dayofmonth, $exercises) {
+    public function __construct($dayno, $dayofmonth, $names) {
         $data = $names + ['dayno' => $dayno] +  ['dayofmonth' => $dayofmonth] ;
 
         parent::__construct($data, []);

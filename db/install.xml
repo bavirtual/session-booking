@@ -23,5 +23,26 @@
         <KEY NAME="bookingslot" TYPE="foreign" FIELDS="slotid" REFTABLE="availability_slot" REFFIELDS="id" COMMENT="Slot id associated with the booking."/>
       </KEYS>
     </TABLE>
+    <TABLE NAME="local_booking_slots" COMMENT="Records student availability slots for session booking">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="student's user id"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Course Id"/>
+        <FIELD NAME="week" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="timeslot week"/>
+        <FIELD NAME="year" TYPE="int" LENGTH="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="timeslot year"/>
+        <FIELD NAME="starttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Start time timestamp of the slot"/>
+        <FIELD NAME="endtime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="End time timestamp of the slot"/>
+        <FIELD NAME="slotstatus" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="status indicating timeslot's marked and booking status"/>
+        <FIELD NAME="bookinginfo" TYPE="char" LENGTH="500" NOTNULL="false" SEQUENCE="false" COMMENT="Information about the booking includes the exercise and instructor information."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="slottouser" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id" COMMENT="Student's user id"/>
+        <KEY NAME="slottocourse" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id" COMMENT="Foreign key for courses"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userweeklyslots" UNIQUE="false" FIELDS="userid, week, year" COMMENT="Retrieving user's weekly slots"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>

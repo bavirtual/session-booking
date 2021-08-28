@@ -38,7 +38,7 @@ list($result, $time, $week) = confirm_booking($exerciseid, $instructorid, $stude
 
 if ($result) {
     // redirect
-    $url = new moodle_url('/local/availability/view.php', array(
+    $url = new moodle_url('/local/booking/availability.php', array(
         'course'    => $courseid,
         'time'      => $time,
         'week'      => $week,

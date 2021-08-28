@@ -25,7 +25,7 @@
 
 namespace local_booking\external;
 
-require_once($CFG->dirroot . '/local/availability/lib.php');
+require_once($CFG->dirroot . '/lib.php');
 require_once($CFG->dirroot . '/lib/completionlib.php');
 
 defined('MOODLE_INTERNAL') || die();
@@ -34,7 +34,7 @@ use local_booking\external\session_exporter;
 use local_booking\local\session\entities\action;
 use core\external\exporter;
 use local_booking\local\session\data_access\booking_vault;
-use local_availability\local\slot\data_access\student_vault;
+use local_booking\local\slot\data_access\student_vault;
 use renderer_base;
 
 /**

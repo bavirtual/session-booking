@@ -25,14 +25,17 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/../../local/availability/lib.php');
+require_once(__DIR__ . '/../../local/booking/lib.php');
 
-use \local_booking\external\bookings_exporter;
-use \local_booking\external\assigned_students_exporter;
-use local_availability\local\slot\data_access\slot_vault;
+use local_booking\external\bookings_exporter;
+use local_booking\external\assigned_students_exporter;
+use local_booking\local\slot\data_access\slot_vault;
 use local_booking\local\session\data_access\booking_vault;
 use local_booking\local\session\entities\booking;
-use local_availability\local\slot\entities\slot;
+use local_booking\local\slot\entities\slot;
+use local_booking\local\message\notification;
+use local_booking\local\slot\data_access\student_vault;
+use local_booking\external\week_exporter;
 
 /**
  * LOCAL_BOOKING_RECENCYWEIGHT - constant value for session recency weight multipler
@@ -53,6 +56,72 @@ define('LOCAL_BOOKING_ACTIVITYWEIGHT', 1);
  * LOCAL_BOOKING_COMPLETIONWEIGHT - constant value for lesson completion weight multipler
  */
 define('LOCAL_BOOKING_COMPLETIONWEIGHT', 10);
+
+/**
+ * local_booking_MAXLANES - constant value for maximum number of student slots shown in parallel a day
+ */
+define('local_booking_MAXLANES', 20);
+
+/**
+ * local_booking_FIRSTSLOT - default value of the first slot of the day
+ */
+define('local_booking_FIRSTSLOT', 8);
+
+/**
+ * local_booking_LASTSLOT - default value of the first slot of the day
+ */
+define('local_booking_LASTSLOT', 23);
+
+/**
+ * local_booking_WEEKSLOOKAHEAD - default value of the first slot of the day
+ */
+define('local_booking_WEEKSLOOKAHEAD', 4);
+
+/**
+ * local_booking_DAYSFROMLASTSESSION - default value of the days allowed to mark since last session
+ */
+define('local_booking_DAYSFROMLASTSESSION', 12);
+
+/**
+ * local_booking_ONHOLDGROUP - constant value for On-hold students for group quering purposes
+ */
+define('local_booking_ONHOLDGROUP', 'OnHold');
+
+/**
+ * local_booking_GRADUATESGROUP - constant value for On-hold students for group quering purposes
+ */
+define('local_booking_GRADUATESGROUP', 'Graduates');
+
+/**
+ * local_booking_SLOT_COLORS - constant array of slot colors per student color assignment
+ */
+define('local_booking_SLOT_COLORS', array(
+        'red'         => '#d50000',
+        'green'       => '#689f38',
+        'yellow'      => '#ffeb3b',
+        'deep orange' => '#ff3d00',
+        'lime'        => '#aeea00',
+        'dark green'  => '#1b5e20',
+        'blue'        => '#2962ff',
+        'light blue'  => '#0091ea',
+        'orange'      => '#ff6d00',
+        'deep purple' => '#9fa8da',
+        'pink'        => '#fce4ec',
+        'light green' => '#00e676',
+        'dark blue'   => '#0d47a1',
+        'teal'        => '#00897b',
+        'light purple'=> '#c5cae9',
+        'brown'       => '#5d4037',
+        'light indigo'=> '#dcedc8',
+        'light cyan'  => '#b2ebf2',
+        'dark purple' => '#4a148c',
+        'light yellow'=> '#ffff00',
+    ));
+
+/**
+ * Process user  table name.
+ */
+const DB_USER = 'user';
 
 /**
  * Process user  table name.
@@ -164,8 +233,9 @@ function save_booking($params) {
             if ($bookingvault->save_booking(new booking($exerciseid, $bookedslot, $studentid, $slottobook['starttime']))) {
                 // send emails to both student and instructor
                 $sessiondate = new DateTime('@' . $slottobook['starttime']);
-                if (send_booking_notification($studentid, $exerciseid, $sessiondate)) {
-                    $result = send_instructor_confirmation($studentid, $exerciseid, $sessiondate);
+                $message = new notification();
+                if ($message->send_booking_notification($studentid, $exerciseid, $sessiondate)) {
+                    $result = $message->send_instructor_confirmation($studentid, $exerciseid, $sessiondate);
                 }
             }
         }
@@ -217,7 +287,7 @@ function confirm_booking($exerciseid, $instructorid, $studentid) {
         $result = $slotvault->confirm_slot($booking->slotid, $bookinginfo);
 
         $slot = $slotvault->get_slot($booking->slotid);
-        $url = new \moodle_url('/local/availability/view.php', array(
+        $url = new \moodle_url('/local/booking/availability.php', array(
             'time'  => $slot->starttime,
             'course'=> $slot->courseid,
             'week'  => $slot->week,
@@ -226,7 +296,8 @@ function confirm_booking($exerciseid, $instructorid, $studentid) {
         // notify the instructor of the student's confirmation
         $sessiondate = get_session_date($booking->slotid);
         $strdata['sessiondate'] = $sessiondate->format('D M j\, H:i');
-        $result = $result && send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid, $url);
+        $message = new notification();
+        $result = $result && $message->send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid, $url);
     }
 
     if ($result) {
@@ -278,8 +349,10 @@ function cancel_booking($bookingid) {
     if ($result) {
         $transaction->allow_commit();
         // send email notification to the student of the booking cancellation
-        send_session_cancellation($booking->studentid, $booking->exerciseid, $sessiondate);
-        \core\notification::success(get_string('bookingcanceledsuccess', 'local_booking', $cancellationmsg));
+        $message = new notification();
+        if ($message->send_session_cancellation($booking->studentid, $booking->exerciseid, $sessiondate)) {
+            \core\notification::success(get_string('bookingcanceledsuccess', 'local_booking', $cancellationmsg));
+        }
     } else {
         $transaction->rollback(new moodle_exception(get_string('bookingsaveunable', 'local_booking')));
         \core\notification::warning(get_string('bookingcanceledunable', 'local_booking'));
@@ -338,6 +411,218 @@ function get_exercise_names() {
 }
 
 /**
+ * Get the calendar view output.
+ *
+ * @param   \calendar_information $calendar The calendar being represented
+ * @param   array   $actiondata The action type and associated data
+ * @param   bool    $skipevents Whether to load the events or not
+ * @return  array[array, string]
+ */
+function get_weekly_view(\calendar_information $calendar, $actiondata, $view = 'user', $includenavigation = true) {
+    global $PAGE;
+
+    $renderer = $PAGE->get_renderer('core_calendar');
+    $type = \core_calendar\type_factory::get_calendar_instance();
+
+    $related = [
+        'type' => $type,
+    ];
+
+    $week = new week_exporter($calendar, $type, $actiondata, $view, $related);
+    $week->set_includenavigation($includenavigation);
+    $data = $week->export($renderer);
+    $data->viewingmonth = true;
+    $template = 'local_booking/calendar_week';
+
+    return [$data, $template];
+}
+
+
+/**
+ * Return the days of the week where $date falls in.
+ *
+ * @return array array of days
+ */
+function get_active_student_slots($weekno, $year, $studentid = 0) {
+    $slotvault = new slot_vault();
+    $studentvault = new student_vault();
+
+    $activestudents = [];
+    // get a single or all students records
+    if ($studentid != 0) {
+        $students = $studentvault->get_student($studentid);
+    } else {
+        $students = $studentvault->get_active_students();
+    }
+
+    $i = 0;
+    // get slots for each student
+    foreach ($students as $student) {
+        $slots = $slotvault->get_slots($student->userid, $year, $weekno);
+        // $color = '#' . random_color();
+        $color = array_values(local_booking_SLOT_COLORS)[$i % local_booking_MAXLANES];
+        // add random color to each student
+        foreach ($slots as $slot) {
+            $slot->slotcolor = $color;
+        }
+        $i++;
+
+        $activestudents[$student->userid] = $slots;
+    }
+
+    return $activestudents;
+}
+
+/**
+ * Return the days of the week where $date falls in.
+ *
+ * @return array array of days
+ */
+function get_week_days($date) {
+
+    $days = [];
+    // Calculate which day number is the first day of the week.
+    $type = \core_calendar\type_factory::get_calendar_instance();
+    $daysinweek = count($type->get_weekdays());
+    $week_start = get_week_start($date);
+
+    // add first day of the week
+    $days[] = $type->timestamp_to_date_array(date_timestamp_get($week_start));
+
+    // add remaining days of the week
+    for ($i = 0; $i < $daysinweek-1; $i++) {
+        date_add($week_start, date_interval_create_from_date_string("1 days"));
+        $days[] = $type->timestamp_to_date_array(date_timestamp_get($week_start));
+    }
+
+    return $days;
+}
+
+/**
+ * Return the days of the week where $date falls in.
+ *
+ * @return DateTime array of days
+ */
+function get_week_start($date) {
+    $week_start_date = new DateTime();
+    date_timestamp_set($week_start_date, $date[0]);
+    $week_start_date->setISODate($date['year'], strftime('%W', $date[0]))->format('Y-m-d');
+    return $week_start_date;
+}
+
+/**
+ * Checks if the student completed
+ * all pending lessons before marking
+ * availability for an instructor session.
+ *
+ * @param   int     The student id
+ * @return  bool
+ */
+function has_completed_lessons($studentid) {
+    global $COURSE;
+    $vault = new student_vault();
+    list($nextexercise, $exercisesection) = $vault->get_next_exercise($studentid, $COURSE->id);
+    $completedlessons = $vault->lessons_complete($studentid, $COURSE->id, $exercisesection);
+
+    return $completedlessons;
+}
+
+/**
+ * Returns the date of the last booked
+ * session or today if unavailable.
+ *
+ * @param   int     The student id
+ * @return  DateTime
+ */
+function get_restriction_enddate($studentid) {
+    $daysfromlast = (get_config('local_booking', 'restrictionend')) ? get_config('local_booking', 'restrictionend') : local_booking_DAYSFROMLASTSESSION;
+    $vault = new slot_vault();
+
+    $lastsession = $vault->get_last_booked_session($studentid);
+    $sessiondatets = !empty($lastsession) ? $lastsession->starttime : time();
+    $sessiondate = new DateTime('@' . $sessiondatets);
+    date_add($sessiondate, date_interval_create_from_date_string($daysfromlast . ' days'));
+
+    return $sessiondate;
+}
+
+/**
+ * Returns full username
+ *
+ * @return string  The full BAV username (first, last, and BAWID)
+ */
+function get_fullusername(int $userid, bool $BAVname = true) {
+    global $DB;
+
+    // Get the student's grades
+    $sql = 'SELECT ' . $DB->sql_concat('u.firstname', '" "',
+                'u.lastname', '" "', 'u.alternatename') . ' AS bavname, '
+                . $DB->sql_concat('u.firstname', '" "',
+                'u.lastname') . ' AS username
+            FROM {' . DB_USER . '} u
+            WHERE u.id = ' . $userid;
+
+    $userinfo = $DB->get_record_sql($sql);
+    return $BAVname ? $userinfo->bavname : $userinfo->username;
+}
+
+/**
+ * Returns a random color.
+ *
+ * @return string   hex color
+ */
+function random_color_part() {
+    return str_pad( dechex( mt_rand( 20, 235 ) ), 2, '0', STR_PAD_LEFT);
+}
+
+/**
+ * Returns a hash of the random color for a student slot in group view.
+ *
+ * @return string   hex color
+ */
+function random_color() {
+    return random_color_part() . random_color_part() . random_color_part();
+}
+
+/**
+ * Extends the navigation with the availability item
+ *
+ * @param global_navigation $navigation The global navigation node to extend
+ */
+
+function local_booking_extend_navigation(global_navigation $navigation) {
+    global $COURSE, $USER;
+
+    $context = context_course::instance($COURSE->id);
+
+    if (has_capability('local/booking:view', $context)) {
+    // $node = $navigation->find('availability', navigation_node::TYPE_CUSTOM);
+        $node = $navigation->find('availability', navigation_node::NODETYPE_LEAF);
+        if (!$node && $COURSE->id!==SITEID) {
+            // form URL and parameters
+            $params = array('course'=>$COURSE->id);
+            if (has_capability('local/booking:viewall', $context, $USER->id, false)) {
+                $params['view'] = 'all';
+            } else {
+                $params['time'] = (get_restriction_enddate($USER->id))->getTimestamp();
+            }
+            $url = new moodle_url('/local/booking/availability.php', $params);
+
+            $parent = $navigation->find($COURSE->id, navigation_node::TYPE_COURSE);
+            $node = navigation_node::create(get_string('availability', 'local_booking'), $url);
+            $node->key = 'availability';
+            $node->type = navigation_node::NODETYPE_LEAF;
+            // $node->showinflatnavigation = true;
+            $node->forceopen = true;
+            // $node->icon = new  image_icon('local_booking:e/insert', '');
+            $node->icon = new  pix_icon('e/insert_date', '');
+            // $node->icon = new  pix_icon('calendar', '', 'local_booking', ['class' => 'icon fa fa-calendar fa-fw', 'data-test' => 'something']);
+            $parent->add_node($node);
+        }
+    }
+}
+
+/**
  * Returns course id of the passed course
  *
  * @return string  The BAV exercise name.
@@ -366,155 +651,6 @@ function get_session_date(int $slotid) {
 
     return $sessiondate;
 }
-
-/**
- * Sends an email notifying the student
- *
- * @return int  The notification message id.
- */
-function send_booking_notification($studentid, $exerciseid, $sessiondate) {
-    global $USER, $COURSE;
-
-    // notification message data
-    $data = (object) array(
-        'coursename'    => $COURSE->shortname,
-        'instructor'    => get_fullusername($USER->id),
-        'sessiondate'   => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
-        'exercise'      => get_exercise_name($exerciseid),
-        'confirmurl'    => (new \moodle_url('/local/booking/confirm.php', array(
-            'courseid'=> $COURSE->id,
-            'exeid'   => $exerciseid,
-            'userid'  => $studentid,
-            'insid'   => $USER->id
-            )))->out(false),
-    );
-
-    return send_message(
-        'booking_notification',
-        $studentid,
-        $COURSE->id,
-        get_string('emailnotify', 'local_booking', $data),
-        get_string('emailnotifymsg', 'local_booking', $data),
-        get_string('emailnotifyhtml', 'local_booking', $data),
-        $data->confirmurl,
-        get_string('studentavialability', 'local_booking'),
-        array('*' => array('header' => get_string('pluginname', 'local_booking'), 'footer' => get_string('pluginname', 'local_booking'))));
-}
-
-/**
- * Sends an email confirming booking made by the instructor
- *
- * @return int  The notification message id.
- */
-function send_instructor_confirmation($studentid, $exerciseid, $sessiondate) {
-    global $USER, $COURSE;
-
-    // confirmation message data
-    $data = (object) array(
-        'coursename'    => $COURSE->shortname,
-        'student'       => get_fullusername($studentid),
-        'sessiondate'   => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
-        'exercise'      => get_exercise_name($exerciseid),
-        'bookingurl'    => (new \moodle_url('/local/booking/'))->out(false),
-    );
-
-    return send_message(
-            'booking_confirmation',
-            $USER->id,
-            $COURSE->id,
-            get_string('emailconfirmsubject', 'local_booking', $data),
-            get_string('emailconfirmnmsg', 'local_booking', $data),
-            get_string('emailconfirmhtml', 'local_booking', $data),
-            $data->bookingurl,
-            get_string('pluginname', 'local_booking'),
-            array('*' => array('header' => get_string('pluginname', 'local_booking'), 'footer' => get_string('pluginname', 'local_booking'))));
-}
-
-/**
- * Sends an email notifying the instructor of
- * student confirmation of booked session
- *
- * @return int  The notification message id.
- */
-function send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid, $url) {
-    global $COURSE;
-
-    // notification message data
-    $data = (object) array(
-        'coursename'        => $COURSE->shortname,
-        'student'           => get_fullusername($studentid),
-        'sessiondate'       => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
-        'exercise'          => get_exercise_name($exerciseid),
-        'bookingurl'   => $url->out(false),
-    );
-
-    return send_message(
-        'instructor_notification',
-        $instructorid,
-        $COURSE->id,
-        get_string('emailinstconfirmsubject', 'local_booking', $data),
-        get_string('emailinstconfirmnmsg', 'local_booking', $data),
-        get_string('emailinstconfirmhtml', 'local_booking', $data),
-        $data->bookingurl,
-        get_string('studentavialability', 'local_booking'),
-        array('*' => array('header' => get_string('pluginname', 'local_booking'), 'footer' => get_string('pluginname', 'local_booking'))));
-}
-
-/**
- * Sends an email notifying the student of
- * the cancelled session.
- *
- * @return int  The notification message id.
- */
-function send_session_cancellation($studentid, $exerciseid, $sessiondate) {
-    global $USER, $COURSE;
-
-    // notification message data
-    $data = (object) array(
-        'coursename'    => $COURSE->shortname,
-        'instructor'    => get_fullusername($USER->id),
-        'sessiondate'   => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
-        'exercise'      => get_exercise_name($exerciseid),
-        'courseurl'    => (new \moodle_url('/course/view.php', array('id'=> $COURSE->id)))->out(false),
-    );
-
-    return send_message(
-        'session_cancellation',
-        $studentid,
-        $COURSE->id,
-        get_string('emailcancel', 'local_booking', $data),
-        get_string('emailcancelmsg', 'local_booking', $data),
-        get_string('emailcancelhtml', 'local_booking', $data),
-        $data->courseurl,
-        get_string('studentavialability', 'local_booking'),
-        array('*' => array('header' => get_string('pluginname', 'local_booking'), 'footer' => get_string('pluginname', 'local_booking'))));
-}
-
-/**
- * Sends an email message
- *
- * @return bool  The result of sending a message object.
- */
-function send_message($messagename, $touser, $courseid, $subject, $fullmessage, $fullmessagehtml, $url, $urlname, $content) {
-    $message = new \core\message\message();
-    $message->courseid          = $courseid;
-    $message->component         = 'local_booking';
-    $message->name              = $messagename;
-    $message->userfrom          = core_user::get_noreply_user();
-    $message->userto            = $touser;
-    $message->fullmessageformat = FORMAT_MARKDOWN;
-    $message->notification      = 1; // Because this is a notification generated from Moodle, not a user-to-user message
-    $message->subject           = $subject;
-    $message->fullmessage       = $fullmessage;
-    $message->fullmessagehtml   = $fullmessagehtml;
-    $message->smallmessage      = '';
-    $message->contexturl        = $url;
-    $message->contexturlname    = $urlname;
-    $message->set_additional_content('email', $content);
-
-    return message_send($message) != 0;
-}
-
 
 /**
  * This function extends the navigation with the booking item

@@ -1,0 +1,187 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local/booking/calendar_week
+
+    Calendar week view for blocks.
+
+    The purpose of this template is to render the main, detailed weekly view.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Example context (json):
+    {
+    }
+}}
+<div{{!
+    }} class="calendarwrapper"{{!
+    }}{{#courseid}} data-courseid="{{courseid}}"{{/courseid}}{{!
+    }}{{#categoryid}} data-categoryid="{{categoryid}}"{{/categoryid}}{{!
+    }} data-context-id="{{defaulteventcontext}}"{{!
+    }} data-week="{{weekofyear}}"{{!
+    }} data-month="{{date.mon}}"{{!
+    }} data-year="{{date.year}}"{{!
+    }} data-time="{{date.timestamp}}"{{!
+    }} data-action="{{action}}"{{!
+    }} data-viewall="{{groupview}}"{{!
+    }} data-student-id="{{studentid}}"{{!
+    }} data-exercise-id="{{exerciseid}}"{{!
+    }}>
+    {{> local_booking/week_navigation }}
+    {{> core/overlay_loading}}
+    <style>
+        table.calendarmonth td:nth-child({{maxlanes}}n+2) {
+            border-right: 2px solid grey;
+        }
+    </style>
+    <table id="week-detail-{{uniqid}}" data-region="slots-week" class="calendarmonth calendartable mb0 table-hover">
+        <thead>
+            <tr>
+                {{#showlocaltime}}
+                <th class="header text-xs-center localtime">
+                    <br><span class="media-body small" aria-hidden="true">{{#str}}local,local_booking{{/str}}</span></br>
+                </th>
+                {{/showlocaltime}}
+                <th class="header text-xs-center zulutime">
+                    <span class="media-body" aria-hidden="true">{{#str}}zulutime,local_booking{{/str}}</span>
+                </th>
+                {{#daynames}}
+                <th class="header text-xs-center" style="border: 2px solid grey;" colspan="{{maxlanes}}" data-region="slot-week-day">
+                    <span class="sr-only">{{fullname}}</span>
+                    <span aria-hidden="true">{{shortname}}</span>
+                    <br><span class="media-body small slot-month-day" aria-hidden="true">{{dayofmonth}}</span></br>
+                </th>
+                {{/daynames}}
+            </tr>
+        </thead>
+        <tbody>
+        {{#timeslots}}
+            <tr data-region="month-view-week">
+                {{#showlocaltime}}
+                <td class="text-sm-center text-md-left}}">
+                    <span class="media-body small" aria-hidden="true">{{localtimeslot}}</span>
+                </td>
+                {{/showlocaltime}}
+                <td class="text-sm-center text-md-left}}" style="border-right: 2px solid grey;"
+                    data-slot="{{timeslot}}">
+                    <span class="zulutimeslot" aria-hidden="true">{{timeslot}}</span>
+                </td>
+            {{#days}}
+                <td id="slot-{{timestamp}}" class="day text-sm-center text-md-left slot-month-day{{!
+                    }}{{^groupview}}{{#slotavailable}} clickable{{/slotavailable}}{{#slotmarked}} slot-{{slotstatus}}{{/slotmarked}}{{/groupview}}{{!
+                    }}{{#groupview}}{{#slotbooked}} slot-{{slotstatus}}{{/slotbooked}}{{/groupview}}{{!
+                    }}{{^slotavailable}} slot-unavailable{{/slotavailable}}{{!
+                    }}"
+                    {{#groupview}}{{^slotbooked}}{{#slotmarked}}style="background-color: {{slotcolor}}; border-top: 1px solid {{slotcolor}};"{{/slotmarked}}{{/slotbooked}}{{/groupview}}
+                    data-slot-timestamp="{{timestamp}}"
+                    data-slot-marked="{{slotmarked}}"
+                    data-slot-booked="{{slotbooked}}"
+                    data-slot-status="{{slotstatus}}"
+                    data-region="{{#slotavailable}}day{{/slotavailable}}"
+                    {{#slotbooked}}
+                    data-toggle="tooltip"
+                    title="{{slotstatustooltip}}"
+                    {{/slotbooked}}
+                    {{#groupview}}
+                    {{#slotmarked}}
+                    data-toggle="tooltip"
+                    title="{{slotstatustooltip}}"
+                    {{/slotmarked}}
+                    {{/groupview}}
+                    data-new-event-timestamp="{{neweventtimestamp}}">
+                    <div class="d-none d-md-block hidden-phone text-xs-center">
+                        <span class="sr-only">{{daytitle}}</span>
+                    </div>
+                    <div class="d-md-none hidden-desktop hidden-tablet">
+                        <span class="sr-only">{{daytitle}}</span>
+                    </div>
+                </td>
+            {{/days}}
+            </tr>
+        {{/timeslots}}
+        </tbody>
+    </table>
+    {{#editing}}
+    <div>
+        <div>
+            <div style="margin-left: 10px;">
+                <div class="singlebutton">
+                    <button type="submit" class="slot-button slot-button-blue"
+                        data-region="copy-button"
+                        id="copy_button"{{uniqid}}
+                        title="">
+                        <i class="fa fa-copy" style="padding-right: 5px;"></i>
+                        {{#str}}buttoncopy,local_booking{{/str}}
+                    </button>
+                </div>
+                <div class="singlebutton">
+                    <button type="submit" class="slot-button slot-button-gray"
+                        data-region="paste-button"
+                        id="paste_button"
+                        title="">
+                        <i class="fa fa-paste" style="padding-right: 5px;"></i>
+                        {{#str}}buttonpaste,local_booking{{/str}}
+                    </button>
+                </div>
+                <div class="singlebutton" style="float: right; margin-right: 10px;">
+                    <button type="submit" class="slot-button slot-button-red"
+                        data-region="clear-button"
+                        id="clear_button"{{uniqid}}
+                        title="">
+                        <i class="fa fa-trash" style="padding-right: 5px;"></i>
+                        {{#str}}buttonclear,local_booking{{/str}}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="singlebutton">
+            <button type="submit" class="slot-action-button slot-button-blue"
+                data-region="save-button"
+                id="save_button"
+                title="">
+                <i class="fa fa-save" style="padding-right: 5px;"></i>
+                {{#str}}buttonsave,local_booking{{/str}}
+            </button>
+        </div>
+    </div>
+    <div>
+        <br/><span style="font-size: small;"><a href='{{viewalllink}}'>
+            {{#str}}availabilityallview,local_booking{{/str}}</a></span>
+    </div>
+    {{/editing}}
+    {{^editing}}
+    {{^groupview}}
+    <div class="bottom">
+        <div class="singlebutton">
+            <button type="submit" class="slot-action-button slot-action-book slot-button-gray"
+                data-region="book-button"
+                id="book_button"
+                title="">
+                <i class="fa fa-plane" style="padding-right: 5px;"></i>
+                {{#str}}booksave,local_booking{{/str}}
+            </button>
+        </div>
+    </div>
+    {{/groupview}}
+    {{/editing}}
+</div>

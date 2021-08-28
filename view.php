@@ -26,7 +26,6 @@
 // Standard GPL and phpdocs
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
-require_once(__DIR__ . '/../../local/availability/lib.php');
 
 global $USER, $DB;
 
