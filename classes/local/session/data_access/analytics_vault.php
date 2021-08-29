@@ -26,7 +26,7 @@
 namespace local_booking\local\session\data_access;
 
 use DateTime;
-use \local_booking\local\slot\data_access\student_vault;
+use local_booking\local\participant\data_access\participant_vault;
 
 class analytics_vault implements analytics_vault_interface {
 
@@ -61,7 +61,7 @@ class analytics_vault implements analytics_vault_interface {
         if (!empty($rs)) {
             $lastsessiondate = new DateTime('@' . $rs->lastsessiondate);
         } else {
-            $vault = new student_vault();
+            $vault = new participant_vault();
             $lastsessiondate = $vault->get_enrol_date($studentid);
         }
 

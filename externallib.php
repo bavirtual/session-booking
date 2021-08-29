@@ -104,11 +104,12 @@ class local_booking_external extends external_api {
      * @return array array of slots created.
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
-    public static function save_booking($slottobook, $exerciseid, $studentid) {
+    public static function save_booking($slottobook, $courseid, $exerciseid, $studentid) {
 
         // Parameter validation.
         $params = self::validate_parameters(self::save_booking_parameters(), array(
                 'bookedslot' => $slottobook,
+                'courseid'   => $courseid,
                 'exerciseid' => $exerciseid,
                 'studentid'  => $studentid
                 )
@@ -138,6 +139,7 @@ class local_booking_external extends external_api {
                             'year' => new external_value(PARAM_INT, 'booked slot year', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
                             'week' => new external_value(PARAM_INT, 'booked slot week', VALUE_DEFAULT, 0, NULL_NOT_ALLOWED),
                         ), 'booking'),
+                'courseid'    => new external_value(PARAM_INT, 'The course id', VALUE_DEFAULT),
                 'exerciseid'  => new external_value(PARAM_INT, 'The exercise id', VALUE_DEFAULT),
                 'studentid'   => new external_value(PARAM_INT, 'The student id', VALUE_DEFAULT),
             )

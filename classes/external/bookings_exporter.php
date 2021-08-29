@@ -27,9 +27,9 @@ namespace local_booking\external;
 
 defined('MOODLE_INTERNAL') || die();
 
-use local_booking\local\session\data_access\booking_vault;
-use local_availability\local\slot\data_access\student_vault;
 use core\external\exporter;
+use local_booking\local\session\data_access\booking_vault;
+use local_booking\local\participant\data_access\participant_vault;
 use local_booking\local\session\entities\priority;
 use renderer_base;
 use moodle_url;
@@ -90,7 +90,7 @@ class bookings_exporter extends exporter {
                 'multiple' => true,
             ],
             'activestudents' => [
-                'type' => student_exporter::read_properties_definition(),
+                'type' => booking_student_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
             'activebookings' => [
@@ -173,7 +173,7 @@ class bookings_exporter extends exporter {
     protected function get_active_students($output) {
         $activestudents = [];
 
-        $vault = new student_vault();
+        $vault = new participant_vault();
         $students = $this->prioritze($vault->get_active_students());
 
         $i = 0;
@@ -195,7 +195,7 @@ class bookings_exporter extends exporter {
                 'studentname'     => $student->fullname,
                 'simulator'       => $student->simulator,
             ];
-            $student = new student_exporter($data, $this->data['courseid'], [
+            $student = new booking_student_exporter($data, $this->data['courseid'], [
                 'context' => \context_system::instance(),
                 'courseexercises' => $this->exercisenames,
             ]);

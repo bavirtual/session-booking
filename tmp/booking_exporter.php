@@ -48,12 +48,12 @@ class week_exporter extends exporter {
     protected $calendar;
 
     /**
-     * @var array $days An array of time_slot_exporter objects.
+     * @var array $days An array of week_timeslot_exporter objects.
      */
     protected $days = [];
 
     /**
-     * @var array $days An array of time_slot_exporter objects.
+     * @var array $days An array of week_timeslot_exporter objects.
      */
     protected $weekslots;
 
@@ -63,7 +63,7 @@ class week_exporter extends exporter {
     protected $showlocaltime;
 
     /**
-     * @var array $days An array of time_slot_exporter objects.
+     * @var array $days An array of week_timeslot_exporter objects.
      */
     protected $weekno;
 
@@ -159,7 +159,7 @@ class week_exporter extends exporter {
                 'multiple' => true,
             ],
             'timeslots' => [
-                'type' => time_slot_exporter::read_properties_definition(),
+                'type' => week_timeslot_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
             'showlocaltime' => [
@@ -320,8 +320,8 @@ class week_exporter extends exporter {
      */
     protected function get_time_slots(renderer_base $output) {
         // Get daily slots from settings
-        $firstsessionhour = (get_config('local_booking', 'firstsession')) ? substr(get_config('local_booking', 'firstsession'), 0, 2) : LOCAL_booking_FIRSTSLOT;
-        $lastsessionhour = (get_config('local_booking', 'lastsession')) ? substr(get_config('local_booking', 'lastsession'), 0, 2) : LOCAL_booking_LASTSLOT;
+        $firstsessionhour = (get_config('local_booking', 'firstsession')) ? substr(get_config('local_booking', 'firstsession'), 0, 2) : LOCAL_BOOKING_FIRSTSLOT;
+        $lastsessionhour = (get_config('local_booking', 'lastsession')) ? substr(get_config('local_booking', 'lastsession'), 0, 2) : LOCAL_BOOKING_LASTSLOT;
 
         // Get user timezone offset
         $usertz = new \DateTimeZone(usertimezone());
@@ -335,7 +335,7 @@ class week_exporter extends exporter {
             $daydata['usertimeslot'] = substr('00' . ($i + $usertimezoneoffset) % 24, -2) . ':00';
             $daydata['hour'] = $i;
             $daydata['days'] = $this->days;
-            $timeslot = new time_slot_exporter($this->calendar, $daydata, $this->weekslots, $this->related);
+            $timeslot = new week_timeslot_exporter($this->calendar, $daydata, $this->weekslots, $this->related);
 
             $slots[] = $timeslot->export($output);
         }

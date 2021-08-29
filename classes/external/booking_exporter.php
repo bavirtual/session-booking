@@ -28,9 +28,8 @@ namespace local_booking\external;
 defined('MOODLE_INTERNAL') || die();
 
 use core\external\exporter;
-use \local_booking\local\session\entities\action;
-use \local_availability\local\slot\data_access\slot_vault;
-use DateTime;
+use local_booking\local\session\entities\action;
+use local_booking\local\slot\data_access\slot_vault;
 
 /**
  * Class for displaying instructor's booked sessions view.
@@ -49,9 +48,10 @@ class booking_exporter extends exporter {
      * @param array $related Related objects.
      */
     public function __construct($data, $related) {
+        $slotvault = new slot_vault;
         $booking = $data['booking'];
         $action = new action('cancel', $booking->studentid, $booking->exerciseid);
-        $sessiondate = get_session_date($booking->slotid);
+        $sessiondate = $slotvault->get_session_date($booking->slotid);
 
         $data = [
         'bookingid'   => $booking->id,

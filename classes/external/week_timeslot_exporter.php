@@ -37,7 +37,7 @@ use renderer_base;
  * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class time_slot_exporter extends exporter {
+class week_timeslot_exporter extends exporter {
 
     /**
      * @var \calendar_information $calendar The calendar to be rendered.

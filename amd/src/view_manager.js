@@ -26,7 +26,7 @@ import Templates from 'core/templates';
 import Notification from 'core/notification';
 import * as Repository from 'local_booking/repository';
 import * as BookingsSelectors from 'local_booking/selectors';
-import SlotActions from '/slot_actions';
+import SlotActions from 'local_booking/slot_actions';
 import CustomEvents from 'core/custom_interaction_events';
 
 /**

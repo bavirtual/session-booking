@@ -194,8 +194,9 @@ function save_booking($params) {
     global $DB, $USER;
 
     $slottobook = $params['bookedslot'];
+    $courseid   = $params['courseid'];
     $exerciseid = $params['exerciseid'];
-    $studentid = $params['studentid'];
+    $studentid  = $params['studentid'];
 
     $result = false;
     $bookingvault = new booking_vault();
@@ -230,7 +231,7 @@ function save_booking($params) {
 
         // add new booking by the instructor.
         if (!empty($bookedslot)) {
-            if ($bookingvault->save_booking(new booking($exerciseid, $bookedslot, $studentid, $slottobook['starttime']))) {
+            if ($bookingvault->save_booking(new booking($courseid, $exerciseid, $bookedslot, $studentid, $slottobook['starttime']))) {
                 // send emails to both student and instructor
                 $sessiondate = new DateTime('@' . $slottobook['starttime']);
                 $message = new notification();
@@ -294,7 +295,8 @@ function confirm_booking($exerciseid, $instructorid, $studentid) {
         ));
 
         // notify the instructor of the student's confirmation
-        $sessiondate = get_session_date($booking->slotid);
+        $slotvault = new slot_vault;
+        $sessiondate = $slotvault->get_session_date($booking->slotid);
         $strdata['sessiondate'] = $sessiondate->format('D M j\, H:i');
         $message = new notification();
         $result = $result && $message->send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid, $url);
@@ -601,20 +603,6 @@ function get_course_id($exerciseid) {
 }
 
 /**
- * Returns the date of the slot session.
- *
- * @return DateTime
- */
-function get_session_date(int $slotid) {
-    $vault = new slot_vault();
-    $slot = $vault->get_slot($slotid);
-
-    $sessiondate = new DateTime('@' . $slot->starttime);
-
-    return $sessiondate;
-}
-
-/**
  * This function extends the navigation with the booking item
  *
  * @param global_navigation $navigation The global navigation node to extend
@@ -626,12 +614,13 @@ function local_booking_extend_navigation(global_navigation $navigation) {
     $context = context_course::instance($COURSE->id);
 
     // Add student availability navigation node
-    if (has_capability('local/booking:view', $context)) {
+    if (has_capability('local/booking:availabilityview', $context)) {
         $node = $navigation->find('availability', navigation_node::NODETYPE_LEAF);
         if (!$node && $COURSE->id!==SITEID) {
             // form URL and parameters
             $params = array('course'=>$COURSE->id);
-            if (has_capability('local/booking:viewall', $context, $USER->id, false)) {
+            // view all capability for instructors
+            if (has_capability('local/booking:view', $context)) {
                 $params['view'] = 'all';
             } else {
                 $params['time'] = (get_next_allowed_session_date($USER->id))->getTimestamp();
@@ -642,7 +631,6 @@ function local_booking_extend_navigation(global_navigation $navigation) {
             $node = navigation_node::create(get_string('availability', 'local_booking'), $url);
             $node->key = 'availability';
             $node->type = navigation_node::NODETYPE_LEAF;
-            // $node->showinflatnavigation = true;
             $node->forceopen = true;
             // $node->icon = new  image_icon('local_booking:e/insert', '');
             $node->icon = new  pix_icon('e/insert_date', '');

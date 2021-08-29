@@ -39,6 +39,7 @@ $string['bookingcancel'] = 'Cancel';
 $string['bookingcanceledsuccess'] = 'Booking with \'{$a->studentname}\' cancelled!';
 $string['bookingcanceledunable'] = 'Unable to cancel booking!';
 $string['booking:view'] = 'View session bookings';
+$string['booking:availabilityview'] = 'View availability posting';
 $string['booking:emailnotify'] = 'Booking notifications';
 $string['booking:emailconfirm'] = 'Session booking confirmation';
 $string['booking:emailstudentnotify'] = 'Student notifications';
@@ -111,8 +112,6 @@ $string['completionweightdesc'] = 'multiplier to calculate prioritization of les
 
 // Availability posting
 $string['availability'] = 'Availability';
-$string['availability:view'] = 'View availability slots';
-$string['availability:viewall'] = 'View all students availability slots';
 $string['availabilityallview'] = 'View everyone\'s availability';
 $string['buttonsave'] = 'Save';
 $string['buttoncopy'] = 'Copy';
@@ -126,7 +125,7 @@ $string['flightsim'] = 'Flight Simulation';
 $string['lastsession'] = 'Last session time:';
 $string['lastsessiondesc'] = 'last allowable session time';
 $string['lessonsincomplete'] = 'Lesson incomplete: Please complete pending lessons, othewise instructors will not see your availability.';
-$string['nextsessionwaitdays'] = 'Next session restriction:';
+$string['nextsessionwaitdays'] = 'Wait period:';
 $string['nextsessionwaitdaysdesc'] = 'days from last booked session';
 $string['local'] = 'Local';
 $string['loading'] = 'Loading slots...';

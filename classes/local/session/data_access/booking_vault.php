@@ -129,11 +129,12 @@ class booking_vault implements booking_vault_interface {
      * @return bool
      */
     public function save_booking(booking $booking) {
-        global $DB, $USER;
+        global $DB, $USER, $COURSE;
 
         $sessionrecord = new \stdClass();
         $sessionrecord->userid       = $USER->id;
         $sessionrecord->studentid    = $booking->get_studentid();
+        $sessionrecord->courseid     = $booking->get_courseid();
         $sessionrecord->exerciseid   = $booking->get_exerciseid();
         $sessionrecord->slotid       = $booking->get_slot()->id;
         $sessionrecord->timemodified = time();

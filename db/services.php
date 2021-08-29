@@ -106,16 +106,6 @@ $functions = array(
         'loginrequired' => true,
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
-
-    'local_booking_get_timestamps' => [
-        'classname'     => 'local_booking_external',
-        'classpath' => '/local/booking/externallib.php',
-        'methodname'    => 'get_timestamps',
-        'description'   => 'Fetch unix timestamps for given date times.',
-        'type'          => 'read',
-        'loginrequired' => true,
-        'ajax'          => true,
-    ],
 );
 
 $services = array(

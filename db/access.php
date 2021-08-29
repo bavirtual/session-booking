@@ -37,6 +37,14 @@ $capabilities = array(
         )
     ),
 
+    'local/booking:availabilityview' => array(
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'student' => CAP_ALLOW,
+        )
+    ),
+
     'local/booking:emailnotify' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
@@ -52,22 +60,6 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
             'coursecreator' => CAP_ALLOW,
-        )
-    ),
-
-    'local/booking:view' => array(
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
-            'student' => CAP_ALLOW,
-        )
-    ),
-
-    'local/booking:viewall' => array(
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
-            'teacher' => CAP_ALLOW,
         )
     ),
 );

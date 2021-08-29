@@ -38,6 +38,11 @@ defined('MOODLE_INTERNAL') || die();
 class booking implements booking_interface {
 
     /**
+     * @var int $courseid The course id of this bookng.
+     */
+    protected $courseid;
+
+    /**
      * @var int $exercise The course exercise id of this bookng.
      */
     protected $exercisid;
@@ -90,6 +95,7 @@ class booking implements booking_interface {
      * @param int       $bookingdate    The booking timestamp.
      */
     public function __construct(
+        $courseid,
         $exerciseid,
         $slot,
         $studentid,
@@ -99,6 +105,7 @@ class booking implements booking_interface {
         $instructorname = '',
         $confirmed      = false
         ) {
+        $this->courseid         = $courseid;
         $this->exerciseid       = $exerciseid;
         $this->slot             = $slot;
         $this->studentid        = $studentid;
@@ -110,6 +117,9 @@ class booking implements booking_interface {
     }
 
     // Getter functions
+    public function get_courseid() {
+        return $this->courseid;
+    }
 
     public function get_exerciseid() {
         return $this->exerciseid;
@@ -144,6 +154,14 @@ class booking implements booking_interface {
     }
 
     // Setter functions
+    /**
+     * Set the course exercise id for the booking.
+     *
+     * @return int
+     */
+    public function set_courseid(int $courseid) {
+        $this->courseid = $courseid;
+    }
 
     /**
      * Set the course exercise id for the booking.

@@ -89,16 +89,18 @@ import Ajax from 'core/ajax';
  * date information is extracted, the time of the day is ignored.
  *
  * @param {array} bookedslot    The array of booked slots
+ * @param {int} courseId        The course id of the booking
  * @param {int} exerciseId      The exercise id of the associated course
  * @param {int} studentId       The id of the associated user
  * @param {int} slotId          The id of the slot if exists != 0
  * @return {promise}
  */
- export const saveBookedSlot = (bookedslot, exerciseId, studentId) => {
+ export const saveBookedSlot = (bookedslot, courseId, exerciseId, studentId) => {
     const request = {
         methodname: 'local_booking_save',
         args: {
             bookedslot: bookedslot,
+            courseid: courseId,
             exerciseid: exerciseId,
             studentid: studentId,
         }

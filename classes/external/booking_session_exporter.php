@@ -29,18 +29,19 @@ defined('MOODLE_INTERNAL') || die();
 
 use renderer_base;
 use core\external\exporter;
+use local_booking\local\slot\data_access\slot_vault;
 use local_booking\local\session\entities\session;
 use local_booking\local\session\entities\grade;
 
 /**
  * Class for displaying each session in progression view.
  *
- * @package   local_booking
+ * @package    local_booking
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class session_exporter extends exporter {
+class booking_session_exporter extends exporter {
 
     /**
      * @var /strClass $session An object containing session info.
@@ -95,12 +96,13 @@ class session_exporter extends exporter {
             ];
             $sessionstatustooltip = get_string('sessiongradeddby', 'local_booking', $gradeinfo);
         } else if ($booking !== null) {
+            $slotvault = new slot_vault();
             $sessionstatus = $booking->confirmed ? 'booked' : 'tentative';
             $infostatus = $booking->confirmed ? 'statusbooked' : 'statustentative';
-            $sessiondate = get_session_date($booking->slotid);
+            $sessiondate = $slotvault->get_session_date($booking->slotid);
             $bookinginfo = [
                 'instructor'    => get_fullusername($booking->userid),
-                'sessiondate'   => $sessiondate->format('j M \'y'),
+                'sessiondate'   => !empty($sessiondate) ? $sessiondate->format('j M \'y') : 'null',
                 'bookingstatus' => ucwords(get_string($infostatus, 'local_booking')),
             ];
             $sessionstatustooltip = get_string('sessionbookedby', 'local_booking', $bookinginfo);
@@ -112,7 +114,7 @@ class session_exporter extends exporter {
             'studentid'     => $data['studentid'],
             'exerciseid'    => $data['exerciseid'],
             'sessionstatus' => $sessionstatus,
-            'sessiondate'   => !$this->session->empty() ? $sessiondate->format('j M \'y') : '',
+            'sessiondate'   => !$this->session->empty() ? (!empty($sessiondate) ? $sessiondate->format('j M \'y') : 'null') : '',
             'sessionempty'  => $this->session->empty(),
             'sessionstatustooltip'  => $sessionstatustooltip,
         ];

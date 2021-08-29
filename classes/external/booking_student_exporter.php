@@ -25,16 +25,15 @@
 
 namespace local_booking\external;
 
-require_once($CFG->dirroot . '/lib.php');
 require_once($CFG->dirroot . '/lib/completionlib.php');
 
 defined('MOODLE_INTERNAL') || die();
 
-use local_booking\external\session_exporter;
-use local_booking\local\session\entities\action;
-use core\external\exporter;
-use local_booking\local\session\data_access\booking_vault;
 use renderer_base;
+use core\external\exporter;
+use local_booking\local\session\entities\action;
+use local_booking\local\participant\data_access\participant_vault;
+use local_booking\local\session\data_access\booking_vault;
 
 /**
  * Class for displaying each student row in progression view.
@@ -44,7 +43,7 @@ use renderer_base;
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class student_exporter extends exporter {
+class booking_student_exporter extends exporter {
 
     /**
      * @var int $studentid An id of the student.
@@ -72,7 +71,7 @@ class student_exporter extends exporter {
     protected $bookingvault;
 
     /**
-     * @var student_vault $studentvault A vault to access student data.
+     * @var participant_vault $studentvault A vault to access student data.
      */
     protected $studentvault;
 
@@ -87,7 +86,7 @@ class student_exporter extends exporter {
         $this->studentid = $data['studentid'];
         $this->courseexercises = $related['courseexercises'];
         $this->bookingvault = new booking_vault();
-        $this->studentvault = new student_vault();
+        $this->studentvault = new participant_vault();
 
         parent::__construct($data, $related);
     }
@@ -125,7 +124,7 @@ class student_exporter extends exporter {
     protected static function define_other_properties() {
         return [
             'sessions' => [
-                'type' => session_exporter::read_properties_definition(),
+                'type' => booking_session_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
             'actionurl' => [
@@ -205,7 +204,7 @@ class student_exporter extends exporter {
                 'grades'      => $this->studentgrades,
                 'booking'     => $this->bookingvault->get_student_booking($this->studentid),
             ];
-            $exercisesession = new session_exporter($studentinfo, $this->related);
+            $exercisesession = new booking_session_exporter($studentinfo, $this->related);
             $sessions[] = $exercisesession->export($output);
         }
 

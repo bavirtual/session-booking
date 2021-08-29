@@ -106,7 +106,7 @@ define([
         getUISlots(root, 'book');
 
         // Send the form data to the server for processing.
-        return Repository.saveBookedSlot(BookedSlot, exercise, studentid)
+        return Repository.saveBookedSlot(BookedSlot, course, exercise, studentid)
             .then(function(response) {
                 if (response.validationerror) {
                     // eslint-disable-next-line no-alert

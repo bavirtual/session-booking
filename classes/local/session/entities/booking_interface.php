@@ -38,6 +38,13 @@ defined('MOODLE_INTERNAL') || die();
 interface booking_interface {
 
     /**
+     * Set the course id for the booking.
+     *
+     * @return int
+     */
+    public function get_courseid();
+
+    /**
      * Set the course exercise id for the booking.
      *
      * @return int
@@ -92,6 +99,13 @@ interface booking_interface {
      * @return int
      */
     public function get_bookingdate();
+
+    /**
+     * Set the course  id for the booking.
+     *
+     * @return int
+     */
+    public function set_courseid(int $courseid);
 
     /**
      * Set the course exercise id for the booking.

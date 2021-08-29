@@ -52,12 +52,12 @@ class week_exporter extends exporter {
     protected $calendar;
 
     /**
-     * @var array $days An array of time_slot_exporter objects.
+     * @var array $days An array of week_timeslot_exporter objects.
      */
     protected $days = [];
 
     /**
-     * @var array $days An array of time_slot_exporter objects.
+     * @var array $days An array of week_timeslot_exporter objects.
      */
     protected $studentsslots;
 
@@ -72,7 +72,7 @@ class week_exporter extends exporter {
     protected $showlocaltime;
 
     /**
-     * @var array $days An array of time_slot_exporter objects.
+     * @var array $days An array of week_timeslot_exporter objects.
      */
     protected $weekno;
 
@@ -242,7 +242,7 @@ class week_exporter extends exporter {
                 'multiple' => true,
             ],
             'timeslots' => [
-                'type' => time_slot_exporter::read_properties_definition(),
+                'type' => week_timeslot_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
             'maxlanes' => [
@@ -424,7 +424,7 @@ class week_exporter extends exporter {
             $daydata['days'] = $this->days;
             $daydata['maxlanes'] = $this->maxlanes;
             $daydata['groupview'] = $this->view == 'all' && $this->actiondata['action'] != 'book';
-            $timeslot = new time_slot_exporter($this->calendar, $daydata, $weeklanes, $this->related);
+            $timeslot = new week_timeslot_exporter($this->calendar, $daydata, $weeklanes, $this->related);
 
             $slots[] = $timeslot->export($output);
         }

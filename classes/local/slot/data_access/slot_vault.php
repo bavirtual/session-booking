@@ -24,6 +24,7 @@
 
 namespace local_booking\local\slot\data_access;
 
+use DateTime;
 use local_booking\local\slot\entities\slot;
 
 class slot_vault implements slot_vault_interface {
@@ -160,5 +161,18 @@ class slot_vault implements slot_vault_interface {
                 LIMIT 1';
 
         return $DB->get_record_sql($sql);
+    }
+
+    /**
+     * Returns the date of the slot session.
+     *
+     * @return DateTime
+     */
+    public function get_session_date(int $slotid) {
+        $slot = $this->get_slot($slotid);
+
+        $sessiondate = !empty($slot) ? new DateTime('@' . $slot->starttime) : null;
+
+        return $sessiondate;
     }
 }
