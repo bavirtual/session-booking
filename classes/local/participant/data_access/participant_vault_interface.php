@@ -23,11 +23,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_booking\local\slot\data_access;
+namespace local_booking\local\participant\data_access;
 
 defined('MOODLE_INTERNAL') || die();
 
-interface student_vault_interface {
+interface participant_vault_interface {
 
     /**
      * Get a student record from the database.
@@ -41,7 +41,7 @@ interface student_vault_interface {
      *
      * @return {Object}[]          Array of database records.
      */
-    public function get_active_students();
+    public function get_active_students(int $courseid = 0);
 
     /**
      * Get grades for a specific student.
@@ -61,7 +61,7 @@ interface student_vault_interface {
      * @param   int     The upcoming next exercise id
      * @return  bool    Whether the lessones were completed or not.
      */
-    function lessons_complete($studentid, $courseid, $nextexercisesection);
+    function get_lessons_complete($studentid, $courseid, $nextexercisesection);
 
     /**
      * Returns the next upcoming exercise id

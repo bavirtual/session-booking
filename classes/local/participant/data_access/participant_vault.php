@@ -23,14 +23,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_booking\local\slot\data_access;
+namespace local_booking\local\participant\data_access;
 
 use DateTime;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 require_once($CFG->dirroot . "/lib/completionlib.php");
 
-class student_vault implements student_vault_interface {
+class participant_vault implements participant_vault_interface {
 
 
     /**
@@ -103,12 +102,14 @@ class student_vault implements student_vault_interface {
      *
      * @return {Object}[]          Array of database records.
      */
-    public function get_active_students() {
+    public function get_active_students(int $courseid = 0) {
         global $DB, $COURSE;
+
+        $studentcourseid = $courseid == 0 ? $COURSE->id : $courseid;
 
         $sql = 'SELECT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
                     'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
-                    ud.data AS simulator, ue.timemodified AS enroldate
+                    ud.data AS simulator, ue.timemodified AS enroldate, en.courseid AS courseid
                 FROM {' . self::DB_USER . '} u
                 INNER JOIN {' . self::DB_ROLE_ASSIGN . '} ra on u.id = ra.userid
                 INNER JOIN {' . self::DB_ROLE . '} r on r.id = ra.roleid
@@ -116,8 +117,8 @@ class student_vault implements student_vault_interface {
                 INNER JOIN {' . self::DB_USER_FIELD . '} uf on uf.id = ud.fieldid
                 INNER JOIN {' . self::DB_USER_ENROL . '} ue on ud.userid = ue.userid
                 INNER JOIN {' . self::DB_ENROL . '} en on ue.enrolid = en.id
-                WHERE en.courseid = ' . $COURSE->id . '
-                    AND ra.contextid = ' . \context_course::instance($COURSE->id)->id .'
+                WHERE en.courseid = ' . $studentcourseid . '
+                    AND ra.contextid = ' . \context_course::instance($studentcourseid)->id .'
                     AND r.shortname = "student"
                     AND uf.shortname = "simulator"
                     AND ue.status = 0
@@ -125,15 +126,41 @@ class student_vault implements student_vault_interface {
                         SELECT userid
                         FROM {' . self::DB_GROUPS_MEM . '} gm
                         INNER JOIN {' . self::DB_GROUPS . '} g on g.id = gm.groupid
-                        WHERE g.name = "' . local_booking_ONHOLDGROUP . '"
-                        OR g.name = "' . local_booking_GRADUATESGROUP . '"
+                        WHERE g.name = "' . LOCAL_BOOKING_ONHOLDGROUP . '"
+                        OR g.name = "' . LOCAL_BOOKING_GRADUATESGROUP . '"
                         )';
 
         return $DB->get_records_sql($sql);
     }
 
     /**
-     * Get all active students from the database.
+     * Get all active instructors for the course from the database.
+     *
+     * @return {Object}[]          Array of database records.
+     */
+    public function get_active_instructors(int $courseid = 0) {
+        global $DB, $COURSE;
+
+        $instructorcourseid = $courseid == 0 ? $COURSE->id : $courseid;
+
+        $sql = 'SELECT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
+                    'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
+                    ue.timemodified AS enroldate, en.courseid AS courseid
+                FROM {' . self::DB_USER . '} u
+                INNER JOIN {' . self::DB_ROLE_ASSIGN . '} ra on u.id = ra.userid
+                INNER JOIN {' . self::DB_ROLE . '} r on r.id = ra.roleid
+                INNER JOIN {' . self::DB_USER_ENROL . '} ue on ud.userid = ue.userid
+                INNER JOIN {' . self::DB_ENROL . '} en on ue.enrolid = en.id
+                WHERE en.courseid = ' . $instructorcourseid . '
+                    AND ra.contextid = ' . \context_course::instance($instructorcourseid)->id .'
+                    AND r.shortname = "instructor"
+                    AND ue.status = 0)';
+
+        return $DB->get_records_sql($sql);
+    }
+
+    /**
+     * Get students assigned to an instructor from the database.
      *
      * @return {Object}[]          Array of database records.
      */
@@ -214,7 +241,7 @@ class student_vault implements student_vault_interface {
      * @param   int     The upcoming next exercise id
      * @return  bool    Whether the lessones were completed or not.
      */
-    function lessons_complete($studentid, $courseid, $nextexercisesection) {
+    function get_lessons_complete($studentid, $courseid, $nextexercisesection) {
         global $DB;
 
         // Get the student's grades
@@ -284,4 +311,21 @@ class student_vault implements student_vault_interface {
         return $enroldate;
     }
 
+    /**
+     * Suspends the student's enrolment to a course.
+     *
+     * @param int   $studentid  The student id in reference
+     * @param int   $courseid   The course the student is being unenrolled from.
+     * @return bool             The result of the suspension action.
+     */
+    public function set_suspend_status(int $studentid, int $courseid) {
+        global $DB;
+
+        $sql = 'UPDATE {' . static::DB_USER_ENROL . '}
+                SET active = 1
+                WHERE studentid = ' . $studentid . '
+                AND courseid = ' . $courseid;
+
+        return $DB->execute($sql);
+    }
 }

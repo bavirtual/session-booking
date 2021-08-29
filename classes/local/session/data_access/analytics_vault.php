@@ -31,7 +31,7 @@ use \local_booking\local\slot\data_access\student_vault;
 class analytics_vault implements analytics_vault_interface {
 
     // Bookings table name for querying
-    const DB_BOOKINGS = 'local_booking';
+    const DB_BOOKINGS = 'local_booking_sessions';
 
     // Availability Slots table name for querynig
     const DB_SLOTS = 'local_booking_slots';

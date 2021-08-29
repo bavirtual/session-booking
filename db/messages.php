@@ -54,4 +54,36 @@ $messageproviders = array(
             'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
         ),
     ),
+
+    // Notify student of upcoming placement on-hold (inactive)
+    'onhold_warning' => array(
+        'capability' => 'local/booking:emailstudentnotify',
+        'defaults' => array(
+            'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
+        ),
+    ),
+
+    // Notify student of becoming inactive
+    'onhold_notification' => array(
+        'capability' => 'local/booking:emailstudentnotify',
+        'defaults' => array(
+            'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
+        ),
+    ),
+
+    // Notify student of being suspended from the course
+    'suspension_notification' => array(
+        'capability' => 'local/booking:emailstudentnotify',
+        'defaults' => array(
+            'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
+        ),
+    ),
+
+    // Notify instructor of session overdue
+    'sessionoverdue_notification' => array(
+        'capability' => 'local/booking:emailnotify',
+        'defaults' => array(
+            'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
+        ),
+    ),
 );

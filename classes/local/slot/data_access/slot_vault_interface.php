@@ -83,9 +83,9 @@ interface slot_vault_interface {
     public function confirm_slot(int $slotid, string $bookinginfo);
 
     /**
-     * Get the date of the last booked session
+     * Get the date of the last posted availability slot
      *
      * @param int $studentid
      */
-    public function get_last_booked_session(int $studentid);
+    public function get_last_posted_slot(int $studentid);
 }

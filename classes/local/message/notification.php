@@ -58,7 +58,7 @@ class notification extends \core\message\message {
     /**
      * Sends an email notifying the student
      *
-     * @return int  The notification message id.
+     * @return bool  The notification message id.
      */
     public function send_booking_notification($studentid, $exerciseid, $sessiondate) {
         global $USER, $COURSE;
@@ -91,7 +91,7 @@ class notification extends \core\message\message {
     /**
      * Sends an email confirming booking made by the instructor
      *
-     * @return int  The notification message id.
+     * @return bool  The notification message id.
      */
     public function send_instructor_confirmation($studentid, $exerciseid, $sessiondate) {
         global $USER, $COURSE;
@@ -120,7 +120,7 @@ class notification extends \core\message\message {
      * Sends an email notifying the instructor of
      * student confirmation of booked session
      *
-     * @return int  The notification message id.
+     * @return bool  The notification message id.
      */
     public function send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid, $url) {
         global $COURSE;
@@ -131,7 +131,7 @@ class notification extends \core\message\message {
             'student'           => get_fullusername($studentid),
             'sessiondate'       => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
             'exercise'          => get_exercise_name($exerciseid),
-            'bookingurl'   => $url->out(false),
+            'bookingurl'        => $url->out(false),
         );
 
         $this->name              = 'instructor_notification';
@@ -149,7 +149,7 @@ class notification extends \core\message\message {
      * Sends an email notifying the student of
      * the cancelled session.
      *
-     * @return int  The notification message id.
+     * @return bool  The notification message id.
      */
     public function send_session_cancellation($studentid, $exerciseid, $sessiondate) {
         global $USER, $COURSE;
@@ -169,6 +169,104 @@ class notification extends \core\message\message {
         $this->fullmessage       = get_string('emailcancelmsg', 'local_booking', $data);
         $this->fullmessagehtml   = get_string('emailcancelhtml', 'local_booking', $data);
         $this->contexturl        = $data->courseurl;
+        $this->contexturlname    = get_string('studentavialability', 'local_booking');
+
+        return message_send($this) != 0;
+    }
+
+
+    /**
+     * Sends an email warning to the student of
+     * upcoming on-hold date.
+     *
+     * @return bool  The notification message id.
+     */
+    public function send_onhold_warning($studentid, $onholddate, $courseid, $coursename) {
+        // notification message data
+        $data = (object) array(
+            'coursename'    => $coursename,
+            'onholddate'    => $onholddate->format('M d, Y'),
+            'slotsurl'      => (new \moodle_url('/local/booking/availability.php', array('course'=> $courseid)))->out(false),
+        );
+
+        $this->name              = 'onhold_warning';
+        $this->userto            = $studentid;
+        $this->subject           = get_string('emailonholdwarning', 'local_booking', $data);
+        $this->fullmessage       = get_string('emailonholdwarningmsg', 'local_booking', $data);
+        $this->fullmessagehtml   = get_string('emailonholdwarninghtml', 'local_booking', $data);
+        $this->contexturl        = $data->slotsurl;
+        $this->contexturlname    = get_string('studentavialability', 'local_booking');
+
+        return message_send($this) != 0;
+    }
+
+    /**
+     * Sends an email notifying the student
+     * of being placed on-hold.
+     *
+     * @return bool  The notification message id.
+     */
+    public function send_onhold_notification($studentid, $onholddate, $suspenddate, $courseid, $coursename) {
+        // notification message data
+        $data = (object) array(
+            'coursename'        => $coursename,
+            'lastsessiondate'   => $onholddate->format('M d, Y'),
+            'suspenddate'       => $suspenddate->format('M d, Y'),
+        );
+
+        $this->name              = 'onhold_notification';
+        $this->userto            = $studentid;
+        $this->subject           = get_string('emailonholdnotify', 'local_booking', $data);
+        $this->fullmessage       = get_string('emailonholdnotifymsg', 'local_booking', $data);
+        $this->fullmessagehtml   = get_string('emailonholdnotifyhtml', 'local_booking', $data);
+        $this->contexturlname    = get_string('studentavialability', 'local_booking');
+
+        return message_send($this) != 0;
+    }
+
+    /**
+     * Sends an email notifying the student
+     * of being placed on-hold.
+     *
+     * @return bool  The notification message id.
+     */
+    public function send_suspension_notification($studentid, $lastsessiondate, $courseid, $coursename) {
+        // notification message data
+        $data = (object) array(
+            'coursename'        => $coursename,
+            'lastsessiondate'   => $lastsessiondate->format('M d, Y'),
+        );
+
+        $this->name              = 'suspension_notification';
+        $this->userto            = $studentid;
+        $this->subject           = get_string('emailsuspendnotify', 'local_booking', $data);
+        $this->fullmessage       = get_string('emailsuspendnotifymsg', 'local_booking', $data);
+        $this->fullmessagehtml   = get_string('emailsuspendnotifyhtml', 'local_booking', $data);
+        $this->contexturlname    = get_string('studentavialability', 'local_booking');
+
+        return message_send($this) != 0;
+    }
+
+    /**
+     * Sends an email notifying the instructor
+     * of overdue session.
+     *
+     * @return bool  The notification message id.
+     */
+    public function send_session_overdue_notification($instructorid, $lastsessiondate, $courseid, $coursename) {
+        // notification message data
+        $data = (object) array(
+            'coursename'        => $coursename,
+            'lastsessiondate'   => $lastsessiondate->format('M d, Y'),
+            'bookingurl'        => (new \moodle_url('/local/booking/view.php', array('courseid'=>$courseid)))->out(false),
+        );
+
+        $this->name              = 'sessionoverdue_notification';
+        $this->userto            = $instructorid;
+        $this->subject           = get_string('emailoverduenotify', 'local_booking', $data);
+        $this->fullmessage       = get_string('emailoverduenotifymsg', 'local_booking', $data);
+        $this->fullmessagehtml   = get_string('emailoverduenotifyhtml', 'local_booking', $data);
+        $this->contexturl        = $data->bookingurl;
         $this->contexturlname    = get_string('studentavialability', 'local_booking');
 
         return message_send($this) != 0;

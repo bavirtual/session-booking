@@ -39,8 +39,9 @@ $string['bookingcancel'] = 'Cancel';
 $string['bookingcanceledsuccess'] = 'Booking with \'{$a->studentname}\' cancelled!';
 $string['bookingcanceledunable'] = 'Unable to cancel booking!';
 $string['booking:view'] = 'View session bookings';
-$string['booking:emailnotify'] = 'Booking notification';
+$string['booking:emailnotify'] = 'Booking notifications';
 $string['booking:emailconfirm'] = 'Session booking confirmation';
+$string['booking:emailstudentnotify'] = 'Student notifications';
 $string['bookingconfirmmsg'] = '{$a->status} session on \'{$a->exercise}\' with instructor {$a->instructor}.';
 $string['bookinginfo'] = '{$a->status} session on \'{$a->exercise}\' with instructor {$a->instructor}';
 $string['bookingconfirmsuccess'] = 'Booking confirmed for \'{$a->exercise}\' with \'{$a->instructor}\' on \'{$a->sessiondate}\' zulu.';
@@ -72,7 +73,31 @@ $string['emailcancel'] = '{$a->coursename} session booking cancellation: \'{$a->
 $string['emailcancelmsg'] = '{$a->instructor} has cancelled your booked session scheduled for {$a->sessiondate} on \'{$a->exercise}\'.';
 $string['emailcancelhtml'] = '<font face="sans-serif"><p>{$a->coursename} -> Assignment -> {$a->exercise}</p><hr /><p>{$a->instructor} has cancelled your booked session scheduled for <strong>{$a->sessiondate}</strong> on \'<i>{$a->exercise}</i>\'.</p></p></p></font><hr />';
 
+// email to student: on-hold warning
+$string['emailonholdwarning'] = '{$a->coursename}: Inactivity notification';
+$string['emailonholdwarningmsg'] = 'Please post an availability slot to avoid being automatically placed on-hold on \'{$a->onholddate}\'. You can post an availability slot for \'{$a->coursename}\' from the following link: {$a->slotsurl}';
+$string['emailonholdwarninghtml'] = '<font face="sans-serif">Please post an availability slot to avoid being automatically placed on-hold on <strong>\'{$a->onholddate}\'</strong>.<p>You can post an availability slot for \'{$a->coursename}\' <a href="{$a->slotsurl}">here</a>.</p></font><hr />';
+
+// email to student: on-hold notification
+$string['emailonholdwarning'] = '{$a->coursename}: Trainee placed on-hold';
+$string['emailonholdwarningmsg'] = 'Due to inactivity since your last posting \'{$a->lastsessiondate}\', you have been placed on-hold. Please contact your instructor if you are still interested in resuming \'{$a->coursename}\' course work.';
+$string['emailonholdwarninghtml'] = '<font face="sans-serif">Due to inactivity since your last posting <strong>\'{$a->lastsessiondate}\'</strong>, you have been placed on-hold. Please contact your instructor if you are still interested in resuming \'{$a->coursename}\' course work.
+<p>Please note, if you are no longer interested in continuing course work, you will be automatically unenrolled from the course on <strong>\'{$a->suspenddate}\'</strong>.</p></font><hr />';
+
+// email to student: suspension notification
+$string['emailsuspendnotify'] = '{$a->coursename}: Suspension notification';
+$string['emailsuspendnotifymsg'] = 'Please note that you have been suspended from \'{$a->coursename}\' due to session booking inactivity since \'{$a->lastsessiondate}\'.  Please contact your instructor if you are still interested in being enrolled in this course';
+$string['emailsuspendnotifyhtml'] = '<font face="sans-serif">Please note you have been suspended from \'{$a->coursename}\' due to session booking inactivity since <strong>\'{$a->lastsessiondate}\'</strong>.<p>Please contact your instructor if you are still interested in being enrolled in this course.</p></font><hr />';
+
+// email to instructor: session overdue notification
+$string['emailsuspendnotify'] = '{$a->coursename}: Session overdue notification';
+$string['emailsuspendnotifymsg'] = 'Please note that you have not booked a session since \'{$a->lastsessiondate}\'.  Please book a session with your assigned student or any student from the booking view.
+You can book a session from the following view link: {$a->bookingurl}';
+$string['emailsuspendnotifyhtml'] = '<font face="sans-serif">Please note that you have not booked a session since <strong>\'{$a->lastsessiondate}\'</strong>.<p>Please book a session with your assigned student or any student from the <a href="{$a->bookingurl}">booking view</a> as soon as possible.</p></font><hr />';
+
 // settings
+$string['coursesusing'] = 'Courses using Session Booking plugin:';
+$string['coursesusingdesc'] = 'Course shortnames delimited by commas';
 $string['exercisetitles'] = 'Course exercise titles:';
 $string['exercisetitlesdesc'] = 'titles delimited by commas';
 $string['recencydaysweight'] = 'Recency prioritization weight multiplier';
@@ -101,8 +126,8 @@ $string['flightsim'] = 'Flight Simulation';
 $string['lastsession'] = 'Last session time:';
 $string['lastsessiondesc'] = 'last allowable session time';
 $string['lessonsincomplete'] = 'Lesson incomplete: Please complete pending lessons, othewise instructors will not see your availability.';
-$string['restrictionend'] = 'Next session restriction:';
-$string['restrictionenddesc'] = 'days from last booked session';
+$string['nextsessionwaitdays'] = 'Next session restriction:';
+$string['nextsessionwaitdaysdesc'] = 'days from last booked session';
 $string['local'] = 'Local';
 $string['loading'] = 'Loading slots...';
 $string['processingresult'] = 'The processing result';

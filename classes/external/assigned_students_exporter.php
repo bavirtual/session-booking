@@ -27,7 +27,7 @@ namespace local_booking\external;
 
 defined('MOODLE_INTERNAL') || die();
 
-use local_booking\local\slot\data_access\student_vault;
+use local_booking\local\participant\data_access\participant_vault;
 use core\external\exporter;
 use renderer_base;
 use moodle_url;
@@ -125,7 +125,7 @@ class assigned_students_exporter extends exporter {
     protected function get_assigned_students($output) {
         $assignedstudents = [];
 
-        $vault = new student_vault();
+        $vault = new participant_vault();
         $studentobjs = $vault->get_assigned_students();
         foreach ($studentobjs as $studentobj) {
             $data = [

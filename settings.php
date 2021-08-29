@@ -31,6 +31,14 @@ if ($hassiteconfig) {
 
     if ($ADMIN->fulltree) {
         // exercise titles
+        $settingspage->add(new admin_setting_configtext('local_booking/coursesusing',
+            new lang_string('coursesusing', 'local_booking'), new lang_string('coursesusingdesc', 'local_booking'),
+            '', PARAM_RAW)
+        );
+    }
+
+    if ($ADMIN->fulltree) {
+        // exercise titles
         $settingspage->add(new admin_setting_configtext('local_booking/exercisetitles',
             new lang_string('exercisetitles', 'local_booking'), new lang_string('exercisetitlesdesc', 'local_booking'),
             '', PARAM_RAW)
@@ -87,8 +95,8 @@ if ($hassiteconfig) {
         );
 
         // availability recording days after last session restriction
-        $settingspage->add(new admin_setting_configtext('local_booking/restrictionend',
-            new lang_string('restrictionend', 'local_booking'), new lang_string('restrictionenddesc', 'local_booking'),
+        $settingspage->add(new admin_setting_configtext('local_booking/nextsessionwaitdays',
+            new lang_string('nextsessionwaitdays', 'local_booking'), new lang_string('nextsessionwaitdaysdesc', 'local_booking'),
             12, PARAM_INT)
         );
 

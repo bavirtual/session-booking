@@ -31,6 +31,6 @@ $observers = array(
 
     array(
         'eventname' => '\mod_assign\event\submission_graded',
-        'callback' => '\local_booking\grading_observer::submission_graded',
+        'callback' => '\local_booking\grading_observers::submission_graded',
     ),
 );

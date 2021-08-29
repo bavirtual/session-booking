@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 use local_booking\external\exercise_name_exporter;
 use local_booking\external\student_exporter;
 use core\external\exporter;
-use local_booking\local\slot\data_access\student_vault;
+use local_booking\local\participant\data_access\participant_vault;
 use renderer_base;
 use moodle_url;
 
@@ -148,7 +148,7 @@ class progression_exporter extends exporter {
     protected function get_active_students($output) {
         $activestudents = [];
 
-        $vault = new student_vault();
+        $vault = new participant_vault();
         $students = $vault->get_active_students();
 
         $i = 0;

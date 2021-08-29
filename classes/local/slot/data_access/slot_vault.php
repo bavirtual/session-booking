@@ -145,11 +145,11 @@ class slot_vault implements slot_vault_interface {
     }
 
     /**
-     * Get the date of the last booked session
+     * Get the date of the last posted availability slot
      *
      * @param int $studentid
      */
-    public function get_last_booked_session(int $studentid) {
+    public function get_last_posted_slot(int $studentid) {
         global $DB;
 
         $sql = 'SELECT starttime

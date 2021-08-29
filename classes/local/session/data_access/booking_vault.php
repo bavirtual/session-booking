@@ -30,7 +30,7 @@ use local_booking\local\session\entities\booking;
 class booking_vault implements booking_vault_interface {
 
     /** Bookings table name for the persistent. */
-    const DB_BOOKINGS = 'local_booking';
+    const DB_BOOKINGS = 'local_booking_sessions';
 
     /** Availability Slots table name for the persistent. */
     const DB_SLOTS = 'local_booking_slots';
@@ -157,5 +157,22 @@ class booking_vault implements booking_vault_interface {
                 AND exerciseid = ' . $exerciseid;
 
         return $DB->execute($sql);
+    }
+
+    /**
+     * Get the date of the last booked session
+     *
+     * @param int $instructorid
+     */
+    public function get_last_booked_session(int $instructorid) {
+        global $DB;
+
+        $sql = 'SELECT timemodified as lastbookedsession
+                FROM {' . static::DB_BOOKINGS. '}
+                WHERE userid = ' . $instructorid . '
+                ORDER BY timemodified DESC
+                LIMIT 1';
+
+        return $DB->get_record_sql($sql);
     }
 }

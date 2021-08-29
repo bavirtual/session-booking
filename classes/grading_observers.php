@@ -38,7 +38,7 @@ require_once($CFG->dirroot . '/local/booking/lib.php');
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class grading_observer {
+class grading_observers {
 
     /**
      * A submission has been graded.

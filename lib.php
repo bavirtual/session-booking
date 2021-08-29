@@ -34,7 +34,7 @@ use local_booking\local\session\data_access\booking_vault;
 use local_booking\local\session\entities\booking;
 use local_booking\local\slot\entities\slot;
 use local_booking\local\message\notification;
-use local_booking\local\slot\data_access\student_vault;
+use local_booking\local\participant\data_access\participant_vault;
 use local_booking\external\week_exporter;
 
 /**
@@ -58,44 +58,44 @@ define('LOCAL_BOOKING_ACTIVITYWEIGHT', 1);
 define('LOCAL_BOOKING_COMPLETIONWEIGHT', 10);
 
 /**
- * local_booking_MAXLANES - constant value for maximum number of student slots shown in parallel a day
+ * LOCAL_BOOKING_MAXLANES - constant value for maximum number of student slots shown in parallel a day
  */
-define('local_booking_MAXLANES', 20);
+define('LOCAL_BOOKING_MAXLANES', 20);
 
 /**
- * local_booking_FIRSTSLOT - default value of the first slot of the day
+ * LOCAL_BOOKING_FIRSTSLOT - default value of the first slot of the day
  */
-define('local_booking_FIRSTSLOT', 8);
+define('LOCAL_BOOKING_FIRSTSLOT', 8);
 
 /**
- * local_booking_LASTSLOT - default value of the first slot of the day
+ * LOCAL_BOOKING_LASTSLOT - default value of the first slot of the day
  */
-define('local_booking_LASTSLOT', 23);
+define('LOCAL_BOOKING_LASTSLOT', 23);
 
 /**
- * local_booking_WEEKSLOOKAHEAD - default value of the first slot of the day
+ * LOCAL_BOOKING_WEEKSLOOKAHEAD - default value of the first slot of the day
  */
-define('local_booking_WEEKSLOOKAHEAD', 4);
+define('LOCAL_BOOKING_WEEKSLOOKAHEAD', 4);
 
 /**
- * local_booking_DAYSFROMLASTSESSION - default value of the days allowed to mark since last session
+ * LOCAL_BOOKING_DAYSFROMLASTSESSION - default value of the days allowed to mark since last session
  */
-define('local_booking_DAYSFROMLASTSESSION', 12);
+define('LOCAL_BOOKING_DAYSFROMLASTSESSION', 12);
 
 /**
- * local_booking_ONHOLDGROUP - constant value for On-hold students for group quering purposes
+ * LOCAL_BOOKING_ONHOLDGROUP - constant value for On-hold students for group quering purposes
  */
-define('local_booking_ONHOLDGROUP', 'OnHold');
+define('LOCAL_BOOKING_ONHOLDGROUP', 'OnHold');
 
 /**
- * local_booking_GRADUATESGROUP - constant value for On-hold students for group quering purposes
+ * LOCAL_BOOKING_GRADUATESGROUP - constant value for On-hold students for group quering purposes
  */
-define('local_booking_GRADUATESGROUP', 'Graduates');
+define('LOCAL_BOOKING_GRADUATESGROUP', 'Graduates');
 
 /**
- * local_booking_SLOT_COLORS - constant array of slot colors per student color assignment
+ * LOCAL_BOOKING_SLOT_COLORS - constant array of slot colors per student color assignment
  */
-define('local_booking_SLOT_COLORS', array(
+define('LOCAL_BOOKING_SLOT_COLORS', array(
         'red'         => '#d50000',
         'green'       => '#689f38',
         'yellow'      => '#ffeb3b',
@@ -445,7 +445,7 @@ function get_weekly_view(\calendar_information $calendar, $actiondata, $view = '
  */
 function get_active_student_slots($weekno, $year, $studentid = 0) {
     $slotvault = new slot_vault();
-    $studentvault = new student_vault();
+    $studentvault = new participant_vault();
 
     $activestudents = [];
     // get a single or all students records
@@ -460,7 +460,7 @@ function get_active_student_slots($weekno, $year, $studentid = 0) {
     foreach ($students as $student) {
         $slots = $slotvault->get_slots($student->userid, $year, $weekno);
         // $color = '#' . random_color();
-        $color = array_values(local_booking_SLOT_COLORS)[$i % local_booking_MAXLANES];
+        $color = array_values(LOCAL_BOOKING_SLOT_COLORS)[$i % LOCAL_BOOKING_MAXLANES];
         // add random color to each student
         foreach ($slots as $slot) {
             $slot->slotcolor = $color;
@@ -520,9 +520,9 @@ function get_week_start($date) {
  */
 function has_completed_lessons($studentid) {
     global $COURSE;
-    $vault = new student_vault();
+    $vault = new participant_vault();
     list($nextexercise, $exercisesection) = $vault->get_next_exercise($studentid, $COURSE->id);
-    $completedlessons = $vault->lessons_complete($studentid, $COURSE->id, $exercisesection);
+    $completedlessons = $vault->get_lessons_complete($studentid, $COURSE->id, $exercisesection);
 
     return $completedlessons;
 }
@@ -534,11 +534,11 @@ function has_completed_lessons($studentid) {
  * @param   int     The student id
  * @return  DateTime
  */
-function get_restriction_enddate($studentid) {
-    $daysfromlast = (get_config('local_booking', 'restrictionend')) ? get_config('local_booking', 'restrictionend') : local_booking_DAYSFROMLASTSESSION;
+function get_next_allowed_session_date($studentid) {
+    $daysfromlast = (get_config('local_booking', 'nextsessionwaitdays')) ? get_config('local_booking', 'nextsessionwaitdays') : LOCAL_BOOKING_DAYSFROMLASTSESSION;
     $vault = new slot_vault();
 
-    $lastsession = $vault->get_last_booked_session($studentid);
+    $lastsession = $vault->get_last_posted_slot($studentid);
     $sessiondatets = !empty($lastsession) ? $lastsession->starttime : time();
     $sessiondate = new DateTime('@' . $sessiondatets);
     date_add($sessiondate, date_interval_create_from_date_string($daysfromlast . ' days'));
@@ -634,7 +634,7 @@ function local_booking_extend_navigation(global_navigation $navigation) {
             if (has_capability('local/booking:viewall', $context, $USER->id, false)) {
                 $params['view'] = 'all';
             } else {
-                $params['time'] = (get_restriction_enddate($USER->id))->getTimestamp();
+                $params['time'] = (get_next_allowed_session_date($USER->id))->getTimestamp();
             }
             $url = new moodle_url('/local/booking/availability.php', $params);
 

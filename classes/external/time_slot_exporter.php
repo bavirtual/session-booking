@@ -167,7 +167,7 @@ class time_slot_exporter extends exporter {
             $daylanes = $this->weeklanes[$daydata['wday']];
 
             // get slots in all lanes even if they're empty
-            for ($laneindex = 0; $laneindex < $this->maxlanes && $laneindex < local_booking_MAXLANES; $laneindex++) {
+            for ($laneindex = 0; $laneindex < $this->maxlanes && $laneindex < LOCAL_BOOKING_MAXLANES; $laneindex++) {
                 // assign the lane slots to the corrsponding day lane
                 $laneslots = count($daylanes) > $laneindex ? $daylanes[$laneindex] : null;
 
@@ -225,7 +225,7 @@ class time_slot_exporter extends exporter {
         // can't mark before x days from last booked session. x set in settings
         $lastsessionwait = true;
         if (!$this->groupview) {
-            $nextsessiondt = get_restriction_enddate($this->studentid);
+            $nextsessiondt = get_next_allowed_session_date($this->studentid);
             $nextsessiondate = $this->related['type']->timestamp_to_date_array($nextsessiondt->getTimestamp());
             $lastsessionwait = $lastsessionwait && $nextsessiondate['year'] >= $date['year'];
             $lastsessionwait = $lastsessionwait && $nextsessiondate['yday'] >= $date['yday'];
@@ -237,7 +237,7 @@ class time_slot_exporter extends exporter {
         // future week is not beyond the set lookahead number of weeks
         $currentyearweekno = strftime('%W', time());
         $futureyearweekno = strftime('%W', $date[0]);
-        $weekslookahead = (get_config('local_booking', 'weeksahead')) ? get_config('local_booking', 'weeksahead') : local_booking_WEEKSLOOKAHEAD;
+        $weekslookahead = (get_config('local_booking', 'weeksahead')) ? get_config('local_booking', 'weeksahead') : LOCAL_BOOKING_WEEKSLOOKAHEAD;
         $yeardate = new DateTime();
         $yeardate->setISODate($today['year'], 53);
         $yearweeks = ($yeardate->format("W") === "53" ? 53 : 52);

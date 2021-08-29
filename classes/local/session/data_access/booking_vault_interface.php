@@ -97,4 +97,11 @@ interface booking_vault_interface {
      * @return  bool                $result
      */
     public function confirm_booking(int $studentid, int $exerciseid);
+
+    /**
+     * Get the date of the last booked session
+     *
+     * @param int $instructorid
+     */
+    public function get_last_booked_session(int $instructorid);
 }

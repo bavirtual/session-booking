@@ -340,7 +340,7 @@ class week_exporter extends exporter {
             'weekofyear' => $this->weekno,
             'timeslots' => $this->get_time_slots($output),
             // day slots data
-            'maxlanes' => $this->maxlanes <= local_booking_MAXLANES ? $this->maxlanes : local_booking_MAXLANES,
+            'maxlanes' => $this->maxlanes <= LOCAL_BOOKING_MAXLANES ? $this->maxlanes : LOCAL_BOOKING_MAXLANES,
             'showlocaltime' => $this->showlocaltime,
             'date' => (new date_exporter($date))->export($output),
             // navigation data
@@ -404,8 +404,8 @@ class week_exporter extends exporter {
      */
     protected function get_time_slots(renderer_base $output) {
         // Get daily slots from settings
-        $firstsessionhour = (get_config('local_booking', 'firstsession')) ? substr(get_config('local_booking', 'firstsession'), 0, 2) : local_booking_FIRSTSLOT;
-        $lastsessionhour = (get_config('local_booking', 'lastsession')) ? substr(get_config('local_booking', 'lastsession'), 0, 2) : local_booking_LASTSLOT;
+        $firstsessionhour = (get_config('local_booking', 'firstsession')) ? substr(get_config('local_booking', 'firstsession'), 0, 2) : LOCAL_BOOKING_FIRSTSLOT;
+        $lastsessionhour = (get_config('local_booking', 'lastsession')) ? substr(get_config('local_booking', 'lastsession'), 0, 2) : LOCAL_BOOKING_LASTSLOT;
 
         // Get user timezone offset
         $usertz = new \DateTimeZone(usertimezone());
