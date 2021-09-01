@@ -133,6 +133,13 @@ class cron_task extends \core\task\scheduled_task {
                         }
                     }
                 }
+
+if ($student->userid == 6) {
+    $message->send_onhold_warning($student->userid, $onholddate, $courseid, $courseshortnames[$i]);
+    $message->send_onhold_notification($student->userid, $lastsessiondate, $suspenddate, $courseid, $courseshortnames[$i]);
+    $message->send_suspension_notification($student->userid, $lastsessiondate, $courseid, $courseshortnames[$i]);
+    // $participantsvault->set_suspend_status($student->userid, $courseid);
+}
             }
 
             // get instructors

@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 $messageproviders = array(
     // Notify the student that a session has been booked by the instructor.
     'booking_notification' => array(
-        'capability' => 'local/booking:emailstudentnotify',
+        'capability' => 'local/booking:studentnotification',
         'defaults' => array(
             'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
         ),
@@ -36,12 +36,12 @@ $messageproviders = array(
 
     // Confirm to the instructor booking made by him/her.
     'booking_confirmation' => array(
-        'capability' => 'local/booking:emailconfirm',
+        'capability' => 'local/booking:instructornotification',
     ),
 
     // Notify instructor of student confirmation of booked session.
     'instructor_notification' => array(
-        'capability' => 'local/booking:emailnotify',
+        'capability' => 'local/booking:instructornotification',
         'defaults' => array(
             'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
         ),
@@ -49,7 +49,7 @@ $messageproviders = array(
 
     // Notify student of cancelled session.
     'session_cancellation' => array(
-        'capability' => 'local/booking:emailstudentnotify',
+        'capability' => 'local/booking:studentnotification',
         'defaults' => array(
             'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
         ),
@@ -57,7 +57,7 @@ $messageproviders = array(
 
     // Notify student of upcoming placement on-hold (inactive)
     'onhold_warning' => array(
-        'capability' => 'local/booking:emailstudentnotify',
+        'capability' => 'local/booking:studentnotification',
         'defaults' => array(
             'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
         ),
@@ -65,7 +65,7 @@ $messageproviders = array(
 
     // Notify student of becoming inactive
     'onhold_notification' => array(
-        'capability' => 'local/booking:emailstudentnotify',
+        'capability' => 'local/booking:studentnotification',
         'defaults' => array(
             'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
         ),
@@ -73,7 +73,7 @@ $messageproviders = array(
 
     // Notify student of being suspended from the course
     'suspension_notification' => array(
-        'capability' => 'local/booking:emailstudentnotify',
+        'capability' => 'local/booking:studentnotification',
         'defaults' => array(
             'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
         ),
@@ -81,7 +81,7 @@ $messageproviders = array(
 
     // Notify instructor of session overdue
     'sessionoverdue_notification' => array(
-        'capability' => 'local/booking:emailnotify',
+        'capability' => 'local/booking:instructornotification',
         'defaults' => array(
             'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
         ),

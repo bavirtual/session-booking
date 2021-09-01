@@ -193,10 +193,11 @@ class local_booking_external extends external_api {
                 )
             );
 
+        $result = save_booking($params);
         $warnings = array();
 
         return array(
-            'result' => save_booking($params),
+            'result' => $result,
             'warnings' => $warnings
         );
     }
