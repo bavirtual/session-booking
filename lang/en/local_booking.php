@@ -48,9 +48,8 @@ $string['booksave'] = 'Save Booking';
 // capabilities
 $string['booking:view'] = 'View session bookings';
 $string['booking:availabilityview'] = 'View availability posting';
-$string['booking:emailnotify'] = 'Booking notifications';
-$string['booking:emailconfirm'] = 'Session booking confirmation';
-$string['booking:emailstudentnotify'] = 'Student notifications';
+$string['booking:studentnotification'] = 'Instructor notifications';
+$string['booking:instructornotification'] = 'Student notifications';
 
 // message providers
 $string['messageprovider:booking_notification'] = 'Session booked notification';

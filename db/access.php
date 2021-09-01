@@ -34,7 +34,7 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
             'coursecreator' => CAP_ALLOW,
-            'flighttrainingmanager' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
         )
     ),
 

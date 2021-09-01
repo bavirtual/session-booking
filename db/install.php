@@ -41,7 +41,7 @@
  *
  * @return bool
  */
-function xmldb_booking_install() {
+function xmldb_local_booking_install() {
     global $DB;
 
     // Look for BAV category and add to the end if doesn't exist
