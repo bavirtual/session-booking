@@ -75,6 +75,9 @@ function xmldb_local_booking_install() {
         $primarysimobj = new \stdClass();
         $primarysimobj->name        = LOCAL_BOOKING_PRIMARYSIMULATORLABEL;
         $primarysimobj->shortname   = LOCAL_BOOKING_PRIMARYSIMULATOR;
+        $primarysimobj->description = '';
+        $primarysimobj->descriptionformat = 1;
+        $primarysimobj->visible     = 2;
         $primarysimobj->datatype    = 'menu';
         $primarysimobj->categoryid  = $bavcategoryid;
         $primarysimobj->sortorder   = $fieldsortorder;
@@ -94,12 +97,15 @@ function xmldb_local_booking_install() {
         $secondarysimobj = new \stdClass();
         $secondarysimobj->name          = LOCAL_BOOKING_SECONDARYSIMULATORLABEL;
         $secondarysimobj->shortname     = LOCAL_BOOKING_SECONDARYSIMULATOR;
+        $secondarysimobj->description   = '';
+        $secondarysimobj->descriptionformat = 1;
+        $secondarysimobj->visible       = 2;
         $secondarysimobj->datatype      = 'menu';
         $secondarysimobj->categoryid    = $bavcategoryid;
         $secondarysimobj->sortorder     = $fieldsortorder;
         $secondarysimobj->param1        = LOCAL_BOOKING_SUPPORTEDSIMULATORS;
 
-        $bavcategoryid = $DB->insert_record('user_info_field', $secondarysimobj);
+        $DB->insert_record('user_info_field', $secondarysimobj);
         $fieldsortorder++;
 
     } else { $fieldsortorder = $secondarysimfield->sortorder + 1 ;}
@@ -112,6 +118,9 @@ function xmldb_local_booking_install() {
         $callsignfieldobj = new \stdClass();
         $callsignfieldobj->name          = LOCAL_BOOKING_CALLSIGNLABEL;
         $callsignfieldobj->shortname     = LOCAL_BOOKING_CALLSIGN;
+        $callsignfieldobj->description   = '';
+        $callsignfieldobj->descriptionformat = 1;
+        $callsignfieldobj->visible       = 2;
         $callsignfieldobj->datatype      = 'text';
         $callsignfieldobj->categoryid    = $bavcategoryid;
         $callsignfieldobj->sortorder     = $fieldsortorder;
