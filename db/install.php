@@ -103,7 +103,8 @@ function xmldb_local_booking_install() {
         $secondarysimobj->datatype      = 'menu';
         $secondarysimobj->categoryid    = $bavcategoryid;
         $secondarysimobj->sortorder     = $fieldsortorder;
-        $secondarysimobj->param1        = LOCAL_BOOKING_SUPPORTEDSIMULATORS;
+        $secondarysimobj->defaultdata   = ' ';
+        $secondarysimobj->param1        = ' ' . PHP_EOL . LOCAL_BOOKING_SUPPORTEDSIMULATORS;
 
         $DB->insert_record('user_info_field', $secondarysimobj);
         $fieldsortorder++;
