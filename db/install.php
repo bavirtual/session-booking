@@ -31,7 +31,7 @@
  define('LOCAL_BOOKING_PRIMARYSIMULATORLABEL', 'Primary Flight Simulator');
  define('LOCAL_BOOKING_SECONDARYSIMULATOR', 'simulator2');
  define('LOCAL_BOOKING_SECONDARYSIMULATORLABEL', 'Secondary Flight Simulator');
- define('LOCAL_BOOKING_SUPPORTEDSIMULATORS', 'MSFS  XP11    P3D5    P3D4    FSX');
+ define('LOCAL_BOOKING_SUPPORTEDSIMULATORS', 'MSFS\nXP11\nP3D5\r\nP3D4\n\rFSX');
  define('LOCAL_BOOKING_DEFAULTSIMULATOR', 'MSFS');
  define('LOCAL_BOOKING_CALLSIGN', 'callsign');
  define('LOCAL_BOOKING_CALLSIGNLABEL', 'Callsign');
@@ -84,7 +84,7 @@ function xmldb_local_booking_install() {
         $primarysimobj->defaultdata = LOCAL_BOOKING_DEFAULTSIMULATOR;
         $primarysimobj->param1      = LOCAL_BOOKING_SUPPORTEDSIMULATORS;
 
-        $bavcategoryid = $DB->insert_record('user_info_field', $primarysimobj);
+        $DB->insert_record('user_info_field', $primarysimobj);
         $fieldsortorder++;
 
     } else { $fieldsortorder = $primarysimfield->sortorder + 1 ;}
