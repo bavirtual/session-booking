@@ -150,6 +150,24 @@ class slot_vault implements slot_vault_interface {
      *
      * @param int $studentid
      */
+    public function get_first_posted_slot(int $studentid) {
+        global $DB;
+
+        $sql = 'SELECT starttime
+                FROM {' . static::DB_SLOTS. '}
+                WHERE userid = ' . $studentid . '
+                AND slotstatus = ""
+                ORDER BY starttime
+                LIMIT 1';
+
+        return $DB->get_record_sql($sql);
+    }
+
+    /**
+     * Get the date of the last posted availability slot
+     *
+     * @param int $studentid
+     */
     public function get_last_posted_slot(int $studentid) {
         global $DB;
 

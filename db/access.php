@@ -34,6 +34,7 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
             'coursecreator' => CAP_ALLOW,
+            'flighttrainingmanager' => CAP_ALLOW,
         )
     ),
 
@@ -53,6 +54,17 @@ $capabilities = array(
         )
     ),
 
+    'local/booking:emailstudentnotify' => array(
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'coursecreator' => CAP_ALLOW,
+            'flighttrainingmanager' => CAP_ALLOW,
+        )
+    ),
+
     'local/booking:emailconfirm' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
@@ -60,6 +72,7 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
             'coursecreator' => CAP_ALLOW,
+            'flighttrainingmanager' => CAP_ALLOW,
         )
     ),
 );

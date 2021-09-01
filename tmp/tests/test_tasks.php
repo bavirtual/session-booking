@@ -25,15 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// run everyday at 2:00 am
-$tasks = array(
-    array(
-        'classname' => '\local_booking\task\cron_task',
-        'blocking' => 0,
-        'minute' => '*',  // 0
-        'hour' => '*',  // 2
-        'day' => '*',
-        'month' => '*',
-        'dayofweek' => '*'
-    )
-);
+require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->dirroot . '/course/externallib.php');
+require_once($CFG->dirroot . '/group/lib.php');
+require_once($CFG->dirroot . '/local/booking/lib.php');

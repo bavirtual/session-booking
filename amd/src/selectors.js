@@ -44,6 +44,7 @@ define([], function() {
         day: '[data-region="day"]',
         calendarMain: '[data-region="calendar"]',
         wrapper: '.bookingwrapper',
+        calendarwrapper: '.calendarwrapper',
         table: '.calendartable',
         eventItem: '[data-type="event"]',
         links: {

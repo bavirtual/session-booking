@@ -50,9 +50,6 @@ class notification extends \core\message\message {
         $this->fullmessageformat = FORMAT_MARKDOWN;
         $this->notification      = 1; // Because this is a notification generated from Moodle, not a user-to-user message
         $this->smallmessage      = '';
-        $this->set_additional_content('email', array('*' => array(
-            'header' => get_string('pluginname', 'local_booking'),
-            'footer' => get_string('pluginname', 'local_booking'))));
     }
 
     /**
@@ -112,6 +109,8 @@ class notification extends \core\message\message {
         $this->fullmessagehtml   = get_string('emailconfirmhtml', 'local_booking', $data);
         $this->contexturl        = $data->bookingurl;
         $this->contexturlname    = get_string('pluginname', 'local_booking');
+        $this->set_additional_content('email', array('*' => array(
+            'footer' => get_string('bookingfooter', 'local_booking', $data))));
 
         return message_send($this) != 0;
     }
@@ -122,7 +121,7 @@ class notification extends \core\message\message {
      *
      * @return bool  The notification message id.
      */
-    public function send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid, $url) {
+    public function send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid) {
         global $COURSE;
 
         // notification message data
@@ -131,7 +130,7 @@ class notification extends \core\message\message {
             'student'           => get_fullusername($studentid),
             'sessiondate'       => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
             'exercise'          => get_exercise_name($exerciseid),
-            'bookingurl'        => $url->out(false),
+            'bookingurl'        => (new \moodle_url('/local/booking/'))->out(false),
         );
 
         $this->name              = 'instructor_notification';
@@ -141,6 +140,8 @@ class notification extends \core\message\message {
         $this->fullmessagehtml   = get_string('emailinstconfirmhtml', 'local_booking', $data);
         $this->contexturl        = $data->bookingurl;
         $this->contexturlname    = get_string('studentavialability', 'local_booking');
+        $this->set_additional_content('email', array('*' => array(
+            'footer' => get_string('bookingfooter', 'local_booking', $data))));
 
         return message_send($this) != 0;
     }

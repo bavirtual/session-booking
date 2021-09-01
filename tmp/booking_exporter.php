@@ -78,11 +78,6 @@ class week_exporter extends exporter {
     protected $url;
 
     /**
-     * @var bool $includenavigation Whether navigation should be included on the output.
-     */
-    protected $includenavigation = true;
-
-    /**
      * @var bool $initialeventsloaded Whether the events have been loaded for this month.
      */
     protected $initialeventsloaded = true;
@@ -172,10 +167,6 @@ class week_exporter extends exporter {
                 // Note: We must use RAW here because the calendar type returns the formatted month name based on a
                 // calendar format.
                 'type' => PARAM_RAW,
-            ],
-            'includenavigation' => [
-                'type' => PARAM_BOOL,
-                'default' => true,
             ],
             'previousperiod' => [
                 'type' => date_exporter::read_properties_definition(),
@@ -273,7 +264,6 @@ class week_exporter extends exporter {
             'nextperiodlink' => $nextperiodlink->out(false),
             'larrow' => $output->larrow(),
             'rarrow' => $output->rarrow(),
-            'includenavigation' => $this->includenavigation,
             'initialeventsloaded' => $this->initialeventsloaded,
         ];
 
@@ -355,18 +345,6 @@ class week_exporter extends exporter {
         $newperioddate = $this->related['type']->timestamp_to_date_array(date_timestamp_get($perioddate));
 
         return $newperioddate;
-    }
-
-    /**
-     * Set whether the navigation should be shown.
-     *
-     * @param   bool    $include
-     * @return  $this
-     */
-    public function set_includenavigation($include) {
-        $this->includenavigation = $include;
-
-        return $this;
     }
 
     /**

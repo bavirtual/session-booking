@@ -33,6 +33,7 @@ use local_booking\local\participant\data_access\participant_vault;
 use local_booking\local\session\entities\priority;
 use renderer_base;
 use moodle_url;
+use DateTime;
 
 /**
  * Class for displaying instructor's booked sessions view.
@@ -43,6 +44,16 @@ use moodle_url;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class bookings_exporter extends exporter {
+
+    /**
+     * Warning flag of an overdue session
+     */
+    const OVERDUEWARNING = 1;
+
+    /**
+     * Warning flag of a late session past overdue
+     */
+    const LATEWARNING = 2;
 
     /**
      * @var array $exercisenames An array of excersice ids and names for the course.
@@ -187,12 +198,16 @@ class bookings_exporter extends exporter {
                 'completion'=> $student->priority->get_completions(),
             ];
 
+            $waringflag = $this->get_warning($student->userid);
             $data = [];
             $data = [
                 'sequence'        => $i,
                 'sequencetooltip' => get_string('sequencetooltip', 'local_booking', $sequencetooltip),
                 'studentid'       => $student->userid,
                 'studentname'     => $student->fullname,
+                'dayssincelast'   => $student->dayssincelast,
+                'overduewarning'  => $waringflag == self::OVERDUEWARNING,
+                'latewarning'     => $waringflag == self::LATEWARNING,
                 'simulator'       => $student->simulator,
             ];
             $student = new booking_student_exporter($data, $this->data['courseid'], [
@@ -216,6 +231,7 @@ class bookings_exporter extends exporter {
         foreach ($activestudents as $student) {
             $priority = new priority($student->userid);
             $student->priority = $priority;
+            $student->dayssincelast = $priority->get_recency_days();
         }
 
         usort($activestudents, function($st1, $st2) {
@@ -246,5 +262,35 @@ class bookings_exporter extends exporter {
         }
 
         return $bookings;
+    }
+
+    /**
+     * Get a warning flag related to
+     * when the student took the last
+     * session 3x wait is overdue, and
+     * 4x wait is late.
+     *
+     * @param   int $studentid  The student id
+     * @return  int $flag       The delay flag
+     */
+    protected function get_warning($studentid) {
+        $bookingvault = new booking_vault();
+        $warning = 0;
+        $today = getdate(time());
+        $waitdays = get_config('local_booking', 'nextsessionwaitdays') ? get_config('local_booking', 'nextsessionwaitdays') : LOCAL_BOOKING_DAYSFROMLASTSESSION;
+
+        // get days since last session
+        $lastsession = $bookingvault->get_last_booked_session(false, $studentid);
+        $lastsessiondate = new DateTime('@' . (!empty($lastsession) ? $lastsession->lastbookedsession : time()));
+        $interval = $lastsessiondate->diff(new DateTime('@' . $today[0]));
+        $dayssincelast = $interval->format('%d');
+
+        if ($dayssincelast >= ($waitdays * LOCAL_BOOKING_SESSIONOVERDUEMULTIPLIER) &&  $dayssincelast < ($waitdays * LOCAL_BOOKING_SESSIONLATEMULTIPLIER)) {
+            $warning = self::OVERDUEWARNING;
+        } else if ($dayssincelast >= ($waitdays * LOCAL_BOOKING_SESSIONLATEMULTIPLIER)) {
+            $warning = self::LATEWARNING;
+        }
+
+        return $warning;
     }
 }

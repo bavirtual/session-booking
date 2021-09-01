@@ -45,6 +45,14 @@
 .session-tentative {
     background-color: coral;
 }
+.session-overdue {
+    display: block;
+    background-color: #ffad50;
+}
+.session-late {
+    display: block;
+    background-color: #ff5050;
+}
 
 /* Buttons */
 .session-button {

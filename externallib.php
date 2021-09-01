@@ -60,7 +60,7 @@ class local_booking_external extends external_api {
                 )
             );
 
-        $context = \context_course::instance($courseid);
+        $context = context_course::instance($courseid);
         self::validate_context($context);
         $PAGE->set_url('/local/booking/');
 
@@ -91,6 +91,84 @@ class local_booking_external extends external_api {
      */
     public static function get_bookings_view_returns() {
         return \local_booking\external\bookings_exporter::get_read_structure();
+    }
+
+    /**
+     * Get data for the weekly calendar view.
+     *
+     * @param   int     $year       The year to be shown
+     * @param   int     $week       The week to be shown
+     * @param   int     $time       The timestamp of the first day in the week to be shown
+     * @param   int     $courseid   The course to be included
+     * @param   int     $categoryid The category to be included
+     * @param   string  $action     The action to be pefromed if in booking view
+     * @param   string  $view       The view to be displayed if user or all
+     * @param   int     $studentid  The student id the action is performed on
+     * @param   int     $exercise   The exercise id the action is associated with
+     * @return  array
+     */
+    public static function get_weekly_view($year, $week, $time, $courseid, $categoryid, $action, $view, $studentid, $exerciseid) {
+        global $USER, $PAGE;
+
+        // Parameter validation.
+        $params = self::validate_parameters(self::get_weekly_view_parameters(), [
+            'year'      => $year,
+            'week'      => $week,
+            'time'      => $time,
+            'courseid'  => $courseid,
+            'categoryid'=> $categoryid,
+            'action'    => $action,
+            'view'      => $view,
+            'studentid' => $studentid,
+            'exerciseid'=> $exerciseid,
+        ]);
+
+        $context = context_course::instance($courseid);
+        self::validate_context($context);
+        $PAGE->set_url('/local/booking/');
+
+        $calendar = \calendar_information::create($time, $params['courseid'], $params['categoryid']);
+        self::validate_context($calendar->context);
+
+        $actiondata = [
+            'action'    => $action,
+            'studentid' => $studentid == null ? 0 : $studentid,
+            'exerciseid'=> $exerciseid == null ? 0 : $exerciseid,
+        ];
+
+        list($data, $template) = get_weekly_view($calendar, $actiondata, $view);
+
+        return $data;
+    }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters
+     */
+    public static function get_weekly_view_parameters() {
+        return new external_function_parameters(
+            [
+                'year' => new external_value(PARAM_INT, 'Year to be viewed', VALUE_REQUIRED),
+                'week' => new external_value(PARAM_INT, 'Week to be viewed', VALUE_REQUIRED),
+                'time' => new external_value(PARAM_INT, 'Timestamp of the first day of the week to be viewed', VALUE_REQUIRED),
+                'courseid' => new external_value(PARAM_INT, 'Course being viewed', VALUE_DEFAULT, SITEID, NULL_ALLOWED),
+                'categoryid' => new external_value(PARAM_INT, 'Category being viewed', VALUE_DEFAULT, null, NULL_ALLOWED),
+                'action' => new external_value(PARAM_RAW, 'The action being performed view or book', VALUE_DEFAULT, 'view', NULL_ALLOWED),
+                'view' => new external_value(PARAM_RAW, 'The action being performed view or book', VALUE_DEFAULT, 'view', NULL_ALLOWED),
+                'studentid' => new external_value(PARAM_INT, 'The user id the slots belongs to', VALUE_DEFAULT, 0, NULL_ALLOWED),
+                'exerciseid' => new external_value(PARAM_INT, 'The exercise id the slots belongs to', VALUE_DEFAULT, 0, NULL_ALLOWED),
+            ]
+        );
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_description
+     */
+    public static function get_weekly_view_returns() {
+        return \local_booking\external\week_exporter::get_read_structure();
     }
 
     /**
@@ -208,84 +286,6 @@ class local_booking_external extends external_api {
                 'warnings' => new external_warnings()
             )
         );
-    }
-
-    /**
-     * Get data for the weekly calendar view.
-     *
-     * @param   int     $year       The year to be shown
-     * @param   int     $week       The week to be shown
-     * @param   int     $time       The timestamp of the first day in the week to be shown
-     * @param   int     $courseid   The course to be included
-     * @param   int     $categoryid The category to be included
-     * @param   string  $action     The action to be pefromed if in booking view
-     * @param   string  $view       The view to be displayed if user or all
-     * @param   int     $studentid  The student id the action is performed on
-     * @param   int     $exercise   The exercise id the action is associated with
-     * @return  array
-     */
-    public static function get_weekly_view($year, $week, $time, $courseid, $categoryid, $action, $view, $studentid, $exerciseid) {
-        global $USER, $PAGE;
-
-        // Parameter validation.
-        $params = self::validate_parameters(self::get_weekly_view_parameters(), [
-            'year'      => $year,
-            'week'      => $week,
-            'time'      => $time,
-            'courseid'  => $courseid,
-            'categoryid'=> $categoryid,
-            'action'    => $action,
-            'view'      => $view,
-            'studentid' => $studentid,
-            'exerciseid'=> $exerciseid,
-        ]);
-
-        $context = \context_user::instance($USER->id);
-        self::validate_context($context);
-        $PAGE->set_url('/local/booking/');
-
-        $calendar = \calendar_information::create($time, $params['courseid'], $params['categoryid']);
-        self::validate_context($calendar->context);
-
-        $actiondata = [
-            'action'    => $action,
-            'studentid' => $studentid == null ? 0 : $studentid,
-            'exerciseid'=> $exerciseid == null ? 0 : $exerciseid,
-        ];
-
-        list($data, $template) = get_weekly_view($calendar, $actiondata, $view);
-
-        return $data;
-    }
-
-    /**
-     * Returns description of method parameters.
-     *
-     * @return external_function_parameters
-     */
-    public static function get_weekly_view_parameters() {
-        return new external_function_parameters(
-            [
-                'year' => new external_value(PARAM_INT, 'Year to be viewed', VALUE_REQUIRED),
-                'week' => new external_value(PARAM_INT, 'Week to be viewed', VALUE_REQUIRED),
-                'time' => new external_value(PARAM_INT, 'Timestamp of the first day of the week to be viewed', VALUE_REQUIRED),
-                'courseid' => new external_value(PARAM_INT, 'Course being viewed', VALUE_DEFAULT, SITEID, NULL_ALLOWED),
-                'categoryid' => new external_value(PARAM_INT, 'Category being viewed', VALUE_DEFAULT, null, NULL_ALLOWED),
-                'action' => new external_value(PARAM_RAW, 'The action being performed view or book', VALUE_DEFAULT, 'view', NULL_ALLOWED),
-                'view' => new external_value(PARAM_RAW, 'The action being performed view or book', VALUE_DEFAULT, 'view', NULL_ALLOWED),
-                'studentid' => new external_value(PARAM_INT, 'The user id the slots belongs to', VALUE_DEFAULT, 0, NULL_ALLOWED),
-                'exerciseid' => new external_value(PARAM_INT, 'The exercise id the slots belongs to', VALUE_DEFAULT, 0, NULL_ALLOWED),
-            ]
-        );
-    }
-
-    /**
-     * Returns description of method result value.
-     *
-     * @return external_description
-     */
-    public static function get_weekly_view_returns() {
-        return \local_booking\external\week_exporter::get_read_structure();
     }
 
     /**

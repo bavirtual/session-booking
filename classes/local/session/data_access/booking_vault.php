@@ -163,14 +163,15 @@ class booking_vault implements booking_vault_interface {
     /**
      * Get the date of the last booked session
      *
-     * @param int $instructorid
+     * @param int $isinstructor
+     * @param int $userid
      */
-    public function get_last_booked_session(int $instructorid) {
+    public function get_last_booked_session(int $userid, bool $isinstructor = true) {
         global $DB;
 
         $sql = 'SELECT timemodified as lastbookedsession
                 FROM {' . static::DB_BOOKINGS. '}
-                WHERE userid = ' . $instructorid . '
+                WHERE ' . ($isinstructor ? 'userid = ' : 'studentid = ') . $userid . '
                 ORDER BY timemodified DESC
                 LIMIT 1';
 

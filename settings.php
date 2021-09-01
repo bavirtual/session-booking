@@ -103,7 +103,7 @@ if ($hassiteconfig) {
         // availability recording weeks ahead
         $settingspage->add(new admin_setting_configtext('local_booking/weeksahead',
             new lang_string('weeksahead', 'local_booking'), new lang_string('weeksaheaddesc', 'local_booking'),
-            3, PARAM_INT)
+            4, PARAM_INT)
         );
     }
 

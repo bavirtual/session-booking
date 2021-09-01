@@ -31,7 +31,6 @@ require_once($CFG->dirroot . "/lib/completionlib.php");
 
 class participant_vault implements participant_vault_interface {
 
-
     /**
      * Process user enrollments table name.
      */
@@ -109,7 +108,8 @@ class participant_vault implements participant_vault_interface {
 
         $sql = 'SELECT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
                     'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
-                    ud.data AS simulator, ue.timemodified AS enroldate, en.courseid AS courseid
+                    ud.data AS simulator, ue.timemodified AS enroldate,
+                    en.courseid AS courseid, u.lastlogin AS lastlogin
                 FROM {' . self::DB_USER . '} u
                 INNER JOIN {' . self::DB_ROLE_ASSIGN . '} ra on u.id = ra.userid
                 INNER JOIN {' . self::DB_ROLE . '} r on r.id = ra.roleid
@@ -145,16 +145,17 @@ class participant_vault implements participant_vault_interface {
 
         $sql = 'SELECT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
                     'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
-                    ue.timemodified AS enroldate, en.courseid AS courseid
+                    ue.timemodified AS enroldate, en.courseid AS courseid,
+                    u.lastlogin AS lastlogin
                 FROM {' . self::DB_USER . '} u
                 INNER JOIN {' . self::DB_ROLE_ASSIGN . '} ra on u.id = ra.userid
                 INNER JOIN {' . self::DB_ROLE . '} r on r.id = ra.roleid
-                INNER JOIN {' . self::DB_USER_ENROL . '} ue on ud.userid = ue.userid
+                INNER JOIN {' . self::DB_USER_ENROL . '} ue on ra.userid = ue.userid
                 INNER JOIN {' . self::DB_ENROL . '} en on ue.enrolid = en.id
                 WHERE en.courseid = ' . $instructorcourseid . '
                     AND ra.contextid = ' . \context_course::instance($instructorcourseid)->id .'
-                    AND r.shortname = "instructor"
-                    AND ue.status = 0)';
+                    AND r.shortname IN ("instructor", "seniorinstructor", "flighttrainingmanager")
+                    AND ue.status = 0';
 
         return $DB->get_records_sql($sql);
     }
@@ -274,9 +275,9 @@ class participant_vault implements participant_vault_interface {
         global $DB;
 
         // Get first record of exercises not completed yet
-        $sql = 'SELECT cm.instance AS nextexerciseid, cm.section AS section
+        $sql = 'SELECT cm.id AS nextexerciseid, cm.section AS section
                 FROM {' . self::DB_COURSE_MODS .'} cm
-                INNER JOIN {' . self::DB_MODULES . '} as m ON m.id = cm.module
+                INNER JOIN {' . self::DB_MODULES . '} m ON m.id = cm.module
                 WHERE cm.course = ' . $courseid . '
                     AND m.name = "assign"
                     AND cm.instance NOT IN (SELECT ag.assignment

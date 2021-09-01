@@ -103,5 +103,5 @@ interface booking_vault_interface {
      *
      * @param int $instructorid
      */
-    public function get_last_booked_session(int $instructorid);
+    public function get_last_booked_session(int $userid, bool $isinstructor = true);
 }

@@ -9,16 +9,15 @@
  */
 
 // Booking
+$string['bookingfooter'] = '{$a->coursename} -> <a href="{$a->bookingurl}">Session Booking</a>';
 $string['crontask'] = 'Background processing for session booking';
 $string['enroldate'] = 'Enrol Date';
 $string['exercise'] = 'Exercise';
 $string['incompletelessontooltip'] = 'The student has incomplete lessons';
 $string['pluginname'] = 'Session Booking';
 $string['progression'] = 'Students Progression';
-$string['messageprovider:booking_notification'] = 'Session booked notification';
-$string['messageprovider:booking_confirmation'] = 'Booked session instructor confirmation';
-$string['messageprovider:instructor_notification'] = 'Student confirmation of booked session';
 $string['mystudents'] = 'My Assigned Trainees';
+$string['nextlesson'] = 'Next Lesson';
 $string['sequencetooltip'] = 'Score: {$a->score}<br/>Last session: {$a->recency} days<br/>Course activity: {$a->activity} views
 <br/>Availability: {$a->slots} posts<br/>Completion: {$a->completion} lessons';
 $string['sessionaction'] = 'Action';
@@ -38,11 +37,6 @@ $string['bookingactive'] = 'My Active Bookings';
 $string['bookingcancel'] = 'Cancel';
 $string['bookingcanceledsuccess'] = 'Booking with \'{$a->studentname}\' cancelled!';
 $string['bookingcanceledunable'] = 'Unable to cancel booking!';
-$string['booking:view'] = 'View session bookings';
-$string['booking:availabilityview'] = 'View availability posting';
-$string['booking:emailnotify'] = 'Booking notifications';
-$string['booking:emailconfirm'] = 'Session booking confirmation';
-$string['booking:emailstudentnotify'] = 'Student notifications';
 $string['bookingconfirmmsg'] = '{$a->status} session on \'{$a->exercise}\' with instructor {$a->instructor}.';
 $string['bookinginfo'] = '{$a->status} session on \'{$a->exercise}\' with instructor {$a->instructor}';
 $string['bookingconfirmsuccess'] = 'Booking confirmed for \'{$a->exercise}\' with \'{$a->instructor}\' on \'{$a->sessiondate}\' zulu.';
@@ -50,6 +44,23 @@ $string['bookingconfirmunable'] = 'Unable to confirm booking!';
 $string['bookingsavesuccess'] = 'Booking saved for \'{$a->exercise}\' with \'{$a->studentname}\' on \'{$a->sessiondate}\' zulu.';
 $string['bookingsaveunable'] = 'Unable to save booking!';
 $string['booksave'] = 'Save Booking';
+
+// capabilities
+$string['booking:view'] = 'View session bookings';
+$string['booking:availabilityview'] = 'View availability posting';
+$string['booking:emailnotify'] = 'Booking notifications';
+$string['booking:emailconfirm'] = 'Session booking confirmation';
+$string['booking:emailstudentnotify'] = 'Student notifications';
+
+// message providers
+$string['messageprovider:booking_notification'] = 'Session booked notification';
+$string['messageprovider:booking_confirmation'] = 'Booked session instructor confirmation';
+$string['messageprovider:instructor_notification'] = 'Student confirmation of booked session';
+$string['messageprovider:session_cancellation'] = 'Student session cancellation notification';
+$string['messageprovider:onhold_warning'] = 'Student on-hold warning notification';
+$string['messageprovider:onhold_notification'] = 'Student placed on-hold notification';
+$string['messageprovider:suspension_notification'] = 'Student suspended notification';
+$string['messageprovider:sessionoverdue_notification'] = 'Instructor session overdue notification';
 
 // email to student: session tentative
 $string['emailnotify'] = '{$a->coursename} session booking notification: \'{$a->exercise}\'';
@@ -91,10 +102,10 @@ $string['emailsuspendnotifymsg'] = 'Please note that you have been suspended fro
 $string['emailsuspendnotifyhtml'] = '<font face="sans-serif">Please note you have been suspended from \'{$a->coursename}\' due to session booking inactivity since <strong>\'{$a->lastsessiondate}\'</strong>.<p>Please contact your instructor if you are still interested in being enrolled in this course.</p></font><hr />';
 
 // email to instructor: session overdue notification
-$string['emailsuspendnotify'] = '{$a->coursename}: Session overdue notification';
-$string['emailsuspendnotifymsg'] = 'Please note that you have not booked a session since \'{$a->lastsessiondate}\'.  Please book a session with your assigned student or any student from the booking view.
+$string['emailoverduenotify'] = '{$a->coursename}: Session overdue notification';
+$string['emailoverduenotifymsg'] = 'Please note that you have not booked a session since \'{$a->lastsessiondate}\'.  Please book a session with your assigned student or any student from the booking view. Otherwise, please ask the course administrator to remove you from the list of active instructors for this course.
 You can book a session from the following view link: {$a->bookingurl}';
-$string['emailsuspendnotifyhtml'] = '<font face="sans-serif">Please note that you have not booked a session since <strong>\'{$a->lastsessiondate}\'</strong>.<p>Please book a session with your assigned student or any student from the <a href="{$a->bookingurl}">booking view</a> as soon as possible.</p></font><hr />';
+$string['emailoverduenotifyhtml'] = '<font face="sans-serif">Please note that you have not booked a session since <strong>\'{$a->lastsessiondate}\'</strong>.<p>Please book a session with your assigned student or any student from the <a href="{$a->bookingurl}">booking view</a> as soon as possible. To stop receiving these messages, please ask the course administrator to remove you from the list of active instructors for this course.</p></font><hr />';
 
 // settings
 $string['coursesusing'] = 'Courses using Session Booking plugin:';
@@ -138,6 +149,7 @@ $string['slotssaveunable'] = 'Unable to save slots!';
 $string['slotsstatusbooked'] = 'Booked';
 $string['slotsstatustentative'] = 'Tentative';
 $string['strftimeweekinyear'] = 'Week %W';
+$string['wait'] = 'Wait Days';
 $string['week'] = 'Week';
 $string['weeklytitle'] = 'Weekly Availability';
 $string['weeksahead'] = 'Weeks Lookahead:';

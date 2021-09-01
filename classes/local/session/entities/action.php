@@ -80,7 +80,8 @@ class action implements action_interface {
                     'exid'   => $refid,
                     'userid' => $userid,
                     'action' => 'book',
-                    'view' => 'user',
+                    'time'   => (get_first_posted_slot($userid))->getTimestamp(),
+                    'view'   => 'user',
                 ]);
                 $name = get_string('book', 'local_booking');
                 break;

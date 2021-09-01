@@ -42,6 +42,9 @@
                 <th class="header booking-header text-xs-center">
                     <span class="media-body" aria-hidden="true">{{#str}}students,local_booking{{/str}}</span>
                 </th>
+                <th class="header booking-header text-xs-center" style="width: 30px;">
+                    <span class="media-body" aria-hidden="true">{{#str}}wait,local_booking{{/str}}</span>
+                </th>
                 <th class="header booking-header text-xs-center" style="width: 60px;">
                     <span class="media-body" aria-hidden="true">{{#str}}simulator,local_booking{{/str}}</span>
                 </th>
@@ -67,6 +70,10 @@
                 </td>
                 <td class="booking-truncate">
                     <span>{{studentname}}</span>
+                </td>
+                <td class="day text-sm-center">
+                    <span class="media-body small{{#overduewarning}} session-overdue{{/overduewarning}}{{#latewarning}} session-late{{/latewarning}}"
+                    aria-hidden="true">{{dayssincelast}}</span>
                 </td>
                 <td class="day text-sm-center">
                     <span class="media-body small" aria-hidden="true">{{simulator}}</span>

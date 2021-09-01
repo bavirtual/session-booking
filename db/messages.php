@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 $messageproviders = array(
     // Notify the student that a session has been booked by the instructor.
     'booking_notification' => array(
-        'capability' => 'local/booking:emailnotify',
+        'capability' => 'local/booking:emailstudentnotify',
         'defaults' => array(
             'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
         ),
@@ -49,7 +49,7 @@ $messageproviders = array(
 
     // Notify student of cancelled session.
     'session_cancellation' => array(
-        'capability' => 'local/booking:emailnotify',
+        'capability' => 'local/booking:emailstudentnotify',
         'defaults' => array(
             'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
         ),

@@ -110,6 +110,15 @@ class booking_student_exporter extends exporter {
             'studentname' => [
                 'type' => PARAM_RAW,
             ],
+            'dayssincelast' => [
+                'type' => PARAM_INT,
+            ],
+            'overduewarning' => [
+                'type' => PARAM_BOOL,
+            ],
+            'latewarning' => [
+                'type' => PARAM_BOOL,
+            ],
             'simulator' => [
                 'type' => PARAM_RAW,
             ],

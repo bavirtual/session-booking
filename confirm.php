@@ -40,6 +40,7 @@ if ($result) {
     // redirect
     $url = new moodle_url('/local/booking/availability.php', array(
         'course'    => $courseid,
+        'userid'    => $studentid,
         'time'      => $time,
         'week'      => $week,
     ));

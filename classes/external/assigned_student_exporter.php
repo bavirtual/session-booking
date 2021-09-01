@@ -53,6 +53,7 @@ class assigned_student_exporter extends exporter {
         $data = [
         'studentname'   => $student->fullname,
         'simulator'     => $student->simulator,
+        'nextlesson'    => $student->nextlesson,
         'enroldate'     => $enroldate->format('M j\, Y'),
         ];
 
@@ -65,6 +66,9 @@ class assigned_student_exporter extends exporter {
                 'type' => PARAM_RAW,
             ],
             'simulator' => [
+                'type' => PARAM_RAW,
+            ],
+            'nextlesson' => [
                 'type' => PARAM_RAW,
             ],
             'enroldate' => [

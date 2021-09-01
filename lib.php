@@ -39,62 +39,39 @@ use local_booking\external\week_exporter;
 
 /**
  * LOCAL_BOOKING_RECENCYWEIGHT - constant value for session recency weight multipler
- */
-define('LOCAL_BOOKING_RECENCYWEIGHT', 10);
-
-/**
  * LOCAL_BOOKING_SLOTSWEIGHT - constant value for session availability slots weight multipler
- */
-define('LOCAL_BOOKING_SLOTSWEIGHT', 10);
-
-/**
  * LOCAL_BOOKING_ACTIVITYWEIGHT - constant value for course activity weight multipler
- */
-define('LOCAL_BOOKING_ACTIVITYWEIGHT', 1);
-
-/**
  * LOCAL_BOOKING_COMPLETIONWEIGHT - constant value for lesson completion weight multipler
- */
-define('LOCAL_BOOKING_COMPLETIONWEIGHT', 10);
-
-/**
  * LOCAL_BOOKING_MAXLANES - constant value for maximum number of student slots shown in parallel a day
- */
-define('LOCAL_BOOKING_MAXLANES', 20);
-
-/**
  * LOCAL_BOOKING_FIRSTSLOT - default value of the first slot of the day
- */
-define('LOCAL_BOOKING_FIRSTSLOT', 8);
-
-/**
  * LOCAL_BOOKING_LASTSLOT - default value of the first slot of the day
- */
-define('LOCAL_BOOKING_LASTSLOT', 23);
-
-/**
  * LOCAL_BOOKING_WEEKSLOOKAHEAD - default value of the first slot of the day
- */
-define('LOCAL_BOOKING_WEEKSLOOKAHEAD', 4);
-
-/**
  * LOCAL_BOOKING_DAYSFROMLASTSESSION - default value of the days allowed to mark since last session
- */
-define('LOCAL_BOOKING_DAYSFROMLASTSESSION', 12);
-
-/**
- * LOCAL_BOOKING_ONHOLDGROUP - constant value for On-hold students for group quering purposes
- */
-define('LOCAL_BOOKING_ONHOLDGROUP', 'OnHold');
-
-/**
- * LOCAL_BOOKING_GRADUATESGROUP - constant value for On-hold students for group quering purposes
- */
-define('LOCAL_BOOKING_GRADUATESGROUP', 'Graduates');
-
-/**
+ * LOCAL_BOOKING_ONHOLDGROUP - constant string value for On-hold students for group quering purposes
+ * LOCAL_BOOKING_GRADUATESGROUP - constant string value for graduated students for group quering purposes
+ * LOCAL_BOOKING_ONHOLDWAITMULTIPLIER - constant for multiplying wait period (in days) for placing students on-hold: 3x wait period
+ * LOCAL_BOOKING_SUSPENDWAITMULTIPLIER - constant for multiplying wait period (in days) for suspending inactive students: 9x wait period
+ * LOCAL_BOOKING_SESSIONOVERDUEMULTIPLIER - constant for multiplying wait period (in days) for overdue sessions: 3x wait period
+ * LOCAL_BOOKING_SESSIONLATEMULTIPLIER - constant for multiplying wait period (in days) for late sessions: 4x wait period
+ * LOCAL_BOOKING_INSTRUCTORINACTIVEMULTIPLIER - constant for multiplying wait period (in days) for late sessions: 3x wait period
  * LOCAL_BOOKING_SLOT_COLORS - constant array of slot colors per student color assignment
  */
+define('LOCAL_BOOKING_RECENCYWEIGHT', 10);
+define('LOCAL_BOOKING_SLOTSWEIGHT', 10);
+define('LOCAL_BOOKING_ACTIVITYWEIGHT', 1);
+define('LOCAL_BOOKING_COMPLETIONWEIGHT', 10);
+define('LOCAL_BOOKING_MAXLANES', 20);
+define('LOCAL_BOOKING_FIRSTSLOT', 8);
+define('LOCAL_BOOKING_LASTSLOT', 23);
+define('LOCAL_BOOKING_WEEKSLOOKAHEAD', 4);
+define('LOCAL_BOOKING_DAYSFROMLASTSESSION', 12);
+define('LOCAL_BOOKING_ONHOLDGROUP', 'OnHold');
+define('LOCAL_BOOKING_GRADUATESGROUP', 'Graduates');
+define('LOCAL_BOOKING_ONHOLDWAITMULTIPLIER', 3);
+define('LOCAL_BOOKING_SUSPENDWAITMULTIPLIER', 9);
+define('LOCAL_BOOKING_SESSIONOVERDUEMULTIPLIER', 2);
+define('LOCAL_BOOKING_SESSIONLATEMULTIPLIER', 3);
+define('LOCAL_BOOKING_INSTRUCTORINACTIVEMULTIPLIER', 2);
 define('LOCAL_BOOKING_SLOT_COLORS', array(
         'red'         => '#d50000',
         'green'       => '#689f38',
@@ -124,11 +101,6 @@ define('LOCAL_BOOKING_SLOT_COLORS', array(
 const DB_USER = 'user';
 
 /**
- * Process user  table name.
- */
-const DB_BOOKING = 'local_booking';
-
-/**
  * Process assign table name.
  */
 const DB_ASSIGN = 'assign';
@@ -137,6 +109,32 @@ const DB_ASSIGN = 'assign';
  * Process course modules table name.
  */
 const DB_COURSE_MODULES = 'course_modules';
+
+/**
+ * Get the calendar view output.
+ *
+ * @param   \calendar_information $calendar The calendar being represented
+ * @param   array   $actiondata The action type and associated data
+ * @param   bool    $skipevents Whether to load the events or not
+ * @return  array[array, string]
+ */
+function get_weekly_view(\calendar_information $calendar, $actiondata, $view = 'user') {
+    global $PAGE;
+
+    $renderer = $PAGE->get_renderer('core_calendar');
+    $type = \core_calendar\type_factory::get_calendar_instance();
+
+    $related = [
+        'type' => $type,
+    ];
+
+    $week = new week_exporter($calendar, $type, $actiondata, $view, $related);
+    $data = $week->export($renderer);
+    $data->viewingmonth = true;
+    $template = 'local_booking/calendar_week';
+
+    return [$data, $template];
+}
 
 /**
  * Get the student's progression view output.
@@ -288,18 +286,13 @@ function confirm_booking($exerciseid, $instructorid, $studentid) {
         $result = $slotvault->confirm_slot($booking->slotid, $bookinginfo);
 
         $slot = $slotvault->get_slot($booking->slotid);
-        $url = new \moodle_url('/local/booking/availability.php', array(
-            'time'  => $slot->starttime,
-            'course'=> $slot->courseid,
-            'week'  => $slot->week,
-        ));
 
         // notify the instructor of the student's confirmation
         $slotvault = new slot_vault;
         $sessiondate = $slotvault->get_session_date($booking->slotid);
         $strdata['sessiondate'] = $sessiondate->format('D M j\, H:i');
         $message = new notification();
-        $result = $result && $message->send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid, $url);
+        $result = $result && $message->send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid);
     }
 
     if ($result) {
@@ -413,34 +406,6 @@ function get_exercise_names() {
 }
 
 /**
- * Get the calendar view output.
- *
- * @param   \calendar_information $calendar The calendar being represented
- * @param   array   $actiondata The action type and associated data
- * @param   bool    $skipevents Whether to load the events or not
- * @return  array[array, string]
- */
-function get_weekly_view(\calendar_information $calendar, $actiondata, $view = 'user', $includenavigation = true) {
-    global $PAGE;
-
-    $renderer = $PAGE->get_renderer('core_calendar');
-    $type = \core_calendar\type_factory::get_calendar_instance();
-
-    $related = [
-        'type' => $type,
-    ];
-
-    $week = new week_exporter($calendar, $type, $actiondata, $view, $related);
-    $week->set_includenavigation($includenavigation);
-    $data = $week->export($renderer);
-    $data->viewingmonth = true;
-    $template = 'local_booking/calendar_week';
-
-    return [$data, $template];
-}
-
-
-/**
  * Return the days of the week where $date falls in.
  *
  * @return array array of days
@@ -544,6 +509,24 @@ function get_next_allowed_session_date($studentid) {
     $sessiondatets = !empty($lastsession) ? $lastsession->starttime : time();
     $sessiondate = new DateTime('@' . $sessiondatets);
     date_add($sessiondate, date_interval_create_from_date_string($daysfromlast . ' days'));
+
+    return $sessiondate;
+}
+
+/**
+ * Returns the timestamp of the first
+ * nonbooked availability slot for
+ * the student.
+ *
+ * @param   int     The student id
+ * @return  DateTime
+ */
+function get_first_posted_slot($studentid) {
+    $vault = new slot_vault();
+
+    $firstsession = $vault->get_first_posted_slot($studentid);
+    $sessiondatets = !empty($firstsession) ? $firstsession->starttime : time();
+    $sessiondate = new DateTime('@' . $sessiondatets);
 
     return $sessiondate;
 }

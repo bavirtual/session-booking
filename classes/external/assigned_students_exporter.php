@@ -123,11 +123,14 @@ class assigned_students_exporter extends exporter {
      * @return  assigned_student_exporter[]
      */
     protected function get_assigned_students($output) {
+        global $COURSE;
         $assignedstudents = [];
 
         $vault = new participant_vault();
         $studentobjs = $vault->get_assigned_students();
         foreach ($studentobjs as $studentobj) {
+            list($nextexercise, $exercisesection) = $vault->get_next_exercise($studentobj->userid, $COURSE->id);
+            $studentobj->nextlesson = get_exercise_name($nextexercise);
             $data = [
                 'student' => $studentobj,
             ];

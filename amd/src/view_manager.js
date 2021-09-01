@@ -38,7 +38,7 @@ import CustomEvents from 'core/custom_interaction_events';
     root = $(root);
 
     root.on('click', BookingsSelectors.links.navLink, (e) => {
-        const wrapper = root.find(BookingsSelectors.wrapper);
+        const wrapper = root.find(BookingsSelectors.calendarwrapper);
         const courseId = wrapper.data('courseid');
         const categoryId = wrapper.data('categoryid');
         const link = e.currentTarget;
@@ -89,7 +89,7 @@ import CustomEvents from 'core/custom_interaction_events';
  export const refreshWeekContent = (root, year, week, time, courseId, categoryId, target = null, template = '') => {
     startLoading(root);
 
-    target = target || root.find(BookingsSelectors.wrapper);
+    target = target || root.find(BookingsSelectors.calendarwrapper);
     template = template || root.attr('data-template');
     M.util.js_pending([root.get('id'), year, week, courseId].join('-'));
 
@@ -98,6 +98,7 @@ import CustomEvents from 'core/custom_interaction_events';
     const studentId = target.data('student-id');
     const exerciseId = target.data('exercise-id');
     time = time == 0 ? Date.now() / 1000 : time;
+
     return Repository.getCalendarWeekData(year, week, time, courseId, categoryId, action, view, studentId, exerciseId)
         .then(context => {
             context.viewingmonth = true;
@@ -146,12 +147,12 @@ export const changeWeek = (root, url, year, week, time, courseId, categoryId) =>
  * @return {promise}
  */
 export const reloadCurrentMonth = (root, courseId = 0, categoryId = 0) => {
-    const year = root.find(BookingsSelectors.wrapper).data('year');
-    const week = root.find(BookingsSelectors.wrapper).data('week');
-    const time = root.find(BookingsSelectors.wrapper).data('time');
+    const year = root.find(BookingsSelectors.calendarwrapper).data('year');
+    const week = root.find(BookingsSelectors.calendarwrapper).data('week');
+    const time = root.find(BookingsSelectors.calendarwrapper).data('time');
 
-    courseId = courseId || root.find(BookingsSelectors.wrapper).data('courseid');
-    categoryId = categoryId || root.find(BookingsSelectors.wrapper).data('categoryid');
+    courseId = courseId || root.find(BookingsSelectors.calendarwrapper).data('courseid');
+    categoryId = categoryId || root.find(BookingsSelectors.calendarwrapper).data('categoryid');
 
     return refreshWeekContent(root, year, week, time, courseId, categoryId, null, '');
 };
@@ -169,10 +170,10 @@ export const reloadCurrentMonth = (root, courseId = 0, categoryId = 0) => {
  export const reloadCurrentUpcoming = (root, courseId = 0, categoryId = 0, target = null, template = '') => {
     startLoading(root);
 
-    target = target || root.find(BookingsSelectors.wrapper);
+    target = target || root.find(BookingsSelectors.calendarwrapper);
     template = template || root.attr('data-template');
-    courseId = courseId || root.find(BookingsSelectors.wrapper).data('courseid');
-    categoryId = categoryId || root.find(BookingsSelectors.wrapper).data('categoryid');
+    courseId = courseId || root.find(BookingsSelectors.calendarwrapper).data('courseid');
+    categoryId = categoryId || root.find(BookingsSelectors.calendarwrapper).data('categoryid');
 
     return Repository.getCalendarUpcomingData(courseId, categoryId)
         .then((context) => {
@@ -201,7 +202,7 @@ export const cancelBooking = (root, e) => {
 
     var target = e.target;
     // Get exercise id and the user id from the URL
-    const courseId = courseId || root.find(BookingsSelectors.wrapper).data('courseid');
+    const courseId = courseId || root.find(BookingsSelectors.calendarwrapper).data('courseid');
     const bookingId = target.dataset.bookingid;
 
     // Send the request data to the server for processing.
@@ -235,7 +236,7 @@ export const cancelBooking = (root, e) => {
 export const refreshBookingsContent = (root, courseId, categoryId, target = null, template = '') => {
     startLoading(root);
 
-    target = target || root.find(BookingsSelectors.wrapper);
+    target = target || root.find(BookingsSelectors.calendarwrapper);
     template = template || root.attr('data-template');
     M.util.js_pending([root.get('id'), courseId, categoryId].join('-'));
     return Repository.getBookingsData(courseId, categoryId)
