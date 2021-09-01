@@ -81,15 +81,13 @@ function xmldb_local_booking_install() {
         $primarysimobj->defaultdata = LOCAL_BOOKING_DEFAULTSIMULATOR;
 
         $bavcategoryid = $DB->insert_record('user_info_field', $primarysimobj);
+        $fieldsortorder++;
+
     } else { $fieldsortorder = $primarysimfield->sortorder + 1 ;}
 
     // Add secondary simulator field under the BAV category if doesn't exist
     $secondarysimfield = $DB->get_record('user_info_field', array('shortname'=>LOCAL_BOOKING_SECONDARYSIMULATOR));
     if (empty($secondarysimfield)) {
-        // get next sort order
-        $customfields = $DB->get_records('user_info_field', null, 'sortorder DESC', '*', 0, 1);
-        $lastcustomfield = array_shift($customfields);
-        $sortorder = $lastcustomfield->sortorder + 1;
 
         // insert BAV category
         $secondarysimobj = new \stdClass();
@@ -97,21 +95,26 @@ function xmldb_local_booking_install() {
         $secondarysimobj->description   = LOCAL_BOOKING_SECONDARYSIMULATORLABEL;
         $secondarysimobj->datatype      = 'menu';
         $secondarysimobj->categoryid    = $bavcategoryid;
-        $secondarysimobj->sortorder     = $fieldsortorder + 1;
+        $secondarysimobj->sortorder     = $fieldsortorder;
+        $secondarysimobj->defaultdata   = '';
 
         $bavcategoryid = $DB->insert_record('user_info_field', $secondarysimobj);
+        $fieldsortorder++;
+
     } else { $fieldsortorder = $secondarysimfield->sortorder + 1 ;}
 
     // Add callsign field if doesn't exist
     $callsignfield = $DB->get_record('user_info_field', array('shortname'=>LOCAL_BOOKING_CALLSIGN));
     if (empty($callsignfield)) {
+
         // insert BAV category
         $callsignfieldobj = new \stdClass();
         $callsignfieldobj->shortname     = LOCAL_BOOKING_CALLSIGN;
         $callsignfieldobj->description   = LOCAL_BOOKING_CALLSIGNLABEL;
         $callsignfieldobj->datatype      = 'text';
         $callsignfieldobj->categoryid    = $bavcategoryid;
-        $callsignfieldobj->sortorder     = $fieldsortorder + 1;
+        $callsignfieldobj->sortorder     = $fieldsortorder;
+        $callsignfieldobj->defaultdata   = '';
 
         $bavcategoryid = $DB->insert_record('user_info_field', $callsignfieldobj);
     }
