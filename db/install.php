@@ -74,7 +74,7 @@ function xmldb_local_booking_install() {
         // insert BAV category
         $primarysimobj = new \stdClass();
         $primarysimobj->shortname   = LOCAL_BOOKING_PRIMARYSIMULATOR;
-        $primarysimobj->description = LOCAL_BOOKING_PRIMARYSIMULATORLABEL;
+        $primarysimobj->name        = LOCAL_BOOKING_PRIMARYSIMULATORLABEL;
         $primarysimobj->datatype    = 'menu';
         $primarysimobj->categoryid  = $bavcategoryid;
         $primarysimobj->sortorder   = $fieldsortorder;
@@ -92,11 +92,11 @@ function xmldb_local_booking_install() {
         // insert BAV category
         $secondarysimobj = new \stdClass();
         $secondarysimobj->shortname     = LOCAL_BOOKING_SECONDARYSIMULATOR;
-        $secondarysimobj->description   = LOCAL_BOOKING_SECONDARYSIMULATORLABEL;
+        $secondarysimobj->name          = LOCAL_BOOKING_SECONDARYSIMULATORLABEL;
         $secondarysimobj->datatype      = 'menu';
         $secondarysimobj->categoryid    = $bavcategoryid;
         $secondarysimobj->sortorder     = $fieldsortorder;
-        $secondarysimobj->defaultdata   = '';
+        // $secondarysimobj->defaultdata   = '';
 
         $bavcategoryid = $DB->insert_record('user_info_field', $secondarysimobj);
         $fieldsortorder++;
@@ -110,11 +110,11 @@ function xmldb_local_booking_install() {
         // insert BAV category
         $callsignfieldobj = new \stdClass();
         $callsignfieldobj->shortname     = LOCAL_BOOKING_CALLSIGN;
-        $callsignfieldobj->description   = LOCAL_BOOKING_CALLSIGNLABEL;
+        $callsignfieldobj->name          = LOCAL_BOOKING_CALLSIGNLABEL;
         $callsignfieldobj->datatype      = 'text';
         $callsignfieldobj->categoryid    = $bavcategoryid;
         $callsignfieldobj->sortorder     = $fieldsortorder;
-        $callsignfieldobj->defaultdata   = '';
+        // $callsignfieldobj->defaultdata   = '';
 
         $bavcategoryid = $DB->insert_record('user_info_field', $callsignfieldobj);
     }
