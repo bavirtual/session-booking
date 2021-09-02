@@ -17,7 +17,8 @@
  * A javascript module to handler calendar view changes.
  *
  * @module     local_booking/view_manager
- * @copyright  2017 Andrew Nicols <andrew@nicols.co.uk>
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

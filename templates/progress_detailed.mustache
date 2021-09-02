@@ -100,7 +100,7 @@
                     data-toggle="tooltip"
                     title="{{sessionstatustooltip}}"
                     {{/sessionempty}}>
-                    <div class="d-md-block text-xs-center" >
+                    <div class="d-md-block text-xs-center{{#graded}} clickable{{/graded}}" >
                         <span id="exercise-{{studentid}}-{{exerciseid}}" class="session-date media-body fa-inverse{{!
                         }}{{#graded}} session-graded{{/graded}}{{!
                         }}{{#booked}} session-booked{{/booked}}{{!

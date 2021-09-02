@@ -207,11 +207,11 @@ class notification extends \core\message\message {
      *
      * @return bool  The notification message id.
      */
-    public function send_onhold_notification($studentid, $onholddate, $suspenddate, $courseid, $coursename) {
+    public function send_onhold_notification($studentid, $lastsessiondate, $suspenddate, $courseid, $coursename) {
         // notification message data
         $data = (object) array(
             'coursename'        => $coursename,
-            'lastsessiondate'   => $onholddate->format('M d, Y'),
+            'lastsessiondate'   => $lastsessiondate->format('M d, Y'),
             'suspenddate'       => $suspenddate->format('M d, Y'),
         );
 

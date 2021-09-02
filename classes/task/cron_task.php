@@ -89,7 +89,7 @@ class cron_task extends \core\task\scheduled_task {
                 // get on-hold date, otherwise use last login for on-hold comparison
                 $lastsession = $slotsvault->get_last_posted_slot($student->userid);
                 $lastsessiondate = new DateTime('@' . (!empty($lastsession) ? $lastsession->starttime : $student->lastlogin));
-                $onholddate = $lastsessiondate;
+                $onholddate = new DateTime('@' . $lastsessiondate->getTimestamp());
                 // on-hold date is 3x wait period from last session
                 date_add($onholddate, date_interval_create_from_date_string(($waitdays * LOCAL_BOOKING_ONHOLDWAITMULTIPLIER) . ' days'));
 
@@ -98,7 +98,7 @@ class cron_task extends \core\task\scheduled_task {
                 date_add($onholdwarningdate, date_interval_create_from_date_string('7 days'));
 
                 // Suspension (unenrolment) date is 9x wait period from last session
-                $suspenddate = $onholddate;
+                $suspenddate = new DateTime('@' . $onholddate->getTimestamp());
                 date_add($suspenddate, date_interval_create_from_date_string(($waitdays * LOCAL_BOOKING_SUSPENDWAITMULTIPLIER) . ' days'));
 
                 // notify student a week before being placed on-hold
@@ -133,13 +133,6 @@ class cron_task extends \core\task\scheduled_task {
                         }
                     }
                 }
-
-if ($student->userid == 6) {
-    $message->send_onhold_warning($student->userid, $onholddate, $courseid, $courseshortnames[$i]);
-    $message->send_onhold_notification($student->userid, $lastsessiondate, $suspenddate, $courseid, $courseshortnames[$i]);
-    $message->send_suspension_notification($student->userid, $lastsessiondate, $courseid, $courseshortnames[$i]);
-    // $participantsvault->set_suspend_status($student->userid, $courseid);
-}
             }
 
             // get instructors

@@ -17,7 +17,8 @@
  * A javascript module to handle calendar ajax actions.
  *
  * @module     local_booking/repository
- * @copyright  2017 Simey Lameze <lameze@moodle.com>
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import Ajax from 'core/ajax';

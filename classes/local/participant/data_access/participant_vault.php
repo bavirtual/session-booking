@@ -322,10 +322,11 @@ class participant_vault implements participant_vault_interface {
     public function set_suspend_status(int $studentid, int $courseid) {
         global $DB;
 
-        $sql = 'UPDATE {' . static::DB_USER_ENROL . '}
-                SET active = 1
-                WHERE studentid = ' . $studentid . '
-                AND courseid = ' . $courseid;
+        $sql = 'UPDATE {' . static::DB_USER_ENROL . '} ue
+                INNER JOIN {' . static::DB_ENROL . '} e ON e.id = ue.enrolid
+                SET ue.status = 1
+                WHERE ue.userid = ' . $studentid . '
+                AND e.courseid = ' . $courseid;
 
         return $DB->execute($sql);
     }

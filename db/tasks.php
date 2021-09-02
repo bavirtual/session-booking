@@ -30,8 +30,8 @@ $tasks = array(
     array(
         'classname' => '\local_booking\task\cron_task',
         'blocking' => 0,
-        'minute' => '*',  // 0
-        'hour' => '*',  // 2
+        'minute' => '0',  // 0
+        'hour' => '2',  // 2
         'day' => '*',
         'month' => '*',
         'dayofweek' => '*'

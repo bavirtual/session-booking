@@ -17,7 +17,8 @@
  * This module is responsible for the calendar filter.
  *
  * @module     local_booking/calendar_selectors
- * @copyright  2017 Andrew Nicols <andrew@nicols.co.uk>
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define([], function() {
