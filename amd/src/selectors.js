@@ -16,7 +16,7 @@
 /**
  * This module is responsible for the calendar filter.
  *
- * @module     local_booking/calendar_selectors
+ * @module     local_booking/selectors
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -45,7 +45,7 @@ define([], function() {
         day: '[data-region="day"]',
         calendarMain: '[data-region="calendar"]',
         wrapper: '.bookingwrapper',
-        calendarwrapper: '.calendarwrapper',
+        progressionwrapper: '.progressionwrapper',
         table: '.calendartable',
         eventItem: '[data-type="event"]',
         links: {

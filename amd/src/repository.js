@@ -134,6 +134,24 @@ import Ajax from 'core/ajax';
 };
 
 /**
+ * Submit the form data for the logbook entry form.
+ *
+ * @method submitCreateUpdateForm
+ * @param {string} formData The URL encoded values from the form
+ * @return {promise} Resolved with the new or edited logbook entry
+ */
+ export const submitCreateUpdateForm = (formData) => {
+    const request = {
+        methodname: 'local_booking_submit_create_update_form',
+        args: {
+            formdata: formData
+        }
+    };
+
+    return Ajax.call([request])[0];
+};
+
+/**
  * Get calendar data for the month view.
  *
  * @method getCalendarMonthData

@@ -115,6 +115,7 @@ class booking_session_exporter extends exporter {
             'exerciseid'    => $data['exerciseid'],
             'sessionstatus' => $sessionstatus,
             'sessiondate'   => !$this->session->empty() ? (!empty($sessiondate) ? $sessiondate->format('j M \'y') : 'null') : '',
+            'sessionts'     => !$this->session->empty() ? (!empty($sessiondate) ? $sessiondate->getTimestamp() : 0) : 0,
             'sessionempty'  => $this->session->empty(),
             'sessionstatustooltip'  => $sessionstatustooltip,
         ];
@@ -143,6 +144,10 @@ class booking_session_exporter extends exporter {
             'sessiondate' => [
                 'type' => PARAM_RAW,
                 'default' => '',
+            ],
+            'sessionts' => [
+                'type' => PARAM_INT,
+                'default' => 0,
             ],
             'sessionempty' => [
                 'type' => PARAM_BOOL,

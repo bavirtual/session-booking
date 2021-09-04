@@ -103,5 +103,13 @@ interface booking_vault_interface {
      *
      * @param int $instructorid
      */
-    public function get_last_booked_session(int $userid, bool $isinstructor = true);
+    public function get_last_booked_session(int $userid, bool $isinstructor = false);
+
+    /**
+     * Get the date of the booked exercise
+     *
+     * @param int $studentid
+     * @param int $exerciseid
+     */
+    public function get_exercise_date(int $studentid, int $exerciseid);
 }

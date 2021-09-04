@@ -35,7 +35,7 @@ use html_writer;
 $categoryid = optional_param('categoryid', null, PARAM_INT);
 $courseid = optional_param('courseid', SITEID, PARAM_INT);
 $course = get_course($courseid);
-$pluginname = $course->shortname . ' ' . get_string('pluginname', 'local_booking');
+$pluginname = $course->shortname . ' ' . get_string('title', 'local_booking');
 $title = get_string('title', 'local_booking');
 
 $url = new moodle_url('/local/booking/view.php');

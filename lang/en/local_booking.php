@@ -155,3 +155,24 @@ $string['weeksahead'] = 'Weeks Lookahead:';
 $string['weeksaheaddesc'] = 'allowable weeks lookahead of availability recording. 0=Unlimited';
 $string['weekprev'] = 'Previous week';
 $string['weeknext'] = 'Next week';
+
+// Logbook form
+$string['newlogentry'] = 'New Logbook Entry';
+$string['editlogentry'] = 'Edit Logbook Entry';
+$string['flightdate'] = 'Flight Date';
+$string['flighttime'] = 'Flight Duration';
+$string['solotime'] = 'Solo Flight Duration';
+$string['sessiontime'] = 'Session Duration';
+$string['aircraft'] = 'Aircraft';
+$string['pirep'] = 'PIREP';
+$string['callsign'] = 'Callsign';
+$string['fromicao'] = 'Departure ICAO';
+$string['toicao'] = 'Arrival ICAO';
+$string['pic'] = 'Pilot In Command (PIC)';
+$string['sic'] = 'Secondary In Command (SIC)';
+
+// Logbook form validation errors
+$string['errornonnumeric'] = '\'{$a}\' must be a valid number';
+$string['errorflighttimetoolong'] = '\'{$a}\' should not be over 4 hours';
+$string['errorinvaliddate'] = 'Flight date cannot be before booked session date';
+$string['errormissingbooking'] = 'No booking associated with this exercise \'{$a}\'';

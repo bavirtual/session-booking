@@ -25,6 +25,7 @@
 
 namespace local_booking\local\session\entities;
 
+use local_booking\local\session\data_access\booking_vault;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -53,19 +54,9 @@ class booking implements booking_interface {
     protected $instructorid;
 
     /**
-     * @var string $instructorname The instructor name of this booking.
-     */
-    protected $instructorname;
-
-    /**
      * @var int $studentid The user id of the student of this booking.
      */
     protected $studentid;
-
-    /**
-     * @var string $instructorname The student name of this booking.
-     */
-    protected $studentname;
 
     /**
      * @var slot $slot The booked slot.
@@ -117,40 +108,99 @@ class booking implements booking_interface {
     }
 
     // Getter functions
+    /**
+     * Get the course id for the booking.
+     *
+     * @return int
+     */
     public function get_courseid() {
         return $this->courseid;
     }
 
+    /**
+     * Get the exercis id for the booking.
+     *
+     * @return int
+     */
     public function get_exerciseid() {
         return $this->exerciseid;
     }
 
+    /**
+     * Get the slot id for the booking.
+     *
+     * @return int
+     */
     public function get_slot() {
         return $this->slot;
     }
 
+    /**
+     * Get the instructor id for the booking.
+     *
+     * @return int
+     */
     public function get_instructorid() {
         return $this->instructorid;
     }
 
+    /**
+     * Get the instructor name for the booking.
+     *
+     * @return string
+     */
     public function get_instructorname() {
-        return $this->instructorname;
+        return get_fullusername($this->instructorid);
     }
 
+    /**
+     * Get the student id for the booking.
+     *
+     * @return int
+     */
     public function get_studentid() {
         return $this->studentid;
     }
 
+    /**
+     * Get the student name for the booking.
+     *
+     * @return string
+     */
     public function get_studentname() {
-        return $this->studentname;
+        return get_fullusername($this->studentid);
     }
 
+    /**
+     * Get the booking confirmation.
+     *
+     * @return bool
+     */
     public function confirmed() {
         return $this->confirmed;
     }
 
+    /**
+     * Get the booking date timestamp for the booking.
+     *
+     * @return int
+     */
     public function get_bookingdate() {
         return $this->bookingdate;
+    }
+
+    /**
+     * Get the booking date associated
+     * with the exercise id.
+     *
+     * @return int
+     */
+    public function get_booked_exercise_date() {
+        $vault = new booking_vault();
+
+        $bookeddate = $vault->get_exercise_date($this->studentid, $this->exerciseid);
+
+        return $bookeddate;
     }
 
     // Setter functions

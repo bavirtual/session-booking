@@ -99,7 +99,19 @@ $functions = array(
         'classname' => 'local_booking_external',
         'classpath' => '/local/booking/externallib.php',
         'methodname' => 'delete_slots',
-        'description' => 'Delte slots of a user week for a course',
+        'description' => 'Delete slots of a user week for a course',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => '',
+        'loginrequired' => true,
+        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
+    ),
+
+    'local_booking_submit_create_update_form' => array(
+        'classname' => 'local_booking_external',
+        'classpath' => '/local/booking/externallib.php',
+        'methodname' => 'submit_create_update_form',
+        'description' => 'submit or create logbook entry form elements',
         'type' => 'write',
         'ajax' => true,
         'capabilities' => '',
@@ -150,6 +162,15 @@ $services = array(
         'enabled' => 1,         // if 0, then token linked to this service won't work
         'restrictedusers' => 0,
         'shortname' => 'delete_slots',
+        'downloadfiles' => 0,
+        'uploadfiles' => 0
+    ),
+
+    'Student Availability delete slots web service'  => array(
+        'functions' => array('local_booking_submit_create_update_form'), // Unused as we add the service in each function definition, third party services would use this.
+        'enabled' => 1,         // if 0, then token linked to this service won't work
+        'restrictedusers' => 0,
+        'shortname' => 'submit_create_update_form',
         'downloadfiles' => 0,
         'uploadfiles' => 0
     ),

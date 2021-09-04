@@ -29,6 +29,10 @@ require_once($CFG->dirroot . '/local/booking/lib.php');
 
 use local_booking\local\slot\data_access\slot_vault;
 use local_booking\local\slot\entities\slot;
+use local_booking\local\logbook\forms\create as create_logentry_form;
+use local_booking\local\logbook\forms\update as update_logentry_form;
+use local_booking\external\logentry_exporter;
+use local_booking\local\logbook\entities\logbook;
 
 /**
  * Session Booking Plugin
@@ -447,6 +451,89 @@ class local_booking_external extends external_api {
             array(
                 'result' => new external_value(PARAM_BOOL, get_string('processingresult', 'local_booking')),
                 'warnings' => new external_warnings()
+            )
+        );
+    }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters.
+     */
+    public static function submit_create_update_form_parameters() {
+        return new external_function_parameters(
+            [
+                'formdata' => new external_value(PARAM_RAW, 'The data from the logentry form'),
+            ]
+        );
+    }
+
+    /**
+     * Handles the logbook entry form submission.
+     *
+     * @param string $formdata The logentry form data in a URI encoded param string
+     * @return array The created or modified logbook entry
+     * @throws moodle_exception
+     */
+    public static function submit_create_update_form($formdata) {
+        global $USER, $PAGE;
+
+        // Parameter validation.
+        $params = self::validate_parameters(self::submit_create_update_form_parameters(), ['formdata' => $formdata]);
+        $context = \context_user::instance($USER->id);
+        $data = [];
+
+        self::validate_context($context);
+        parse_str($params['formdata'], $data);
+
+        if (WS_SERVER) {
+            // Request via WS, ignore sesskey checks in form library.
+            $USER->ignoresesskey = true;
+        }
+
+        $courseid = (!empty($data['courseid'])) ? $data['courseid'] : null;
+        $exerciseid = (!empty($data['exerciseid'])) ? $data['exerciseid'] : null;
+        $studentid = (!empty($data['studentid'])) ? $data['studentid'] : null;
+        $formoptions = [
+            'context' => $context,
+            'courseid'  => $courseid,
+            'exerciseid' => $exerciseid,
+        ];
+
+        $logbook = new logbook($courseid, $studentid);
+
+        if (!empty($data['id'])) {
+            $logentryid = clean_param($data['id'], PARAM_INT);
+            $logentry = $logbook->get_logentry($logentryid);
+            $formoptions['logentry'] = $logentry;
+            $mform = new update_logentry_form(null, $formoptions, 'post', '', null, true, $data);
+        } else {
+            $mform = new create_logentry_form(null, $formoptions, 'post', '', null, true, $data);
+        }
+
+        if ($validateddata = $mform->get_data()) {
+            $exporter = new logentry_exporter($validateddata, $formoptions);
+            $renderer = $PAGE->get_renderer('local_booking');
+
+            return [ 'logentry' => $exporter->export($renderer) ];
+        } else {
+            return [ 'validationerror' => true ];
+        }
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_description.
+     */
+    public static function  submit_create_update_form_returns() {
+        $logentrystructure = logentry_exporter::get_read_structure();
+        $logentrystructure->required = VALUE_OPTIONAL;
+
+        return new external_single_structure(
+            array(
+                'logentry' => $logentrystructure,
+                'validationerror' => new external_value(PARAM_BOOL, 'Invalid form data', VALUE_DEFAULT, false),
             )
         );
     }

@@ -129,14 +129,14 @@ class booking_vault implements booking_vault_interface {
      * @return bool
      */
     public function save_booking(booking $booking) {
-        global $DB, $USER, $COURSE;
+        global $DB, $USER;
 
         $sessionrecord = new \stdClass();
         $sessionrecord->userid       = $USER->id;
         $sessionrecord->studentid    = $booking->get_studentid();
         $sessionrecord->courseid     = $booking->get_courseid();
         $sessionrecord->exerciseid   = $booking->get_exerciseid();
-        $sessionrecord->slotid       = $booking->get_slot()->id;
+        $sessionrecord->slotid       = $booking->get_slot();
         $sessionrecord->timemodified = time();
 
         return $DB->insert_record(static::DB_BOOKINGS, $sessionrecord);
@@ -166,7 +166,7 @@ class booking_vault implements booking_vault_interface {
      * @param int $isinstructor
      * @param int $userid
      */
-    public function get_last_booked_session(int $userid, bool $isinstructor = true) {
+    public function get_last_booked_session(int $userid, bool $isinstructor = false) {
         global $DB;
 
         $sql = 'SELECT timemodified as lastbookedsession
@@ -176,5 +176,23 @@ class booking_vault implements booking_vault_interface {
                 LIMIT 1';
 
         return $DB->get_record_sql($sql);
+    }
+
+    /**
+     * Get the date of the booked exercise
+     *
+     * @param int $studentid
+     * @param int $exerciseid
+     */
+    public function get_exercise_date(int $studentid, int $exerciseid) {
+        global $DB;
+
+        $sql = 'SELECT timemodified as exercisedate
+                FROM {' . static::DB_BOOKINGS. '}
+                WHERE studentid = ' . $studentid . '
+                AND exerciseid = ' . $exerciseid;
+
+        $booking = $DB->get_record_sql($sql);
+        return $booking ? $booking->exercisedate : 0;
     }
 }

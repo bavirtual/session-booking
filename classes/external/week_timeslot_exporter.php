@@ -15,11 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Contains event class for displaying the day on month view.
+ * Contains timeslot class for displaying the timeslot in the week view.
  *
- * @package   local_booking
- * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    local_booking
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_booking\external;
@@ -31,11 +32,12 @@ use DateTime;
 use renderer_base;
 
 /**
- * Class for displaying the day on month view.
+ * Class for displaying each timeslot in the day of the week view.
  *
- * @package   local_booking
- * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    local_booking
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class week_timeslot_exporter extends exporter {
 

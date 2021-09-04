@@ -47,11 +47,11 @@
 }
 .session-overdue {
     display: block;
-    background-color: #ffad50;
+    background-color: #f8f084;
 }
 .session-late {
     display: block;
-    background-color: #ff5050;
+    background-color: #f3a0a0;
 }
 
 /* Buttons */

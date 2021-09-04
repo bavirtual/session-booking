@@ -16,24 +16,17 @@
 /**
  * This module handles logbook entry events
  *
- * @module     local_booking/logbook_entries
+ * @module     local_booking/events
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define([], function() {
     return {
-        created: 'booking-entries:created',
-        deleted: 'booking-entries:deleted',
-        deleteAll: 'booking-entries:delete_all',
-        updated: 'booking-entries:updated',
-        editEvent: 'booking-entries:edit_event',
-        editActionEvent: 'booking-entries:edit_action_event',
-        eventMoved: 'booking-entries:event_moved',
-        dayChanged: 'booking-entries:day_changed',
-        monthChanged: 'booking-entries:month_changed',
-        moveEvent: 'booking-entries:move_event',
-        filterChanged: 'booking-entries:filter_changed',
-        viewUpdated: 'booking-entries:view_updated',
+        created: 'logbook-entry:created',
+        updated: 'logbook-entry:updated',
+        editEvent: 'logbook-entry:edit_event',
+        editActionEvent: 'logbook-entry:edit_action_event',
+        viewUpdated: 'logbook-entry:view_updated',
     };
 });

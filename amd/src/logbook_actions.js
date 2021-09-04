@@ -25,8 +25,8 @@ define([
     'jquery',
     'core/notification',
     'core/modal_factory',
-    'local_booking/modal_entry_form',
-    'local_booking/logbook_entries',
+    'local_booking/modal_logentry_form',
+    'local_booking/events',
     'local_booking/selectors',
     'core/pending',
 ],
@@ -35,7 +35,7 @@ function(
     Notification,
     ModalFactory,
     ModalLogbookForm,
-    CalendarEvents,
+    LogbookEvents,
     BookingSelectors,
     Pending
 ) {
@@ -44,24 +44,24 @@ function(
      * Create the logbook form modal for creating new
      * logbook entries and editing existing entries.
      *
-     * @method registerEntryFormModal
+     * @method registerLogentryFormModal
      * @param {object} root The booking root element
      * @return {object} The create modal promise
      */
-    var registerEntryFormModal = function(root) {
+    var registerLogentryFormModal = function(root) {
         var eventFormPromise = ModalFactory.create({
             type: ModalLogbookForm.TYPE,
             large: true
         });
 
-        // Bind click event on the new event button.
+        // Bind click event on a graded session cell.
         root.on('click', BookingSelectors.actions.create, function(e) {
             eventFormPromise.then(function(modal) {
-                var wrapper = root.find(BookingSelectors.wrapper);
+                var wrapper = root.find(BookingSelectors.progressionwrapper);
 
-                var categoryId = wrapper.data('categoryid');
-                if (typeof categoryId !== 'undefined') {
-                    modal.setCategoryId(categoryId);
+                var exerciseId = wrapper.data('exerciseid');
+                if (typeof exerciseId !== 'undefined') {
+                    modal.setExerciseId(exerciseId);
                 }
 
                 // Attempt to find the cell for today.
@@ -72,7 +72,7 @@ function(
                     modal.setStartTime(firstDay.data('newEventTimestamp'));
                 }
 
-                modal.setContextId(wrapper.data('contextId'));
+                modal.setContextId(wrapper.data('context-id'));
                 modal.setCourseId(wrapper.data('courseid'));
                 modal.show();
                 return;
@@ -119,7 +119,7 @@ function(
         .then(function(modal) {
             // When something within the calendar tells us the user wants
             // to edit an event then show the event form modal.
-            $('body').on(CalendarEvents.editEvent, function(e, eventId) {
+            $('body').on(LogbookEvents.editEvent, function(e, eventId) {
                 var calendarWrapper = root.find(BookingSelectors.wrapper);
                 modal.setEventId(eventId);
                 modal.setContextId(calendarWrapper.data('contextId'));
@@ -139,6 +139,6 @@ function(
 
     return {
         registerEditListeners: registerEditListeners,
-        registerEntryFormModal: registerEntryFormModal
+        registerLogentryFormModal: registerLogentryFormModal
     };
 });

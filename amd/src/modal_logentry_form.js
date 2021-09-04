@@ -16,7 +16,7 @@
 /**
  * This module handles logbook entry form
  *
- * @module     local_booking/modal_entry_form
+ * @module     local_booking/modal_logentry_form
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -30,8 +30,8 @@ define([
             'core/modal',
             'core/modal_registry',
             'core/fragment',
-            'local_bookings/logbook_entries',
-            'local_bookings/repository'
+            'local_booking/events',
+            'local_booking/repository'
         ],
         function(
             $,
@@ -42,7 +42,7 @@ define([
             Modal,
             ModalRegistry,
             Fragment,
-            LogbookEntries,
+            LogbookEvents,
             Repository
         ) {
 
@@ -57,29 +57,30 @@ define([
      *
      * @param {object} root The root jQuery element for the modal
      */
-    var ModalEntryForm = function(root) {
+    var ModalLogEntryForm = function(root) {
         Modal.call(this, root);
-        this.eventId = null;
-        this.startTime = null;
+        this.logentryId = null;
+        this.sessionDate = null;
+        this.exerciseId = null;
         this.courseId = null;
-        this.categoryId = null;
         this.contextId = null;
+        this.studentId = null;
         this.reloadingBody = false;
         this.reloadingTitle = false;
         this.saveButton = this.getFooter().find(SELECTORS.SAVE_BUTTON);
     };
 
-    ModalEntryForm.TYPE = 'local_booking-modal_entry_form';
-    ModalEntryForm.prototype = Object.create(Modal.prototype);
-    ModalEntryForm.prototype.constructor = ModalEntryForm;
+    ModalLogEntryForm.TYPE = 'local_booking-modal_logentry_form';
+    ModalLogEntryForm.prototype = Object.create(Modal.prototype);
+    ModalLogEntryForm.prototype.constructor = ModalLogEntryForm;
 
     /**
      * Set the context id to the given value.
      *
      * @method setContextId
-     * @param {Number} id The event id
+     * @param {Number} id The context id
      */
-    ModalEntryForm.prototype.setContextId = function(id) {
+    ModalLogEntryForm.prototype.setContextId = function(id) {
         this.contextId = id;
     };
 
@@ -87,9 +88,9 @@ define([
      * Retrieve the current context id, if any.
      *
      * @method getContextId
-     * @return {Number|null} The event id
+     * @return {Number|null} The context id
      */
-    ModalEntryForm.prototype.getContextId = function() {
+    ModalLogEntryForm.prototype.getContextId = function() {
         return this.contextId;
     };
 
@@ -97,9 +98,9 @@ define([
      * Set the course id to the given value.
      *
      * @method setCourseId
-     * @param {int} id The event id
+     * @param {int} id The course id
      */
-    ModalEntryForm.prototype.setCourseId = function(id) {
+    ModalLogEntryForm.prototype.setCourseId = function(id) {
         this.courseId = id;
     };
 
@@ -107,30 +108,10 @@ define([
      * Retrieve the current course id, if any.
      *
      * @method getCourseId
-     * @return {int|null} The event id
+     * @return {int|null} The course id
      */
-    ModalEntryForm.prototype.getCourseId = function() {
+    ModalLogEntryForm.prototype.getCourseId = function() {
         return this.courseId;
-    };
-
-    /**
-     * Set the category id to the given value.
-     *
-     * @method setCategoryId
-     * @param {int} id The event id
-     */
-    ModalEntryForm.prototype.setCategoryId = function(id) {
-        this.categoryId = id;
-    };
-
-    /**
-     * Retrieve the current category id, if any.
-     *
-     * @method getCategoryId
-     * @return {int|null} The event id
-     */
-    ModalEntryForm.prototype.getCategoryId = function() {
-        return this.categoryId;
     };
 
     /**
@@ -139,78 +120,128 @@ define([
      * @method hasCourseId
      * @return {bool}
      */
-    ModalEntryForm.prototype.hasCourseId = function() {
+    ModalLogEntryForm.prototype.hasCourseId = function() {
         return this.courseId !== null;
     };
 
     /**
-     * Check if the modal has an category id.
+     * Set the exercise id to the given value.
      *
-     * @method hasCategoryId
+     * @method setExerciseId
+     * @param {int} id The exercise id
+     */
+     ModalLogEntryForm.prototype.setExerciseId = function(id) {
+        this.exerciseId = id;
+    };
+
+    /**
+     * Retrieve the current exercise id, if any.
+     *
+     * @method getExerciseId
+     * @return {int|null} The exercise id
+     */
+    ModalLogEntryForm.prototype.getExerciseId = function() {
+        return this.exerciseId;
+    };
+
+    /**
+     * Check if the modal has an exercise id.
+     *
+     * @method hasExerciseId
      * @return {bool}
      */
-    ModalEntryForm.prototype.hasCategoryId = function() {
-        return this.categoryId !== null;
+     ModalLogEntryForm.prototype.hasExerciseId = function() {
+        return this.exerciseId !== null;
     };
 
     /**
-     * Set the event id to the given value.
+     * Set the student id to the given value.
      *
-     * @method setEventId
-     * @param {int} id The event id
+     * @method setStudentId
+     * @param {int} id The student id
      */
-    ModalEntryForm.prototype.setEventId = function(id) {
-        this.eventId = id;
+     ModalLogEntryForm.prototype.setStudentId = function(id) {
+        this.studentId = id;
     };
 
     /**
-     * Retrieve the current event id, if any.
+     * Retrieve the current student id, if any.
      *
-     * @method getEventId
-     * @return {int|null} The event id
+     * @method getStudentId
+     * @return {int|null} The student id
      */
-    ModalEntryForm.prototype.getEventId = function() {
-        return this.eventId;
+    ModalLogEntryForm.prototype.getStudentId = function() {
+        return this.studentId;
     };
 
     /**
-     * Check if the modal has an event id.
+     * Check if the modal has an student id.
      *
-     * @method hasEventId
+     * @method hasStudentId
      * @return {bool}
      */
-    ModalEntryForm.prototype.hasEventId = function() {
-        return this.eventId !== null;
+     ModalLogEntryForm.prototype.hasStudentId = function() {
+        return this.studentId !== null;
+    };
+
+    /**
+     * Set the logentry id to the given value.
+     *
+     * @method setLogentryId
+     * @param {int} id The logentry id
+     */
+    ModalLogEntryForm.prototype.setLogentryId = function(id) {
+        this.logentryId = id;
+    };
+
+    /**
+     * Retrieve the current logentry id, if any.
+     *
+     * @method getLogentryId
+     * @return {int|null} The logentry id
+     */
+    ModalLogEntryForm.prototype.getLogentryId = function() {
+        return this.logentryId;
+    };
+
+    /**
+     * Check if the modal has an logentry id.
+     *
+     * @method hasLogentryId
+     * @return {bool}
+     */
+    ModalLogEntryForm.prototype.hasLogentryId = function() {
+        return this.logentryId !== null;
     };
 
     /**
      * Set the start time to the given value.
      *
-     * @method setStartTime
-     * @param {int} time The start time
+     * @method setSessionDate
+     * @param {int} time The session date time
      */
-    ModalEntryForm.prototype.setStartTime = function(time) {
-        this.startTime = time;
+    ModalLogEntryForm.prototype.setSessionDate = function(time) {
+        this.sessionDate = time;
     };
 
     /**
      * Retrieve the current start time, if any.
      *
-     * @method getStartTime
+     * @method getSessionDate
      * @return {int|null} The start time
      */
-    ModalEntryForm.prototype.getStartTime = function() {
-        return this.startTime;
+    ModalLogEntryForm.prototype.getSessionDate = function() {
+        return this.sessionDate;
     };
 
     /**
-     * Check if the modal has start time.
+     * Check if the modal has session date time.
      *
-     * @method hasStartTime
+     * @method hasSessionDate
      * @return {bool}
      */
-    ModalEntryForm.prototype.hasStartTime = function() {
-        return this.startTime !== null;
+    ModalLogEntryForm.prototype.hasSessionDate = function() {
+        return this.sessionDate !== null;
     };
 
     /**
@@ -219,7 +250,7 @@ define([
      * @method getForm
      * @return {object}
      */
-    ModalEntryForm.prototype.getForm = function() {
+    ModalLogEntryForm.prototype.getForm = function() {
         return this.getBody().find('form');
     };
 
@@ -228,7 +259,7 @@ define([
      *
      * @method disableButtons
      */
-    ModalEntryForm.prototype.disableButtons = function() {
+    ModalLogEntryForm.prototype.disableButtons = function() {
         this.saveButton.prop('disabled', true);
     };
 
@@ -237,7 +268,7 @@ define([
      *
      * @method enableButtons
      */
-    ModalEntryForm.prototype.enableButtons = function() {
+    ModalLogEntryForm.prototype.enableButtons = function() {
         this.saveButton.prop('disabled', false);
     };
 
@@ -249,17 +280,17 @@ define([
      * @method reloadTitleContent
      * @return {object} A promise resolved with the new title text
      */
-    ModalEntryForm.prototype.reloadTitleContent = function() {
+    ModalLogEntryForm.prototype.reloadTitleContent = function() {
         if (this.reloadingTitle) {
             return this.titlePromise;
         }
 
         this.reloadingTitle = true;
 
-        if (this.hasEventId()) {
-            this.titlePromise = Str.get_string('editevent', 'calendar');
+        if (this.hasLogentryId()) {
+            this.titlePromise = Str.get_string('editlogentry', 'local_booking');
         } else {
-            this.titlePromise = Str.get_string('newevent', 'calendar');
+            this.titlePromise = Str.get_string('newlogentry', 'local_booking');
         }
 
         this.titlePromise.then(function(string) {
@@ -288,7 +319,7 @@ define([
      * @param {string} formData The serialised form data
      * @return {object} A promise resolved with the fragment html and js from
      */
-    ModalEntryForm.prototype.reloadBodyContent = function(formData) {
+    ModalLogEntryForm.prototype.reloadBodyContent = function(formData) {
         if (this.reloadingBody) {
             return this.bodyPromise;
         }
@@ -298,27 +329,32 @@ define([
 
         var args = {};
 
-        if (this.hasEventId()) {
-            args.eventid = this.getEventId();
+        if (this.hasStudentId()) {
+            args.studentid = this.getStudentId();
         }
 
-        if (this.hasStartTime()) {
-            args.starttime = this.getStartTime();
+        if (this.hasLogentryId()) {
+            args.logentryid = this.getLogentryId();
+        }
+
+        if (this.hasSessionDate()) {
+            args.sessiondate = this.getSessionDate();
         }
 
         if (this.hasCourseId()) {
             args.courseid = this.getCourseId();
         }
 
-        if (this.hasCategoryId()) {
-            args.categoryid = this.getCategoryId();
+        if (this.hasExerciseId()) {
+            args.exerciseid = this.getExerciseId();
         }
 
         if (typeof formData !== 'undefined') {
-            args.formdata = formData;
+            args.formdata = formData; //{jsonformdata: JSON.stringify(formData)}; //
         }
 
-        this.bodyPromise = Fragment.loadFragment('calendar', 'event_form', this.getContextId(), args);
+        // Get the content of the modal
+        this.bodyPromise = Fragment.loadFragment('local_booking', 'logentry_form', this.getContextId(), args);
 
         this.setBody(this.bodyPromise);
 
@@ -342,7 +378,7 @@ define([
      * @method reloadAllContent
      * @return {object} promise
      */
-    ModalEntryForm.prototype.reloadAllContent = function() {
+    ModalLogEntryForm.prototype.reloadAllContent = function() {
         return $.when(this.reloadTitleContent(), this.reloadBodyContent());
     };
 
@@ -357,26 +393,27 @@ define([
      *
      * @method show
      */
-    ModalEntryForm.prototype.show = function() {
+    ModalLogEntryForm.prototype.show = function() {
         this.reloadAllContent();
         Modal.prototype.show.call(this);
     };
 
     /**
-     * Clear the event id from the modal when it's closed so
+     * Clear the logentry id from the modal when it's closed so
      * that it is loaded fresh next time it's displayed.
      *
-     * The event id will be set by the calling code if it wants
+     * The logentry id will be set by the calling code if it wants
      * to edit a specific event.
      *
      * @method hide
      */
-    ModalEntryForm.prototype.hide = function() {
+    ModalLogEntryForm.prototype.hide = function() {
         Modal.prototype.hide.call(this);
-        this.setEventId(null);
-        this.setStartTime(null);
+        this.setLogentryId(null);
+        this.setSessionDate(null);
+        this.setContextId(null);
         this.setCourseId(null);
-        this.setCategoryId(null);
+        this.setExerciseId(null);
     };
 
     /**
@@ -385,7 +422,7 @@ define([
      * @method getFormData
      * @return {string} serialised form data
      */
-    ModalEntryForm.prototype.getFormData = function() {
+    ModalLogEntryForm.prototype.getFormData = function() {
         return this.getForm().serialize();
     };
 
@@ -403,7 +440,7 @@ define([
      * @method save
      * @return {object} A promise
      */
-    ModalEntryForm.prototype.save = function() {
+    ModalLogEntryForm.prototype.save = function() {
         var invalid,
             loadingContainer = this.saveButton.find(SELECTORS.LOADING_ICON_CONTAINER);
 
@@ -421,6 +458,7 @@ define([
 
         var formData = this.getFormData();
         // Send the form data to the server for processing.
+        // eslint-disable-next-line consistent-return
         return Repository.submitCreateUpdateForm(formData)
             .then(function(response) {
                 if (response.validationerror) {
@@ -432,16 +470,16 @@ define([
                 } else {
                     // Check whether this was a new event or not.
                     // The hide function unsets the form data so grab this before the hide.
-                    var isExisting = this.hasEventId();
+                    var isExisting = this.hasLogentryId();
 
                     // No problemo! Our work here is done.
                     this.hide();
 
                     // Trigger the appropriate calendar event so that the view can be updated.
                     if (isExisting) {
-                        $('body').trigger(LogbookEntries.updated, [response.event]);
+                        $('body').trigger(LogbookEvents.updated, [response.event]);
                     } else {
-                        $('body').trigger(LogbookEntries.created, [response.event]);
+                        $('body').trigger(LogbookEvents.created, [response.event]);
                     }
                 }
 
@@ -463,7 +501,7 @@ define([
      *
      * @method registerEventListeners
      */
-    ModalEntryForm.prototype.registerEventListeners = function() {
+    ModalLogEntryForm.prototype.registerEventListeners = function() {
         // Apply parent event listeners.
         Modal.prototype.registerEventListeners.call(this);
 
@@ -493,9 +531,9 @@ define([
     // Automatically register with the modal registry the first time this module is imported so that you can create modals
     // of this type using the modal factory.
     if (!registered) {
-        ModalRegistry.register(ModalEntryForm.TYPE, ModalEntryForm, 'local_booking/modal_entry_form');
+        ModalRegistry.register(ModalLogEntryForm.TYPE, ModalLogEntryForm, 'local_booking/modal_logentry_form');
         registered = true;
     }
 
-    return ModalEntryForm;
+    return ModalLogEntryForm;
 });

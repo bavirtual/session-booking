@@ -144,7 +144,7 @@ class cron_task extends \core\task\scheduled_task {
                 mtrace('    Instructor: ' . $instructorname);
 
                 // get instructor last booked session, otherwise use the last login for date compare
-                $lastsession = $bookingvault->get_last_booked_session($instructor->userid);
+                $lastsession = $bookingvault->get_last_booked_session($instructor->userid, true);
                 $lastsessiondate = new DateTime('@' . (!empty($lastsession) ? $lastsession->lastbookedsession : $instructor->lastlogin));
 
                 // get days since last session

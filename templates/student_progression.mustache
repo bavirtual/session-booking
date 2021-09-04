@@ -31,8 +31,12 @@
     {
     }
 }}
-<div>
-    <p><h3>{{#str}}pluginname,local_booking{{/str}}</h3></p>
+<div{{!
+    }} class="progressionwrapper"{{!
+    }}{{#courseid}} data-courseid="{{courseid}}"{{/courseid}}{{!
+    }} data-context-id="{{contextid}}"{{!
+    }}>
+    <p><h3>{{#str}}title,local_booking{{/str}}</h3></p>
     <table id="progression-detail-{{uniqid}}" data-region="student-progression" data-testid="666" class="table-hover table-bordered">
         <thead>
             <tr>
@@ -81,12 +85,12 @@
                 <td class="day text-sm-center text-md-left"
                     {{#lessonincomplete}}
                     data-toggle="tooltip"
-                    title="{{#str}}incompletelessontooltip,local_booking{{/str}}">
-                    {{/lessonincomplete}}
+                    title="{{#str}}incompletelessontooltip,local_booking{{/str}}"
+                    {{/lessonincomplete}}>
                     <div id="action-button-{{studentid}}" class="singlebutton" style="float: right;">
                         <a href="{{actionurl}}"{{#lessonincomplete}} class="disabled-link"{{/lessonincomplete}}>
                         <button class="session-button session-button-{{actiontype}}"
-                            data-region="action-button"
+                            data-region="action-button">
                             <i class="fa fa-{{#actionbook}}plane{{/actionbook}}{{^actionbook}}bookmark{{/actionbook}}" style="padding-right: 5px;"></i>
                             {{actionname}}
                         </button>
@@ -96,6 +100,11 @@
             {{#sessions}}
                 <td class="text-sm-center"
                     data-exercise-status="{{sessionstatus}}"
+                    {{#graded}}data-region="session-entry"
+                    data-student-id="{{studentid}}"
+                    data-exercise-id="{{exerciseid}}"
+                    data-session-date="{{sessionts}}"
+                    {{/graded}}
                     {{^sessionempty}}
                     data-toggle="tooltip"
                     title="{{sessionstatustooltip}}"

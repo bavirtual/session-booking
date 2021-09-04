@@ -34,12 +34,12 @@ use local_booking\local\slot\data_access\slot_vault;
 /**
  * Class for displaying instructor's booked sessions view.
  *
- * @package   local_booking
+ * @package    local_booking
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class booking_exporter extends exporter {
+class booking_mybookings_exporter extends exporter {
 
     /**
      * Constructor.

@@ -33,7 +33,6 @@ use local_booking\local\participant\data_access\participant_vault;
 use local_booking\local\session\entities\priority;
 use renderer_base;
 use moodle_url;
-use DateTime;
 
 /**
  * Class for displaying instructor's booked sessions view.
@@ -74,6 +73,8 @@ class bookings_exporter extends exporter {
             ]);
 
         $data['url'] = $url->out(false);
+        $data['contextid'] = $related['context']->id;
+        $data['courseid'] = $data['courseid'];
 
         parent::__construct($data, $related);
     }
@@ -82,6 +83,10 @@ class bookings_exporter extends exporter {
         return [
             'url' => [
                 'type' => PARAM_URL,
+            ],
+            'contextid' => [
+                'type' => PARAM_INT,
+                'default' => 0,
             ],
             'courseid' => [
                 'type' => PARAM_INT,
@@ -105,7 +110,7 @@ class bookings_exporter extends exporter {
                 'multiple' => true,
             ],
             'activebookings' => [
-                'type' => booking_exporter::read_properties_definition(),
+                'type' => booking_mybookings_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
         ];
@@ -198,7 +203,7 @@ class bookings_exporter extends exporter {
                 'completion'=> $student->priority->get_completions(),
             ];
 
-            $waringflag = $this->get_warning($student->userid);
+            $waringflag = $this->get_warning($student->priority->get_recency_days());
             $data = [];
             $data = [
                 'sequence'        => $i,
@@ -246,7 +251,7 @@ class bookings_exporter extends exporter {
      * of the week.
      *
      * @param   renderer_base $output
-     * @return  booking_exporter[]
+     * @return  mybooking_exporter[]
      */
     protected function get_bookings($output) {
         $bookings = [];
@@ -257,7 +262,7 @@ class bookings_exporter extends exporter {
             $data = [
                 'booking' => $bookingobj,
             ];
-            $booking = new booking_exporter($data, $this->related);
+            $booking = new booking_mybookings_exporter($data, $this->related);
             $bookings[] = $booking->export($output);
         }
 
@@ -273,17 +278,17 @@ class bookings_exporter extends exporter {
      * @param   int $studentid  The student id
      * @return  int $flag       The delay flag
      */
-    protected function get_warning($studentid) {
-        $bookingvault = new booking_vault();
+    protected function get_warning($dayssincelast) {
+        // $bookingvault = new booking_vault();
         $warning = 0;
         $today = getdate(time());
         $waitdays = get_config('local_booking', 'nextsessionwaitdays') ? get_config('local_booking', 'nextsessionwaitdays') : LOCAL_BOOKING_DAYSFROMLASTSESSION;
 
-        // get days since last session
-        $lastsession = $bookingvault->get_last_booked_session(false, $studentid);
-        $lastsessiondate = new DateTime('@' . (!empty($lastsession) ? $lastsession->lastbookedsession : time()));
-        $interval = $lastsessiondate->diff(new DateTime('@' . $today[0]));
-        $dayssincelast = $interval->format('%d');
+        // // get days since last session
+        // $lastsession = $bookingvault->get_last_booked_session($studentid);
+        // $lastsessiondate = new DateTime('@' . (!empty($lastsession) ? $lastsession->lastbookedsession : time()));
+        // $interval = $lastsessiondate->diff(new DateTime('@' . $today[0]));
+        // $dayssincelast = $interval->format('%d');
 
         if ($dayssincelast >= ($waitdays * LOCAL_BOOKING_SESSIONOVERDUEMULTIPLIER) &&  $dayssincelast < ($waitdays * LOCAL_BOOKING_SESSIONLATEMULTIPLIER)) {
             $warning = self::OVERDUEWARNING;

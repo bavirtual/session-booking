@@ -17,9 +17,10 @@
 /**
  * Contains event class for displaying the week view.
  *
- * @package   local_booking
- * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    local_booking
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_booking\external;
@@ -35,9 +36,10 @@ use moodle_url;
 /**
  * Class for displaying the week view.
  *
- * @package   core_calendar
- * @copyright 2017 Andrew Nicols <andrew@nicols.co.uk>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    local_booking
+ * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
+ * @copyright  BAVirtual.co.uk © 2021
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class week_exporter extends exporter {
 

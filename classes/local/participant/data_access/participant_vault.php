@@ -330,4 +330,29 @@ class participant_vault implements participant_vault_interface {
 
         return $DB->execute($sql);
     }
+
+    /**
+     * Returns full username
+     *
+     * @return string  The full BAV username (first, last, and BAWID)
+     */
+    public static function get_fullname(int $userid, bool $BAVname = true) {
+        global $DB;
+
+        $fullusername = '';
+        if ($userid != 0) {
+            // Get the full user name
+            $sql = 'SELECT ' . $DB->sql_concat('u.firstname', '" "',
+                        'u.lastname', '" "', 'u.alternatename') . ' AS bavname, '
+                        . $DB->sql_concat('u.firstname', '" "',
+                        'u.lastname') . ' AS username
+                    FROM {' . DB_USER . '} u
+                    WHERE u.id = ' . $userid;
+
+            $userinfo = $DB->get_record_sql($sql);
+            $fullusername = $BAVname ? $userinfo->bavname : $userinfo->username;
+        }
+
+        return $fullusername;
+    }
 }

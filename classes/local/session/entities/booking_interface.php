@@ -155,4 +155,12 @@ interface booking_interface {
      * @return int
      */
     public function set_bookingdate(int $bookingdate);
+
+    /**
+     * Get the booking date associated
+     * with the exercise id.
+     *
+     * @return int
+     */
+    public function get_booked_exercise_date();
 }

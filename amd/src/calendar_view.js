@@ -16,7 +16,7 @@
 /**
  * This module is responsible for handle calendar day and upcoming view.
  *
- * @module     local_booking/calendar
+ * @module     local_booking/calendar_view
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -27,41 +27,39 @@ define([
         'local_booking/selectors',
         'local_booking/events',
         'local_booking/view_manager',
-        'local_booking/crud'
+        'local_booking/logbook_actions'
     ],
     function(
         $,
         Notification,
-        CalendarSelectors,
-        CalendarEvents,
-        CalendarViewManager,
-        CalendarCrud
+        Selectors,
+        BookingEvents,
+        ViewManager,
+        LogbookActions
     ) {
 
         var registerEventListeners = function(root, type) {
             var body = $('body');
 
-            CalendarCrud.registerRemove(root);
-
             var reloadFunction = 'reloadCurrent' + type.charAt(0).toUpperCase() + type.slice(1);
 
-            body.on(CalendarEvents.created, function() {
-                CalendarViewManager[reloadFunction](root);
+            body.on(BookingEvents.created, function() {
+                ViewManager[reloadFunction](root);
             });
-            body.on(CalendarEvents.deleted, function() {
-                CalendarViewManager[reloadFunction](root);
+            body.on(BookingEvents.deleted, function() {
+                ViewManager[reloadFunction](root);
             });
-            body.on(CalendarEvents.updated, function() {
-                CalendarViewManager[reloadFunction](root);
+            body.on(BookingEvents.updated, function() {
+                ViewManager[reloadFunction](root);
             });
 
-            root.on('change', CalendarSelectors.courseSelector, function() {
+            root.on('change', Selectors.courseSelector, function() {
                 var selectElement = $(this);
                 var courseId = selectElement.val();
-                CalendarViewManager[reloadFunction](root, courseId, null)
+                ViewManager[reloadFunction](root, courseId, null)
                     .then(function() {
                         // We need to get the selector again because the content has changed.
-                        return root.find(CalendarSelectors.courseSelector).val(courseId);
+                        return root.find(Selectors.courseSelector).val(courseId);
                     })
                     .then(function() {
                         window.history.pushState({}, '', '?course=' + courseId);
@@ -71,8 +69,8 @@ define([
                     .fail(Notification.exception);
             });
 
-            body.on(CalendarEvents.filterChanged, function(e, data) {
-                var daysWithEvent = root.find(CalendarSelectors.eventType[data.type]);
+            body.on(BookingEvents.filterChanged, function(e, data) {
+                var daysWithEvent = root.find(Selectors.eventType[data.type]);
                 if (data.hidden == true) {
                     daysWithEvent.addClass('hidden');
                 } else {
@@ -80,15 +78,15 @@ define([
                 }
             });
 
-            var eventFormPromise = CalendarCrud.registerEventFormModal(root);
-            CalendarCrud.registerEditListeners(root, eventFormPromise);
+            var eventFormPromise = LogbookActions.registerLogentryFormModal(root);
+            LogbookActions.registerEditListeners(root, eventFormPromise);
         };
 
         return {
             init: function(root, type) {
                 root = $(root);
 
-                CalendarViewManager.init(root, type);
+                ViewManager.init(root, type);
                 registerEventListeners(root, type);
             }
         };
