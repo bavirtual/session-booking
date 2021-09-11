@@ -10,11 +10,12 @@
 
 // Booking
 $string['bookingfooter'] = '{$a->coursename} -> <a href="{$a->bookingurl}">Session Booking</a>';
+$string['cancellationcomment'] = 'Please provide the student with a short comment on this cancellation:';
 $string['crontask'] = 'Background processing for session booking';
 $string['enroldate'] = 'Enrol Date';
 $string['exercise'] = 'Exercise';
-$string['incompletelessontooltip'] = 'The student has incomplete lessons';
-$string['pluginname'] = 'BA Virtual Session Booking';
+$string['incompletelessontooltip'] = 'The student has not completed ground lesson';
+$string['pluginname'] = 'Session Booking';
 $string['progression'] = 'Students Progression';
 $string['mystudents'] = 'My Assigned Trainees';
 $string['nextlesson'] = 'Next Lesson';
@@ -29,7 +30,7 @@ $string['statusbooked'] = 'confirmed';
 $string['statustentative'] = 'tentative';
 $string['studentavialability'] = 'Student Availability';
 $string['students'] = 'Trainees';
-$string['title'] = 'Session Booking';
+$string['activestudents'] = 'Active Trainees Progression';
 $string['zulutime'] = 'Zulu';
 $string['book'] = 'Book';
 $string['booking'] = 'Booking';
@@ -48,6 +49,7 @@ $string['booksave'] = 'Save Booking';
 // capabilities
 $string['booking:view'] = 'View session bookings';
 $string['booking:availabilityview'] = 'View availability posting';
+$string['booking:logbookview'] = 'View pilot log book';
 $string['booking:studentnotification'] = 'Instructor notifications';
 $string['booking:instructornotification'] = 'Student notifications';
 
@@ -81,8 +83,11 @@ $string['emailinstconfirmhtml'] = '<font face="sans-serif"><p>{$a->coursename} -
 
 // email to student: session cancellation
 $string['emailcancel'] = '{$a->coursename} session booking cancellation: \'{$a->exercise}\'';
-$string['emailcancelmsg'] = '{$a->instructor} has cancelled your booked session scheduled for {$a->sessiondate} on \'{$a->exercise}\'.';
-$string['emailcancelhtml'] = '<font face="sans-serif"><p>{$a->coursename} -> Assignment -> {$a->exercise}</p><hr /><p>{$a->instructor} has cancelled your booked session scheduled for <strong>{$a->sessiondate}</strong> on \'<i>{$a->exercise}</i>\'.</p></p></p></font><hr />';
+$string['emailcancelmsg'] = '{$a->instructor} has cancelled your booked session scheduled for {$a->sessiondate} on \'{$a->exercise}\'.
+Instructor\'s comment: {$a->comment}.
+Please note you will have to post new availability as current availability posts are purged.';
+$string['emailcancelhtml'] = '<font face="sans-serif"><p>{$a->coursename} -> Assignment -> {$a->exercise}</p><hr /><p>{$a->instructor} has cancelled your booked session scheduled for <strong>{$a->sessiondate}</strong> on \'<i>{$a->exercise}</i>\'.</p><p><strong>Instructor\'s comment:</strong></br>{$a->comment}</p><p>
+Please note you will have to post new availability as current availability posts are purged.</p></p></font><hr />';
 
 // email to student: on-hold warning
 $string['emailonholdwarning'] = '{$a->coursename}: Inactivity notification';
@@ -156,23 +161,35 @@ $string['weeksaheaddesc'] = 'allowable weeks lookahead of availability recording
 $string['weekprev'] = 'Previous week';
 $string['weeknext'] = 'Next week';
 
-// Logbook form
-$string['newlogentry'] = 'New Logbook Entry';
-$string['editlogentry'] = 'Edit Logbook Entry';
-$string['flightdate'] = 'Flight Date';
-$string['flighttime'] = 'Flight Duration';
-$string['solotime'] = 'Solo Flight Duration';
-$string['sessiontime'] = 'Session Duration';
+// Logbook
 $string['aircraft'] = 'Aircraft';
-$string['pirep'] = 'PIREP';
 $string['callsign'] = 'Callsign';
-$string['fromicao'] = 'Departure ICAO';
-$string['toicao'] = 'Arrival ICAO';
-$string['pic'] = 'Pilot In Command (PIC)';
-$string['sic'] = 'Secondary In Command (SIC)';
-
-// Logbook form validation errors
-$string['errornonnumeric'] = '\'{$a}\' must be a valid number';
-$string['errorflighttimetoolong'] = '\'{$a}\' should not be over 4 hours';
+$string['deletelogentry'] = 'Delete this event';
+$string['editlogentry'] = 'Editing Log Book Entry';
 $string['errorinvaliddate'] = 'Flight date cannot be before booked session date';
-$string['errormissingbooking'] = 'No booking associated with this exercise \'{$a}\'';
+$string['feedback'] = 'Feedback';
+$string['flightdate'] = 'Flight date';
+$string['flightdate2'] = 'flight date';
+$string['flighttime'] = 'flight duration';
+$string['flighttimemins'] = 'Flight duration';
+$string['fromicao'] = 'Departure ICAO';
+$string['logbook'] = 'Pilot log book';
+$string['logbooksummary'] = 'LOG BOOK SUMMARY';
+$string['logentry'] = 'Log Book Entry';
+$string['logentry2'] = 'Log entry';
+$string['logentrymissing'] = 'Log book entry missing!';
+$string['newlogentry'] = 'New Log Book Entry';
+$string['pic'] = 'Pilot in command';
+$string['pic2'] = 'PIC';
+$string['pilot'] = 'Pilot';
+$string['pirep'] = 'PIREP';
+$string['sessiontime'] = 'session duration';
+$string['sessiontimemins'] = 'Session duration';
+$string['sic'] = 'Secondary in command';
+$string['sic2'] = 'SIC';
+$string['soloflighttime'] = 'solo flight duration';
+$string['soloflighttimemins'] = 'Solo flight duration';
+$string['toicao'] = 'Arrival ICAO';
+$string['totalflighttime'] = 'Total flight time';
+$string['totalsessiontime'] = 'Total session time';
+$string['totalsolotime'] = 'Total solo flight time';

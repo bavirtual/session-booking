@@ -15,6 +15,7 @@
 
 /**
  * A javascript module to handle calendar ajax actions.
+ * Improvised from core_calendar.
  *
  * @module     local_booking/repository
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
@@ -46,13 +47,15 @@ import Ajax from 'core/ajax';
  * Cancel a sepcific booking for a student.
  *
  * @param {int} bookingId   The booking id to cancel
+ * @param {string} comment  The booking id to cancel
  * @return {promise}
  */
- export const cancelBooking = (bookingId) => {
+ export const cancelBooking = (bookingId, comment) => {
     const request = {
         methodname: 'local_booking_cancel_booking',
         args: {
             bookingid: bookingId,
+            comment: comment,
         }
     };
 
@@ -137,13 +140,15 @@ import Ajax from 'core/ajax';
  * Submit the form data for the logbook entry form.
  *
  * @method submitCreateUpdateForm
+ * @param {string} formArgs An array of J URL encoded values from the form
  * @param {string} formData The URL encoded values from the form
  * @return {promise} Resolved with the new or edited logbook entry
  */
- export const submitCreateUpdateForm = (formData) => {
+ export const submitCreateUpdateForm = (formArgs, formData) => {
     const request = {
         methodname: 'local_booking_submit_create_update_form',
         args: {
+            formargs: formArgs,
             formdata: formData
         }
     };
@@ -154,7 +159,7 @@ import Ajax from 'core/ajax';
 /**
  * Get calendar data for the month view.
  *
- * @method getCalendarMonthData
+ * @method getCalendarWeekData
  * @param {number} year Year
  * @param {number} week Week
  * @param {number} time Timestamp
@@ -179,6 +184,29 @@ export const getCalendarWeekData = (year, week, time, courseId, categoryId, acti
             view: view,
             studentid: studentId,
             exerciseid: exerciseId,
+        }
+    };
+
+    return Ajax.call([request])[0];
+};
+
+/**
+ * Get a graded session logbook entry by id.
+ *
+ * @method getLogentryById
+ * @param {number} logentryId The logbook entry id.
+ * @param {number} courseId The associated course id.
+ * @param {number} studentId The student id of entry.
+ * @return {promise} Resolved with requested calendar event
+ */
+ export const getLogentryById = (logentryId, courseId, studentId) => {
+
+    const request = {
+        methodname: 'local_booking_get_logentry_by_id',
+        args: {
+            logentryid: logentryId,
+            courseid: courseId,
+            studentid: studentId
         }
     };
 

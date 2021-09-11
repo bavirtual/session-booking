@@ -27,19 +27,29 @@ defined('MOODLE_INTERNAL') || die();
 
 use local_booking\external\bookings_exporter;
 use local_booking\external\assigned_students_exporter;
+use local_booking\external\logbook_exporter;
+use local_booking\external\logentry_exporter;
 use local_booking\local\slot\data_access\slot_vault;
 use local_booking\local\session\data_access\booking_vault;
 use local_booking\local\session\entities\booking;
 use local_booking\local\slot\entities\slot;
 use local_booking\local\message\notification;
-use local_booking\local\participant\data_access\participant_vault;
+use local_booking\local\participant\entities\participant;
 use local_booking\local\logbook\forms\create as create_logentry_form;
-use local_booking\local\logbook\forms\update as update_logentry_form;
+use local_booking\local\logbook\forms\create as update_logentry_form;
 use local_booking\external\week_exporter;
 use local_booking\local\logbook\entities\logbook;
 use local_booking\local\logbook\entities\logentry;
 
+global $COURSE;
 /**
+* LOCAL_BOOKING_ATO - constant value for VATSIM’s Authorized Training Organizations (ATOs)
+*/
+define('LOCAL_BOOKING_ATO', 'BA Virtual');
+
+/**
+ * PLUGIN GLOBAL CONSTANTS
+ *
  * LOCAL_BOOKING_RECENCYWEIGHT - constant value for session recency weight multipler
  * LOCAL_BOOKING_SLOTSWEIGHT - constant value for session availability slots weight multipler
  * LOCAL_BOOKING_ACTIVITYWEIGHT - constant value for course activity weight multipler
@@ -113,6 +123,11 @@ const DB_ASSIGN = 'assign';
 const DB_COURSE_MODULES = 'course_modules';
 
 /**
+ * Process course sections table name.
+ */
+const DB_SECTIONS = 'course_sections';
+
+/**
  * This function extends the navigation with the booking item
  *
  * @param global_navigation $navigation The global navigation node to extend
@@ -122,6 +137,24 @@ function local_booking_extend_navigation(global_navigation $navigation) {
     global $COURSE, $USER;
 
     $context = context_course::instance($COURSE->id);
+
+    // Add student availability navigation node
+    if (has_capability('local/booking:logbookview', $context)) {
+        $node = $navigation->find('logbook', navigation_node::NODETYPE_LEAF);
+        if (!$node && $COURSE->id!==SITEID) {
+            // form URL and parameters
+            $params = array('course'=>$COURSE->id);
+            $url = new moodle_url('/local/booking/logbook.php', $params);
+
+            $parent = $navigation->find($COURSE->id, navigation_node::TYPE_COURSE);
+            $node = navigation_node::create(get_string('logbook', 'local_booking'), $url);
+            $node->key = 'logbook';
+            $node->type = navigation_node::NODETYPE_LEAF;
+            $node->forceopen = true;
+            $node->icon = new  pix_icon('logbook', '', 'local_booking');
+            $parent->add_node($node);
+        }
+    }
 
     // Add student availability navigation node
     if (has_capability('local/booking:availabilityview', $context)) {
@@ -142,9 +175,7 @@ function local_booking_extend_navigation(global_navigation $navigation) {
             $node->key = 'availability';
             $node->type = navigation_node::NODETYPE_LEAF;
             $node->forceopen = true;
-            // $node->icon = new  image_icon('local_booking:e/insert', '');
-            $node->icon = new  pix_icon('e/insert_date', '');
-            // $node->icon = new  pix_icon('calendar', '', 'local_booking', ['class' => 'icon fa fa-calendar fa-fw', 'data-test' => 'something']);
+            $node->icon = new  pix_icon('availability', '', 'local_booking');
             $parent->add_node($node);
         }
     }
@@ -158,7 +189,7 @@ function local_booking_extend_navigation(global_navigation $navigation) {
             $node->key = 'booking';
             $node->type = navigation_node::NODETYPE_LEAF;
             $node->forceopen = true;
-            $node->icon = new  pix_icon('i/emojicategorytravelplaces', '');  // pix_icon('i/book', '');
+            $node->icon = new  pix_icon('booking', '', 'local_booking');
 
             $parent->add_node($node);
         }
@@ -172,10 +203,13 @@ function local_booking_extend_navigation(global_navigation $navigation) {
  * @return string The rendered mform fragment.
  */
 function local_booking_output_fragment_logentry_form($args) {
-    global $USER, $PAGE;
+    global $USER;
 
     $formdata = [];
-    parse_str($args['formdata'], $formdata);
+    $logentryid = isset($args['logentryid']) ? clean_param($args['logentryid'], PARAM_INT) : null;
+    if (!empty($args['formdata'])) {
+        parse_str($args['formdata'], $formdata);
+    }
 
     $context = \context_user::instance($USER->id);
 
@@ -199,34 +233,47 @@ function local_booking_output_fragment_logentry_form($args) {
 
     $logbook = new logbook($courseid, $studentid);
 
-    if (!empty($formdata['id'])) {
-        $logentryid = clean_param($formdata['id'], PARAM_INT);
+    if (!empty($logentryid)) {
         $logentry = $logbook->get_logentry($logentryid);
         $formoptions['logentry'] = $logentry;
+        $formdata = $logentry->__toArray(true);
+        $data = $formdata;
         $mform = new update_logentry_form(null, $formoptions, 'post', '', null, true, $formdata);
     } else {
-        $logentry = new logentry();
+        $logentry = new logentry($logbook);
         $logentry->set_picid($studentid);
         $logentry->set_sicid($USER->id);
         $formoptions['logentry'] = $logentry;
         $mform = new create_logentry_form(null, $formoptions, 'post', '', null, true, $formdata);
+
+        $data['courseid'] = $courseid;
+        $data['exerciseid'] = $exerciseid;
+        $data['studentid'] = $studentid;
     }
 
-    // if ($validateddata = $mform->get_data()) {
-    //     $exporter = new logentry_exporter($validateddata, $formoptions);
-    //     $renderer = $PAGE->get_renderer('local_booking');
-
-    //     return [ 'logentry' => $exporter->export($renderer) ];
-    // } else {
-    //     return [ 'validationerror' => true ];
-    // }
+    // Add to form data setup arguments
+    $mform->set_data($data);
 
     if (!empty($args['formdata'])) {
         // Show errors if data was received.
         $mform->is_validated();
+        // save log book data
     }
 
     return $mform->render();
+}
+
+/**
+ * Get icon mapping for font-awesome.
+ */
+function local_booking_get_fontawesome_icon_map() {
+    return [
+        'local_booking:availability' => 'fa-calendar-plus-o',
+        'local_booking:booking' => 'fa-plane',
+        'local_booking:logbook' => 'fa-address-book-o',
+        'local_booking:subscribed' => 'fa-envelope-o',
+        'local_booking:unsubscribed' => 'fa-envelope-open-o',
+    ];
 }
 
 /**
@@ -234,7 +281,7 @@ function local_booking_output_fragment_logentry_form($args) {
  *
  * @param   \calendar_information $calendar The calendar being represented
  * @param   array   $actiondata The action type and associated data
- * @param   bool    $skipevents Whether to load the events or not
+ * @param   string  $skipevents Whether to load the events or not
  * @return  array[array, string]
  */
 function get_weekly_view(\calendar_information $calendar, $actiondata, $view = 'user') {
@@ -274,6 +321,64 @@ function get_bookings_view($courseid) {
 
     $bookings = new bookings_exporter($data, ['context' => \context_course::instance($courseid)]);
     $data = $bookings->export($renderer);
+
+    return [$data, $template];
+}
+
+/**
+ * Get the student's log book view output.
+ *
+ * @param   int     $courseid the associated course.
+ * @return  array[array, string]
+ */
+function get_logbook_view($courseid) {
+    global $PAGE, $USER;
+
+    $studentid = $USER->id;
+    $logbook = new logbook($courseid, $studentid);
+    list($totalflighthours, $totalsessionhours, $totalsolohours) = $logbook->get_summary();
+    $renderer = $PAGE->get_renderer('local_booking');
+
+    $template = 'local_booking/logbook';
+    $data = [
+        'courseid'  => $courseid,
+        'studentid'  => $studentid,
+        'studentname'  => get_fullusername($studentid),
+        'totalflighttime'  => $totalflighthours,
+        'totalsessiontime'  => $totalsessionhours,
+        'totalsolotime'  => $totalsolohours,
+    ];
+
+    $logbook = new logbook_exporter($data, ['context' => \context_course::instance($courseid)]);
+    $data = $logbook->export($renderer);
+
+    return [$data, $template];
+}
+
+/**
+ * Get the logbook entry view output.
+ *
+ * @param   int     $logentryid the logbook entry id.
+ * @param   int     $courseid
+ * @param   int     $studentid
+ * @return  array[array, string]
+ */
+function get_logentry_output($logentryid, $courseid, $studentid) {
+    global $PAGE;
+
+    $renderer = $PAGE->get_renderer('local_booking');
+
+    $template = 'local_booking/bookings';
+    $data = [
+        'logentryid'  => $logentryid,
+        'courseid'  => $courseid,
+        'studentid'  => $studentid,
+    ];
+
+    $logbook = new logbook($courseid);
+    $logentry = $logbook->get_logentry($logentryid);
+    $logentryexp = new logentry_exporter($data, $logentry, ['context' => \context_course::instance($courseid)]);
+    $data = $logentryexp->export($renderer);
 
     return [$data, $template];
 }
@@ -430,16 +535,17 @@ function confirm_booking($exerciseid, $instructorid, $studentid) {
  * @param   int   $booking  The booking id being cancelled.
  * @return  bool  $resut    The cancellation result.
  */
-function cancel_booking($bookingid) {
+function cancel_booking($bookingid, $comment) {
     global $DB, $COURSE;
-
-    require_login($COURSE->id, false);
 
     $vault = new booking_vault();
     $slotvault = new slot_vault();
 
     // get the booking to be deleted
     $booking = ($vault->get_booking($bookingid))[$bookingid];
+    $courseid = !empty($booking->courseid) ? $booking->courseid : $COURSE->id;
+
+    require_login($courseid, false);
 
     // get the associated slot to delete
     $slot = $slotvault->get_slot($booking->slotid);
@@ -450,8 +556,8 @@ function cancel_booking($bookingid) {
     $result = false;
 
     if ($vault->delete_booking($bookingid)) {
-        // delete the slot
-        $result = $slotvault->delete_slot($slot->id);
+        // delete all slots
+        $result = $slotvault->delete_slots($courseid, 0, 0, $booking->studentid, false);
     }
 
     $sessiondate = new DateTime('@' . $slot->starttime);
@@ -464,7 +570,7 @@ function cancel_booking($bookingid) {
         $transaction->allow_commit();
         // send email notification to the student of the booking cancellation
         $message = new notification();
-        if ($message->send_session_cancellation($booking->studentid, $booking->exerciseid, $sessiondate)) {
+        if ($message->send_session_cancellation($booking->studentid, $booking->exerciseid, $sessiondate, $comment)) {
             \core\notification::success(get_string('bookingcanceledsuccess', 'local_booking', $cancellationmsg));
         }
     } else {
@@ -531,14 +637,14 @@ function get_exercise_names() {
  */
 function get_active_student_slots($weekno, $year, $studentid = 0) {
     $slotvault = new slot_vault();
-    $studentvault = new participant_vault();
+    $participants = new participant();
 
     $activestudents = [];
     // get a single or all students records
     if ($studentid != 0) {
-        $students = $studentvault->get_student($studentid);
+        $students = $participants->get_student($studentid);
     } else {
-        $students = $studentvault->get_active_students();
+        $students = $participants->get_active_students();
     }
 
     $i = 0;
@@ -606,9 +712,9 @@ function get_week_start($date) {
  */
 function has_completed_lessons($studentid) {
     global $COURSE;
-    $vault = new participant_vault();
-    list($nextexercise, $exercisesection) = $vault->get_next_exercise($studentid, $COURSE->id);
-    $completedlessons = $vault->get_lessons_complete($studentid, $COURSE->id, $exercisesection);
+    $participants = new participant();
+    list($nextexercise, $exercisesection) = $participants->get_next_exercise($studentid, $COURSE->id);
+    $completedlessons = $participants->get_lessons_complete($studentid, $COURSE->id, $exercisesection);
 
     return $completedlessons;
 }
@@ -673,6 +779,28 @@ function get_fullusername(int $userid, bool $BAVname = true) {
     }
 
     return $fullusername;
+}
+
+/**
+ * Returns the course section name containing the exercise
+ *
+ * @param int $courseid The course id of the section
+ * @param int $exerciseid The exercise id in the course inside the section
+ * @return string  The section name of a course associated with the exercise
+ */
+function get_course_section_name(int $courseid, int $exerciseid) {
+    global $DB;
+
+    $sectionname = '';
+    // Get the full user name
+    $sql = 'SELECT name as sectionname FROM mdl_course_sections cs
+            INNER JOIN mdl_course_modules cm ON cm.section = cs.id
+            WHERE cm.id = ' . $exerciseid . '
+            AND cm.course = ' . $courseid;
+
+    $section = $DB->get_record_sql($sql);
+
+    return $section->sectionname;
 }
 
 /**

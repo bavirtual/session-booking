@@ -33,7 +33,7 @@ require_once($CFG->dirroot . '/group/lib.php');
 require_once($CFG->dirroot . '/local/booking/lib.php');
 
 use DateTime;
-use local_booking\local\participant\data_access\participant_vault;
+use local_booking\local\participant\entities\participant;
 use local_booking\local\slot\data_access\slot_vault;
 use local_booking\local\session\data_access\booking_vault;
 use local_booking\local\message\notification;
@@ -61,7 +61,7 @@ class cron_task extends \core\task\scheduled_task {
      * Run session booking cron.
      */
     public function execute() {
-        $participantsvault = new participant_vault();
+        $participants = new participant();
         $bookingvault = new booking_vault();
         $slotsvault = new slot_vault();
 
@@ -80,7 +80,7 @@ class cron_task extends \core\task\scheduled_task {
             $waitdays = get_config('local_booking', 'nextsessionwaitdays') ? get_config('local_booking', 'nextsessionwaitdays') : LOCAL_BOOKING_DAYSFROMLASTSESSION;
 
             // get active students
-            $activestudents = $participantsvault->get_active_students($courseid);
+            $activestudents = $participants->get_active_students($courseid);
 
             // consider on-hold and suspension candidates
             foreach ($activestudents as $student) {
@@ -128,7 +128,7 @@ class cron_task extends \core\task\scheduled_task {
                     if ($message->send_suspension_notification($student->userid, $lastsessiondate, $courseid, $courseshortnames[$i])) {
                         mtrace('        Suspended \'' . $studentname . '\' (notified)...');
                         // unenrol the student from the course
-                        if ($participantsvault->set_suspend_status($student->userid, $courseid)) {
+                        if ($participants->set_suspend_status($student->userid, $courseid)) {
                             mtrace('        Notifying student of being suspended...');
                         }
                     }
@@ -136,7 +136,7 @@ class cron_task extends \core\task\scheduled_task {
             }
 
             // get instructors
-            $instructors = $participantsvault->get_active_instructors($courseid);
+            $instructors = $participants->get_active_instructors($courseid);
 
             // consider inactive instructors
             foreach ($instructors as $instructor) {

@@ -20,6 +20,8 @@
  * components by listening for and responding to different events
  * triggered within the calendar UI.
  *
+ *  Improvised from core_calendar.
+ *
  * @module     local_booking/calendar
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
  * @copyright  BAVirtual.co.uk © 2021
@@ -28,7 +30,6 @@
 
 define([
             'jquery',
-
             'local_booking/view_manager',
             'local_booking/slot_actions',
             'core_calendar/selectors',

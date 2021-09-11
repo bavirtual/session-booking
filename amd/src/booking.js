@@ -15,6 +15,7 @@
 
 /**
  * This module is responsible for handling progression booking activity
+ * Improvised from core_calendar.
  *
  * @module     local_booking/booking
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
@@ -24,17 +25,21 @@
 
 define([
             'jquery',
+            'core/str',
+            'core/pending',
             'local_booking/view_manager',
-            'local_booking/logbook_actions',
+            'local_booking/booking_actions',
             'local_booking/events',
-            'local_booking/selectors',
+            'local_booking/selectors'
         ],
         function(
             $,
+            Str,
+            Pending,
             ViewManager,
-            LogbookActions,
-            LogbookEvents,
-            Selectors,
+            BookingActions,
+            BookingEvents,
+            BookingsSelectors
         ) {
 
     var SELECTORS = {
@@ -53,14 +58,20 @@ define([
      var registerBookingEventListeners = function(root, logentryFormModalPromise) {
         var body = $('body');
 
-        body.on(LogbookEvents.created, function() {
-            ViewManager.reloadCurrentMonth(root);
+        body.on(BookingEvents.canceled, function() {
+            ViewManager.refreshProgressionContent(root);
+            ViewManager.refreshMyBookingsContent(root);
         });
-        body.on(LogbookEvents.updated, function() {
-            ViewManager.reloadCurrentMonth(root);
+        body.on(BookingEvents.created, function() {
+            ViewManager.refreshProgressionContent(root);
+        });
+        body.on(BookingEvents.updated, function() {
+            ViewManager.refreshProgressionContent(root);
         });
 
-        LogbookActions.registerEditListeners(root, logentryFormModalPromise);
+        if (logentryFormModalPromise !== 'undefined') {
+            BookingActions.registerEditListeners(root, logentryFormModalPromise);
+        }
     };
 
     /**
@@ -70,45 +81,80 @@ define([
      */
      var registerEventListeners = function(root) {
 
-        var eventFormPromise = LogbookActions.registerLogentryFormModal(root),
-            contextId = $(SELECTORS.PROGRESSION_WRAPPER).data('context-id');
+        var eventFormPromise = BookingActions.registerLogentryFormModal(root),
+            contextId = $(SELECTORS.PROGRESSION_WRAPPER).data('context-id'),
+            courseId = $(SELECTORS.PROGRESSION_WRAPPER).data('courseid');
         registerBookingEventListeners(root, eventFormPromise);
 
         if (contextId) {
             // Listen the click on the progression table of sessions.
             root.on('click', SELECTORS.SESSION_ENTRY, function(e) {
-
-                var target = $(e.target);
-
                 var sessionDate = $(this).attr('data-session-date');
                 var studentId = $(this).attr('data-student-id');
-                eventFormPromise.then(function (modal) {
-                    var wrapper = target.closest(Selectors.progressionwrapper);
-                    modal.setCourseId(wrapper.data('courseid'));
+                var exerciseId = $(this).attr('data-exercise-id');
+                var logentryId = $(this).attr('data-logentry-id');
 
-                    var exerciseId = wrapper.data('exerciseid');
-                    if (typeof exerciseId !== 'undefined') {
+                if (logentryId == 0) {
+                    eventFormPromise.then(function(modal) {
+                        modal.setContextId(contextId);
+                        modal.setCourseId(courseId);
+                        modal.setStudentId(studentId);
                         modal.setExerciseId(exerciseId);
+                        modal.setLogentryId(logentryId);
+                        modal.setSessionDate(sessionDate);
+                        modal.show();
+                        return;
+                    })
+                    .fail(Notification.exception);
+
+                    e.preventDefault();
+                } else {
+                    let gradedSession = null;
+                    let logentryId = null;
+                    const target = e.target;
+                    const pendingPromise = new Pending('local_booking/view_manager:logentryLink:click');
+
+                    if (target.matches(BookingsSelectors.actions.viewEvent)) {
+                        gradedSession = target;
+                    } else {
+                        gradedSession = target.closest(BookingsSelectors.actions.viewEvent);
                     }
 
-                    modal.setContextId(wrapper.data('context-id'));
-                    modal.setStudentId(studentId);
-                    modal.setSessionDate(sessionDate);
-                    modal.show();
-                    return;
-                })
-                .fail(Notification.exception);
+                    if (gradedSession) {
+                        logentryId = gradedSession.dataset.logentryId;
+                    } else {
+                        logentryId = target.querySelector(BookingsSelectors.actions.viewEvent).dataset.logentryId;
+                    }
 
-                e.preventDefault();
+                    if (logentryId) {
+                        // A link was found. Show the modal.
+
+                        e.preventDefault();
+                        // We've handled the event so stop it from bubbling
+                        // and causing the day click handler to fire.
+                        e.stopPropagation();
+
+                        ViewManager.renderLogentrySummaryModal(logentryId, courseId, studentId)
+                        .then(pendingPromise.resolve)
+                        .catch();
+                    } else {
+                        pendingPromise.resolve();
+                    }
+
+                }
             });
         }
 
         // Listen the click on the Cancel booking buttons.
         root.on('click', SELECTORS.CANCEL_BUTTON, function(e) {
             // eslint-disable-next-line no-alert
-            if (confirm('Cancel booked session?')) {
-                ViewManager.cancelBooking(root, e);
-            }
+            Str.get_string('cancellationcomment', 'local_booking').then(function(promptMsg) {
+                var comment = prompt(promptMsg);
+                if (comment !== null) {
+                    BookingActions.cancelBooking(root, e, comment);
+                }
+                return;
+            }).catch(Notification.exception);
         });
     };
 

@@ -46,6 +46,14 @@ $capabilities = array(
         )
     ),
 
+    'local/booking:logbookview' => array(
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'student' => CAP_ALLOW,
+        )
+    ),
+
     'local/booking:studentnotification' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,

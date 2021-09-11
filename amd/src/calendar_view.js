@@ -15,6 +15,7 @@
 
 /**
  * This module is responsible for handle calendar day and upcoming view.
+ * Improvised from core_calendar.
  *
  * @module     local_booking/calendar_view
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
@@ -27,7 +28,7 @@ define([
         'local_booking/selectors',
         'local_booking/events',
         'local_booking/view_manager',
-        'local_booking/logbook_actions'
+        'local_booking/booking_actions'
     ],
     function(
         $,
@@ -35,11 +36,13 @@ define([
         Selectors,
         BookingEvents,
         ViewManager,
-        LogbookActions
+        BookingActions
     ) {
 
         var registerEventListeners = function(root, type) {
             var body = $('body');
+
+            BookingActions.registerRemove(root);
 
             var reloadFunction = 'reloadCurrent' + type.charAt(0).toUpperCase() + type.slice(1);
 
@@ -53,33 +56,8 @@ define([
                 ViewManager[reloadFunction](root);
             });
 
-            root.on('change', Selectors.courseSelector, function() {
-                var selectElement = $(this);
-                var courseId = selectElement.val();
-                ViewManager[reloadFunction](root, courseId, null)
-                    .then(function() {
-                        // We need to get the selector again because the content has changed.
-                        return root.find(Selectors.courseSelector).val(courseId);
-                    })
-                    .then(function() {
-                        window.history.pushState({}, '', '?course=' + courseId);
-
-                        return;
-                    })
-                    .fail(Notification.exception);
-            });
-
-            body.on(BookingEvents.filterChanged, function(e, data) {
-                var daysWithEvent = root.find(Selectors.eventType[data.type]);
-                if (data.hidden == true) {
-                    daysWithEvent.addClass('hidden');
-                } else {
-                    daysWithEvent.removeClass('hidden');
-                }
-            });
-
-            var eventFormPromise = LogbookActions.registerLogentryFormModal(root);
-            LogbookActions.registerEditListeners(root, eventFormPromise);
+            var eventFormPromise = BookingActions.registerLogentryFormModal(root);
+            BookingActions.registerEditListeners(root, eventFormPromise);
         };
 
         return {

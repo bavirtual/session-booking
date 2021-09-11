@@ -27,10 +27,9 @@ namespace local_booking\external;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . "/booking/lib.php");
-
 use renderer_base;
 use core\external\exporter;
+use DateTime;
 use moodle_url;
 
 /**
@@ -54,7 +53,32 @@ class logentry_exporter extends exporter {
      * @param array $data       The form data.
      * @param array $related    The related data.
      */
-    public function __construct($data, $related = []) {
+    public function __construct($data, $logentry = null, $related = []) {
+        $this->logentry = $logentry;
+
+        if (!empty($logentry)) {
+            // convert flight time duration, session duration, and
+            // solo flight duration to their equivalent int values
+            $data['flighttimemins'] = $logentry->get_flighttimemins();
+            $data['sessiontimemins'] = $logentry->get_sessiontimemins();
+            $data['soloflighttimemins'] = !empty($data['soloflighttimemins']) ? $logentry->get_soloflighttimemins() : 0;
+
+            // process data for new and edit logbook entry
+            if (empty($logentry->get_id())) {
+                // convert sessiondate to timestamp format
+                $sessiondatestr = $data['sessiondate']['month'] . '/' .
+                $data['sessiondate']['day'] . '/' .
+                $data['sessiondate']['year'];
+                $sessiondate = DateTime::createFromFormat('m/d/Y', $sessiondatestr);
+            } else {
+                $sessiondate = new DateTime('@' . $logentry->get_sessiondate());
+                $data += $logentry->__toArray();
+                $data['url'] = new moodle_url('/booking/view', ['courseid'=>$data['courseid']]);
+            }
+            $data['sessiondate'] = $sessiondate->getTimestamp();
+        }
+        $data['visible'] = 1;
+
         parent::__construct($data, $related);
     }
 
@@ -68,31 +92,26 @@ class logentry_exporter extends exporter {
             'id' => [
                 'type' => PARAM_INT
             ],
+            'courseid' => [
+                'type' => PARAM_INT
+            ],
+            'exerciseid' => [
+                'type' => PARAM_INT
+            ],
             'studentid' => [
                 'type' => PARAM_INT
             ],
-            'studentname' => [
+            'sessiondate' => [
+                'type' => PARAM_INT
+            ],
+            'flighttimemins' => [
                 'type' => PARAM_RAW
             ],
-            'flightdate' => [
+            'sessiontimemins' => [
                 'type' => PARAM_INT
             ],
-            'flightmins' => [
+            'soloflighttimemins' => [
                 'type' => PARAM_INT
-            ],
-            'solomins' => [
-                'type' => PARAM_INT
-            ],
-            'sessionmins' => [
-                'type' => PARAM_INT
-            ],
-            'picname' => [
-                'type' => PARAM_RAW,
-                'optional' => true,
-            ],
-            'sicname' => [
-                'type' => PARAM_RAW,
-                'optional' => true,
             ],
             'aircraft' => [
                 'type' => PARAM_RAW,
@@ -127,8 +146,29 @@ class logentry_exporter extends exporter {
      */
     protected static function define_other_properties() {
         return [
-            'url' => [
-                'type' => PARAM_URL,
+            'exercisename' => [
+                'type' => PARAM_RAW
+            ],
+            'formattedtime' => [
+                'type' => PARAM_RAW
+            ],
+            'flighttime' => [
+                'type' => PARAM_RAW
+            ],
+            'sessiontime' => [
+                'type' => PARAM_RAW
+            ],
+            'soloflighttime' => [
+                'type' => PARAM_RAW
+            ],
+            'picname' => [
+                'type' => PARAM_RAW
+            ],
+            'sicname' => [
+                'type' => PARAM_RAW
+            ],
+            'sectionname' => [
+                'type' => PARAM_RAW
             ],
         ];
     }
@@ -140,9 +180,24 @@ class logentry_exporter extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
-        $values['url'] = (new moodle_url('\booking\view'))->out(false);
+        $exerciseid = !empty($this->logentry) ? $this->logentry->get_exerciseid() : $this->data['exerciseid'];
+        $sessiondate = !empty($this->logentry) ? $this->logentry->get_sessiondate(true) : $this->data['sessiondate'];
+        $flighttimemins = !empty($this->logentry) ? $this->logentry->get_flighttimemins(false) : $this->data['flighttimemins'];
+        $sessiontimemins = !empty($this->logentry) ? $this->logentry->get_sessiontimemins(false) : $this->data['sessiontimemins'];
+        $soloflighttimemins = !empty($this->logentry) ? $this->logentry->get_soloflighttimemins(false) : $this->data['soloflighttimemins'];
+        $picid = !empty($this->logentry) ? $this->logentry->get_picid() : $this->data['picid'];
+        $sicid = !empty($this->logentry) ? $this->logentry->get_sicid() : $this->data['sicid'];
 
-        return $this->related;
+        return [
+            'exercisename' => get_exercise_name($exerciseid),
+            'formattedtime' => $sessiondate,
+            'flighttime' => $flighttimemins,
+            'sessiontime' => $sessiontimemins,
+            'soloflighttime' => $soloflighttimemins,
+            'picname' => get_fullusername($picid),
+            'sicname' => get_fullusername($sicid),
+            'sectionname' => get_course_section_name($this->data['courseid'], $exerciseid),
+        ];
     }
 
     /**
@@ -151,10 +206,8 @@ class logentry_exporter extends exporter {
      * @return array
      */
     protected static function define_related() {
-        return [
-            'context' => 'context',
-            'courseid' => 'courseid',
-            'exerciseid' => 'exerciseid',
-        ];
+        return array(
+            'context'=>'context',
+        );
     }
 }

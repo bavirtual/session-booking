@@ -25,7 +25,7 @@
 
 namespace local_booking\local\session\entities;
 
-use stdClass;
+use \local_booking\local\slot\entities\slot;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -82,7 +82,7 @@ interface booking_interface {
     /**
      * Get the slot object of booking.
      *
-     * @return {slot}
+     * @return slot
      */
     public function get_slot();
 
@@ -145,9 +145,9 @@ interface booking_interface {
     /**
      * Set the slot object of booking.
      *
-     * @return stdClass
+     * @return slot
      */
-    public function set_slot(stdClass $slot);
+    public function set_slot(slot $slot);
 
     /**
      * Set the date timestamp of the booking.

@@ -14,7 +14,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * A javascript module to handler calendar view changes.
+ * A javascript module to handler booking view changes.
+ * Improvised from core_calendar.
  *
  * @module     local_booking/view_manager
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
@@ -23,12 +24,17 @@
  */
 
 import $ from 'jquery';
+import * as Str from 'core/str';
 import Templates from 'core/templates';
 import Notification from 'core/notification';
+import Pending from 'core/pending';
+import ModalFactory from 'core/modal_factory';
+import ModalEvents from 'core/modal_events';
+import CustomEvents from 'core/custom_interaction_events';
+import SlotActions from 'local_booking/slot_actions';
+import SummaryModal from 'local_booking/modal_logentry_summary';
 import * as Repository from 'local_booking/repository';
 import * as BookingsSelectors from 'local_booking/selectors';
-import SlotActions from 'local_booking/slot_actions';
-import CustomEvents from 'core/custom_interaction_events';
 
 /**
  * Register event listeners for the module.
@@ -37,6 +43,47 @@ import CustomEvents from 'core/custom_interaction_events';
  */
  const registerEventListeners = (root) => {
     root = $(root);
+
+    // Bind click events to logentry exercise session.
+    root.on('click', BookingsSelectors.links.logentryLink, (e) => {
+        const target = e.target;
+        let logentryLink = null;
+        let logentryId = null;
+        let courseId = null;
+        let studentId = null;
+        const pendingPromise = new Pending('local_booking/view_manager:logentryLink:click');
+
+        if (target.matches(BookingsSelectors.actions.viewEvent)) {
+            logentryLink = target;
+        } else {
+            logentryLink = target.closest(BookingsSelectors.actions.viewEvent);
+        }
+
+        if (logentryLink) {
+            logentryId = logentryLink.dataset.logentryId;
+            courseId = logentryLink.dataset.courseId;
+            studentId = logentryLink.dataset.studentId;
+        } else {
+            logentryId = target.querySelector(BookingsSelectors.actions.viewEvent).dataset.logentryId;
+            courseId = target.querySelector(BookingsSelectors.actions.viewEvent).dataset.courseId;
+            studentId = target.querySelector(BookingsSelectors.actions.viewEvent).dataset.studentId;
+        }
+
+        if (logentryId) {
+            // A link was found. Show the modal.
+
+            e.preventDefault();
+            // We've handled the event so stop it from bubbling
+            // and causing the day click handler to fire.
+            e.stopPropagation();
+
+            renderLogentrySummaryModal(logentryId, courseId, studentId)
+            .then(pendingPromise.resolve)
+            .catch();
+        } else {
+            pendingPromise.resolve();
+        }
+    });
 
     root.on('click', BookingsSelectors.links.navLink, (e) => {
         const wrapper = root.find(BookingsSelectors.calendarwrapper);
@@ -81,8 +128,8 @@ import CustomEvents from 'core/custom_interaction_events';
  * @param {number} year Year
  * @param {number} week week
  * @param {number} time The timestamp of the begining current week
- * @param {number} courseId The id of the course whose events are shown
- * @param {number} categoryId The id of the category whose events are shown
+ * @param {number} courseId The id of the course associated with the calendar shown
+ * @param {number} categoryId The id of the category associated with the calendar shown
  * @param {object} target The element being replaced. If not specified, the calendarwrapper is used.
  * @param {string} template The template to be rendered.
  * @return {promise}
@@ -125,8 +172,8 @@ import CustomEvents from 'core/custom_interaction_events';
  * @param {number} year Year
  * @param {number} week week
  * @param {number} time The timestamp of the begining current week
- * @param {number} courseId The id of the course whose events are shown
- * @param {number} categoryId The id of the category whose events are shown
+ * @param {number} courseId The id of the course associated with the calendar shown
+ * @param {number} categoryId The id of the category associated with the calendar shown
  * @return {promise}
  */
 export const changeWeek = (root, url, year, week, time, courseId, categoryId) => {
@@ -143,8 +190,8 @@ export const changeWeek = (root, url, year, week, time, courseId, categoryId) =>
  * Reload the current month view data.
  *
  * @param {object} root The container element.
- * @param {number} courseId The course id.
- * @param {number} categoryId The id of the category whose events are shown
+ * @param {number} courseId The id of the course associated with the calendar shown
+ * @param {number} categoryId The id of the category associated with the calendar shown
  * @return {promise}
  */
 export const reloadCurrentMonth = (root, courseId = 0, categoryId = 0) => {
@@ -159,85 +206,20 @@ export const reloadCurrentMonth = (root, courseId = 0, categoryId = 0) => {
 };
 
 /**
- * Reload the current week view data.
- *
- * @param {object} root The container element.
- * @param {number} courseId The course id.
- * @param {number} categoryId The id of the category whose events are shown
- * @param {object} target The element being replaced. If not specified, the calendarwrapper is used.
- * @param {string} template The template to be rendered.
- * @return {promise}
- */
- export const reloadCurrentUpcoming = (root, courseId = 0, categoryId = 0, target = null, template = '') => {
-    startLoading(root);
-
-    target = target || root.find(BookingsSelectors.calendarwrapper);
-    template = template || root.attr('data-template');
-    courseId = courseId || root.find(BookingsSelectors.calendarwrapper).data('courseid');
-    categoryId = categoryId || root.find(BookingsSelectors.calendarwrapper).data('categoryid');
-
-    return Repository.getCalendarUpcomingData(courseId, categoryId)
-        .then((context) => {
-            context.viewingupcoming = true;
-            return Templates.render(template, context);
-        })
-        .then((html, js) => {
-            return Templates.replaceNode(target, html, js);
-        })
-        .always(function() {
-            return stopLoading(root);
-        })
-        .fail(Notification.exception);
-};
-
-/**
- * Cancel a specific booking and update UI.
- *
- * @method cancelBooking
- * @param {object} root The My Bookings root element
- * @param {object} e    The click event on the Cancel button
- * @return {object} The create modal promise
- */
-export const cancelBooking = (root, e) => {
-    startLoading(root);
-
-    var target = e.target;
-    // Get exercise id and the user id from the URL
-    const courseId = courseId || root.find(BookingsSelectors.calendarwrapper).data('courseid');
-    const bookingId = target.dataset.bookingid;
-
-    // Send the request data to the server for processing.
-    return Repository.cancelBooking(bookingId)
-        .then(function(response) {
-            if (response.validationerror) {
-                // eslint-disable-next-line no-alert
-                alert('Errors encountered: Unable to cancel booking!');
-            }
-            return refreshBookingsContent(root, courseId);
-        }
-        .bind(this))
-        .always(function() {
-            Notification.fetchNotifications();
-            stopLoading(root);
-        }
-        .bind(this))
-        .fail(Notification.exception);
-};
-
-/**
- * Refresh bookings content.
+ * Refresh student progression content.
  *
  * @param {object} root The root element.
- * @param {number} courseId The id of the course whose events are shown
- * @param {number} categoryId The id of the category whose events are shown
- * @param {object} target The element being replaced. If not specified, the calendarwrapper is used.
+ * @param {number} courseId The id of the course associated with the progression view shown
+ * @param {number} categoryId The id of the category associated with the progression view shown
+ * @param {object} target The element being replaced. If not specified, the bookingwrapper is used.
  * @param {string} template The template to be rendered.
  * @return {promise}
  */
-export const refreshBookingsContent = (root, courseId, categoryId, target = null, template = '') => {
+export const refreshProgressionContent = (root, courseId, categoryId, target = null, template = '') => {
     startLoading(root);
 
-    target = target || root.find(BookingsSelectors.calendarwrapper);
+    target = target || root.find(BookingsSelectors.progressionwrapper);
+    courseId = courseId || root.find(BookingsSelectors.progressionwrapper).data('courseid');
     template = template || root.attr('data-template');
     M.util.js_pending([root.get('id'), courseId, categoryId].join('-'));
     return Repository.getBookingsData(courseId, categoryId)
@@ -253,6 +235,96 @@ export const refreshBookingsContent = (root, courseId, categoryId, target = null
             return stopLoading(root);
         })
         .fail(Notification.exception);
+};
+
+
+/**
+ * Refresh my bookings content.
+ *
+ * @param {object} root The root element.
+ * @param {number} courseId The id of the course associated with the progression view shown
+ * @param {number} categoryId The id of the category associated with the progression view shown
+ * @param {object} target The element being replaced. If not specified, the bookingwrapper is used.
+ * @param {string} template The template to be rendered.
+ * @return {promise}
+ */
+ export const refreshMyBookingsContent = (root, courseId) => {
+    startLoading(root);
+
+    const target = root.find(BookingsSelectors.mybookingswrapper);
+    courseId = courseId || root.find(BookingsSelectors.progressionwrapper).data('courseid');
+    M.util.js_pending([root.get('id'), courseId].join('-'));
+    return Repository.getBookingsData(courseId)
+        .then((context) => {
+            context.viewingbooking = true;
+            return Templates.render('local_booking/my_bookings', context);
+        })
+        .then((html, js) => {
+            return Templates.replaceNode(target, html, js);
+        })
+        .always(() => {
+            M.util.js_complete([root.get('id'), courseId].join('-'));
+            return stopLoading(root);
+        })
+        .fail(Notification.exception);
+};
+
+/**
+ * Render the logentry summary modal.
+ *
+ * @param {Number} logentryId The graded session logbook entry id.
+ * @param {Number} courseId The graded session course id.
+ * @param {Number} studentId The graded session student id.
+ * @returns {Promise}
+ */
+ export const renderLogentrySummaryModal = (logentryId, courseId, studentId) => {
+    const pendingPromise = new Pending('local_booking/view_manager:renderLogentrySummaryModal');
+
+    // Calendar repository promise.
+    return Repository.getLogentryById(logentryId, courseId, studentId)
+    .then((getEventResponse) => {
+        if (!getEventResponse.logentry) {
+            throw new Error('Error encountered while trying to fetch logbook entry with ID: ' + logentryId);
+        }
+
+        return getEventResponse.logentry;
+    })
+    .then(logentryData => {
+        // Build the modal parameters from the logentry data.
+        const modalParams = {
+            title: Str.get_string('logentry', 'local_booking'),
+            type: SummaryModal.TYPE,
+            body: Templates.render('local_booking/logentry_summary_body', logentryData),
+            templateContext: {
+                canedit: logentryData.canedit,
+                candelete: logentryData.candelete,
+                isactionevent: logentryData.isactionevent,
+                url: logentryData.url,
+                action: logentryData.action
+            }
+        };
+
+        // Create the modal.
+        return ModalFactory.create(modalParams);
+    })
+    .then(modal => {
+        // Handle hidden event.
+        modal.getRoot().on(ModalEvents.hidden, function() {
+            // Destroy when hidden.
+            modal.destroy();
+        });
+
+        // Finally, render the modal!
+        modal.show();
+
+        return modal;
+    })
+    .then(modal => {
+        pendingPromise.resolve();
+
+        return modal;
+    })
+    .catch(Notification.exception);
 };
 
 /**

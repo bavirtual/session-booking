@@ -25,9 +25,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/local/booking/lib.php');
+
 if ($hassiteconfig) {
-    $ADMIN->add('localplugins', new admin_category('local_booking_settings', new lang_string('pluginname', 'local_booking')));
-    $settingspage = new admin_settingpage('managelocalbooking', new lang_string('pluginname', 'local_booking'));
+    $ADMIN->add('localplugins', new admin_category('local_booking_settings', LOCAL_BOOKING_ATO . (new lang_string('pluginname', 'local_booking'))));
+    $settingspage = new admin_settingpage('managelocalbooking', LOCAL_BOOKING_ATO . (new lang_string('pluginname', 'local_booking')));
 
     if ($ADMIN->fulltree) {
         // exercise titles

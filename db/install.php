@@ -26,7 +26,6 @@
 
  defined('MOODLE_INTERNAL') || die();
 
- define('LOCAL_BOOKING_BAV', 'BA Virtual');
  define('LOCAL_BOOKING_PRIMARYSIMULATOR', 'simulator');
  define('LOCAL_BOOKING_PRIMARYSIMULATORLABEL', 'Primary Flight Simulator');
  define('LOCAL_BOOKING_SECONDARYSIMULATOR', 'simulator2');
@@ -35,6 +34,8 @@
  define('LOCAL_BOOKING_DEFAULTSIMULATOR', 'MSFS');
  define('LOCAL_BOOKING_CALLSIGN', 'callsign');
  define('LOCAL_BOOKING_CALLSIGNLABEL', 'Callsign');
+
+require_once($CFG->dirroot . '/local/booking/lib.php');
 
 /**
  * Add BAV custom fields.
@@ -45,22 +46,22 @@ function xmldb_local_booking_install() {
     global $DB;
 
     // Look for BAV category and add to the end if doesn't exist
-    $bavcategory = $DB->get_record('user_info_category', array('name'=>LOCAL_BOOKING_BAV));
-    $bavcategoryid = 0;
+    $category = $DB->get_record('user_info_category', array('name'=>LOCAL_BOOKING_ATO));
+    $categoryid = 0;
     $sortorder = 0;
-    if (empty($bavcategory)) {
+    if (empty($category)) {
         // get next sort order
         $categories = $DB->get_records('user_info_category', null, 'sortorder DESC', '*', 0, 1);
         $lastcategory = array_shift($categories);
         $sortorder = $lastcategory->sortorder + 1;
 
         // insert BAV category
-        $bavcategoryobj = new \stdClass();
-        $bavcategoryobj->name       = LOCAL_BOOKING_BAV;
-        $bavcategoryobj->sortorder  = $sortorder;
+        $categoryobj = new \stdClass();
+        $categoryobj->name       = LOCAL_BOOKING_ATO;
+        $categoryobj->sortorder  = $sortorder;
 
-        $bavcategoryid = $DB->insert_record('user_info_category', $bavcategoryobj);
-    } else { $bavcategoryid = $bavcategory->id; }
+        $categoryid = $DB->insert_record('user_info_category', $categoryobj);
+    } else { $categoryid = $category->id; }
 
     // get next sort order
     $customfields = $DB->get_records('user_info_field', null, 'sortorder DESC', '*', 0, 1);
@@ -79,7 +80,7 @@ function xmldb_local_booking_install() {
         $primarysimobj->descriptionformat = 1;
         $primarysimobj->visible     = 2;
         $primarysimobj->datatype    = 'menu';
-        $primarysimobj->categoryid  = $bavcategoryid;
+        $primarysimobj->categoryid  = $categoryid;
         $primarysimobj->sortorder   = $fieldsortorder;
         $primarysimobj->defaultdata = LOCAL_BOOKING_DEFAULTSIMULATOR;
         $primarysimobj->param1      = LOCAL_BOOKING_SUPPORTEDSIMULATORS;
@@ -101,7 +102,7 @@ function xmldb_local_booking_install() {
         $secondarysimobj->descriptionformat = 1;
         $secondarysimobj->visible       = 2;
         $secondarysimobj->datatype      = 'menu';
-        $secondarysimobj->categoryid    = $bavcategoryid;
+        $secondarysimobj->categoryid    = $categoryid;
         $secondarysimobj->sortorder     = $fieldsortorder;
         $secondarysimobj->defaultdata   = ' ';
         $secondarysimobj->param1        = ' ' . PHP_EOL . LOCAL_BOOKING_SUPPORTEDSIMULATORS;
@@ -123,10 +124,10 @@ function xmldb_local_booking_install() {
         $callsignfieldobj->descriptionformat = 1;
         $callsignfieldobj->visible       = 2;
         $callsignfieldobj->datatype      = 'text';
-        $callsignfieldobj->categoryid    = $bavcategoryid;
+        $callsignfieldobj->categoryid    = $categoryid;
         $callsignfieldobj->sortorder     = $fieldsortorder;
 
-        $bavcategoryid = $DB->insert_record('user_info_field', $callsignfieldobj);
+        $categoryid = $DB->insert_record('user_info_field', $callsignfieldobj);
     }
 
     return true;

@@ -108,7 +108,7 @@ class notification extends \core\message\message {
         $this->fullmessage       = get_string('emailconfirmnmsg', 'local_booking', $data);
         $this->fullmessagehtml   = get_string('emailconfirmhtml', 'local_booking', $data);
         $this->contexturl        = $data->bookingurl;
-        $this->contexturlname    = get_string('pluginname', 'local_booking');
+        $this->contexturlname    = LOCAL_BOOKING_ATO . ' ' . get_string('pluginname', 'local_booking');
         $this->set_additional_content('email', array('*' => array(
             'footer' => get_string('bookingfooter', 'local_booking', $data))));
 
@@ -152,7 +152,7 @@ class notification extends \core\message\message {
      *
      * @return bool  The notification message id.
      */
-    public function send_session_cancellation($studentid, $exerciseid, $sessiondate) {
+    public function send_session_cancellation($studentid, $exerciseid, $sessiondate, $comment) {
         global $USER, $COURSE;
 
         // notification message data
@@ -161,7 +161,8 @@ class notification extends \core\message\message {
             'instructor'    => get_fullusername($USER->id),
             'sessiondate'   => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
             'exercise'      => get_exercise_name($exerciseid),
-            'courseurl'    => (new \moodle_url('/course/view.php', array('id'=> $COURSE->id)))->out(false),
+            'comment'       => $comment,
+            'courseurl'     => (new \moodle_url('/course/view.php', array('id'=> $COURSE->id)))->out(false),
         );
 
         $this->name              = 'session_cancellation';

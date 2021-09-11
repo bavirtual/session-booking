@@ -26,7 +26,9 @@
 
 namespace local_booking\local\logbook\forms;
 
+use local_booking\local\participant\entities\participant;
 use local_booking\local\session\entities\booking;
+use local_booking\local\subscriber\subscriber_info;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -70,7 +72,15 @@ class create extends \moodleform {
 
         $mform = $this->_form;
         $logentry = isset($this->_customdata['logentry']) ? $this->_customdata['logentry'] : null;
-        $sessiondate = isset($this->_customdata['sessiondate']) ? $this->_customdata['sessiondate'] : null;
+        if (!empty($logentry)) {
+            $sessiondate = $logentry->get_sessiondate();
+        } else {
+            $sessiondate = isset($this->_customdata['sessiondate']) ? $this->_customdata['sessiondate'] : null;
+        }
+        $courseid = isset($this->_customdata['courseid']) ? $this->_customdata['courseid'] : null;
+
+        // get subscribing course info
+        $subscriber = new subscriber_info($courseid);
 
         $mform->setDisableShortforms();
         $mform->disable_form_change_checker();
@@ -81,59 +91,42 @@ class create extends \moodleform {
         $this->add_default_hidden_elements($mform);
 
         // Logbook entry date field.
-        $mform->addElement('date_selector', 'flightdate', get_string('flightdate', 'local_booking'));
-        $mform->addRule('flightdate', get_string('required'), 'required', null, 'client');
-        $mform->setType('flightdate', PARAM_TEXT);
-        $mform->setDefault('flightdate', $sessiondate);
+        $mform->addElement('date_selector', 'sessiondate', get_string('sessiondate', 'local_booking'));
+        $mform->addRule('sessiondate', get_string('required'), 'required', null, 'client');
+        $mform->setType('sessiondate', PARAM_TEXT);
+        $mform->setDefault('sessiondate', $sessiondate);
 
-        // Flight duration placeholder="HH:MM"
-        $mform->addElement('text', 'flighttime', get_string('flighttime', 'local_booking'), '
-            size="5"
-            data-inputmask-alias="datetime"
-            data-inputmask-mask="hh:MM"
-            placeholder="hh:mm"
-             ');
-        $mform->addRule('flighttime', get_string('required'), 'required', null, 'client');
-        $mform->setType('flighttime', PARAM_TEXT);
+        // Flight duration
+        $mform->addElement('text', 'flighttimemins', get_string('flighttimemins', 'local_booking'), 'size="5" placeholder="hh:mm"');
+        $mform->addRule('flighttimemins', get_string('required'), 'required', null, 'client');
+        $mform->setType('flighttimemins', PARAM_TEXT);
 
         // Session duration
-        $mform->addElement('text', 'sessiontime', get_string('sessiontime', 'local_booking'), '
-            size="5"
-            data-inputmask-alias="datetime"
-            data-inputmask-mask="hh:MM"
-            placeholder="hh:mm"
-             ');
-        $mform->addRule('sessiontime', get_string('required'), 'required', null, 'client');
-        $mform->setType('sessiontime', PARAM_TEXT);
+        $mform->addElement('text', 'sessiontimemins', get_string('sessiontimemins', 'local_booking'), 'size="5" placeholder="hh:mm"');
+        $mform->addRule('sessiontimemins', get_string('required'), 'required', null, 'client');
+        $mform->setType('sessiontimemins', PARAM_TEXT);
 
         // Solo duration
-        $mform->addElement('text', 'solotime', get_string('solotime', 'local_booking'), '
-            size="5"
-            data-inputmask-alias="datetime"
-            data-inputmask-mask="hh:MM"
-            placeholder="hh:mm"
-             ');
-        $mform->setType('solotime', PARAM_TEXT);
+        $mform->addElement('text', 'soloflighttimemins', get_string('soloflighttimemins', 'local_booking'), 'size="5" placeholder="hh:mm"');
+        $mform->setType('soloflighttimemins', PARAM_TEXT);
+
+        $picid = !empty($logentry) ? $logentry->get_picid() : 0;
+        $picname = !empty($logentry) ? $logentry->get_picname() : '';
+        $sicid = !empty($logentry) ? $logentry->get_sicid() : 0;
+        $sicname = !empty($logentry) ? $logentry->get_sicname() : '';
 
         // PIC/SIC name selector
-        $options = array(
-            $logentry->get_picid() => $logentry->get_picname(),
-            $logentry->get_sicid() => $logentry->get_sicname()
-        );
+        $pilots = $this->get_pilot_ids();
+
         // PIC name select
-        $select = $mform->addElement('select', 'picid', get_string('pic', 'local_booking'), $options);
-        $select->setSelected($logentry->get_picid());
+        $select = $mform->addElement('select', 'picid', get_string('pic', 'local_booking'), $pilots);
+        $select->setSelected($picid);
 
         // SIC name select
-        $select = $mform->addElement('select', 'sicid', get_string('sic', 'local_booking'), $options);
-        $select->setSelected($logentry->get_sicid());
+        $select = $mform->addElement('select', 'sicid', get_string('sic', 'local_booking'), $pilots);
+        $select->setSelected($sicid);
 
-        // Aircraft advanced element
-        $aircraftoptions = array(
-            '0' => 'C172',
-            '1' => 'P28A'
-        );
-        $select = $mform->addElement('select', 'aircraft', get_string('aircraft', 'local_booking'), $aircraftoptions);
+        $select = $mform->addElement('select', 'aircraft', get_string('aircraft', 'local_booking'), $subscriber->aircrafticao);
         $select->setSelected('0');
         $mform->setAdvanced('aircraft');
 
@@ -143,19 +136,22 @@ class create extends \moodleform {
         $mform->setAdvanced('pirep');
 
         // Callsign advanced element
+        $instructorcallsign = $sicid != 0 ? $this->get_callsign($sicid) : '';
         $mform->addElement('text', 'callsign', get_string('callsign', 'local_booking'), 'style="text-transform:uppercase" ');
         $mform->setType('callsign', PARAM_TEXT);
-        $mform->setDefault('aircraft', array('text'=>'WYC24'));
+        $mform->setDefault('callsign', $instructorcallsign);
         $mform->setAdvanced('callsign');
 
         // From ICAO advanced element
         $mform->addElement('text', 'fromicao', get_string('fromicao', 'local_booking'), 'style="text-transform:uppercase" ');
         $mform->setType('fromicao', PARAM_TEXT);
+        $mform->setDefault('fromicao', $subscriber->homeicao);
         $mform->setAdvanced('fromicao');
 
         // To ICAO advanced element
         $mform->addElement('text', 'toicao', get_string('toicao', 'local_booking'), 'style="text-transform:uppercase" ');
         $mform->setType('toicao', PARAM_TEXT);
+        $mform->setDefault('toicao', $subscriber->homeicao);
         $mform->setAdvanced('toicao');
 
         // Add the javascript required to enhance this mform.
@@ -180,37 +176,9 @@ class create extends \moodleform {
             if ($data['sessiondate'] < $exercisedate) {
                 $errors['sessiondate'] = get_string('errorinvaliddate', 'local_booking');
             }
-        } else {
-            $errors['sessiondate'] = get_string('errormissingbooking', 'local_booking', get_exercise_name($data['exerciseid']));
         }
-
-        // validate flight, session, and solo flight durations
-        $this->validate_flight_duration($errors, 'flighttime', $data['flighttime']);
-        $this->validate_flight_duration($errors, 'sessiontime', $data['flighttime']);
-        $this->validate_flight_duration($errors, 'solotime', $data['flighttime'], false);
 
         return $errors;
-    }
-
-    /**
-     * Validates a flight duration
-     *
-     * @param array $data An assoc array of field=>value
-     * @param array $files An array of files
-     * @return array
-     */
-    protected function validate_flight_duration($errors, $field, $fieldvalue, $required = true) {
-        if (!empty($fieldvalue)) {
-            $flighttimehrs = substr($fieldvalue, 0, strpos(':', $fieldvalue) - 1);
-            if (is_numeric($flighttimehrs)) {
-                // a light aircraft flight should not be over 4hrs
-                if ($flighttimehrs > 4) {
-                    $errors[$field] = get_string('errorflighttimetoolong', 'localbooking', get_string($field, 'local_booking'));
-                }
-            } else {
-                $errors[$field] = get_string('errornonnumeric', 'localbooking', get_string($field, 'local_booking'));
-            }
-        }
     }
 
     /**
@@ -227,9 +195,13 @@ class create extends \moodleform {
         $mform->setType('id', PARAM_INT);
         $mform->setDefault('id', 0);
 
-        $mform->addElement('hidden', 'userid');
-        $mform->setType('userid', PARAM_INT);
-        $mform->setDefault('userid', $USER->id);
+        // $mform->addElement('hidden', 'logentryid');
+        // $mform->setType('logentryid', PARAM_INT);
+        // $mform->setDefault('logentryid', 0);
+
+        $mform->addElement('hidden', 'studentid');
+        $mform->setType('studentid', PARAM_INT);
+        $mform->setDefault('studentid', 0);
 
         $mform->addElement('hidden', 'exerciseid');
         $mform->setType('exerciseid', PARAM_INT);
@@ -246,5 +218,34 @@ class create extends \moodleform {
         $mform->addElement('hidden', 'visible');
         $mform->setType('visible', PARAM_INT);
         $mform->setDefault('visible', 1);
+    }
+
+    /**
+     * Get the list of active student pilot ids.
+     *
+     * @return array $activepilots List of user ids for PIC & SIC pilots
+     */
+    protected function get_pilot_ids() {
+        global $COURSE;
+
+        $participants = new participant();
+        $pilots = $participants->get_active_participants($COURSE->id);
+
+        foreach ($pilots as $pilot) {
+            $activepilots[$pilot->userid] = get_fullusername($pilot->userid);
+        }
+
+        return $activepilots;
+    }
+
+    /**
+     * Get the callsign of the secondary in command
+     * commonly the instructor for most flights.
+     *
+     * @return string $callsign The instructor's callsign
+     */
+    protected function get_callsign($sicid) {
+        $participants = new participant();
+        return $participants->get_callsign($sicid);
     }
 }

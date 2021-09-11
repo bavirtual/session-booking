@@ -118,6 +118,7 @@ class booking_session_exporter extends exporter {
             'sessionts'     => !$this->session->empty() ? (!empty($sessiondate) ? $sessiondate->getTimestamp() : 0) : 0,
             'sessionempty'  => $this->session->empty(),
             'sessionstatustooltip'  => $sessionstatustooltip,
+            'logentryid'    => !empty($data['logentry']) ? $data['logentry']->get_id() : 0,
         ];
         parent::__construct($data, $related);
     }
@@ -156,6 +157,10 @@ class booking_session_exporter extends exporter {
             'sessionstatustooltip' => [
                 'type' => PARAM_RAW,
                 'default' => '',
+            ],
+            'logentryid' => [
+                'type' => PARAM_INT,
+                'default' => 0,
             ],
         ];
     }

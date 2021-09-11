@@ -36,19 +36,22 @@ interface logbook_vault_interface {
      *
      * @param int       $courseid   The course id associated with the logbook.
      * @param int       $studentid  The student id associated with the logbook.
+     * @param logbook   $logbook    The logbook_interface of for all entries.
      * @return logentries[]     Array of logentry_interfaces.
      */
-    public function get_logbook(int $courseid, int $studentid);
+    public function get_logbook(int $courseid, int $studentid, $logbook = null);
 
     /**
      * Get a specific logbook entry.
      *
-     * @param int       $courseid   The course id associated with the logbook.
-     * @param int       $studentid  The student id associated with the logbook.
-     * @param int $logentry     The logentry id.
+     * @param int $studentid    The logentry student id.
+     * @param int $courseid     The id of the course in context.
+     * @param int $logentryid   The logentry id.
+     * @param int $exerciseid   The logentry with exericse id.
+     * @param logbook   $logbook    The logbook_interface of for all entries.
      * @return logentry         A logentry_insterface.
      */
-    public function get_logentry(int $courseid, int $studentid, int $logentryid);
+    public function get_logentry(int $studentid, int $courseid, int $logentryid = 0, int $exerciseid = 0, $logbook);
 
     /**
      * Create a student's logbook entry
@@ -58,7 +61,7 @@ interface logbook_vault_interface {
      * @param logentry  $logentry A logbook entry of the student.
      * @return bool     $result of the database add operation.
      */
-    public function create_logentry(int $courseid, int $studentid, logentry $logentry);
+    public function insert_logentry(int $courseid, int $studentid, logentry $logentry);
 
     /**
      * Update a student's logbook entry

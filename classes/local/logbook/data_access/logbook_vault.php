@@ -25,45 +25,42 @@
 
 namespace local_booking\local\logbook\data_access;
 
-use DateTime;
+use local_booking\local\logbook\entities\logbook;
 use local_booking\local\logbook\entities\logentry;
+use stdClass;
 
 class logbook_vault implements logbook_vault_interface {
 
     /** Bookings table name for the persistent. */
     const DB_LOGBOOKS = 'local_booking_logbooks';
 
+    /** Course Modules table name for the persistent. */
+    const DB_COURSE_MODULES = 'course_modules';
+
+    /** Course Sections table name for the persistent. */
+    const DB_COURSE_SECTIONS = 'course_sections';
+
     /**
      * Get a student's logbook.
      *
      * @param int       $courseid   The course id associated with the logbook.
      * @param int       $studentid  The student id associated with the logbook.
-     * @param int $studentid    $studentid of the student for this logbook entry.
+     * @param logbook   $logbook    The logbook_interface of for all entries.
      * @return logentries[]     Array of logentry_interfaces.
      */
-    public function get_logbook(int $courseid, int $studentid) {
+    public function get_logbook(int $courseid, int $studentid, $logbook = null) {
         global $DB;
 
         $logbook = [];
-        $logentryrecs = $DB->get_records(static::DB_LOGBOOKS, ['userid'=>$studentid]);
-        foreach ($logentryrecs as $logentryrec) {
-            $logentry = new logentry();
-            $logentry->set_id($logentryrec->id);
-            $logentry->set_exerciseid($logentryrec->exerciseid);
-            $logentry->set_aircraft($logentryrec->aircraft);
-            $logentry->set_flighttimemins($logentryrec->flighttimemins);
-            $logentry->set_soloflighttimemins($logentryrec->soloflighttimemins);
-            $logentry->set_sessiontimemins($logentryrec->sessiontimemins);
-            $logentry->set_picid($logentryrec->picid);
-            $logentry->set_picname((!empty($logentryrec->picid) ? get_fullusername($logentryrec->picid) : ''));
-            $logentry->set_sicid($logentryrec->sicid);
-            $logentry->set_sicname((!empty($logentryrec->sicid) ? get_fullusername($logentryrec->sicid) : ''));
-            $logentry->set_pirep($logentryrec->pirep);
-            $logentry->set_fromicao($logentryrec->fromicao);
-            $logentry->set_toicao($logentryrec->toicao);
-            $logentry->set_logentrydate(new DateTime('@' . $logentryrec->timemodified));
+        $sql = 'SELECT * FROM {' . self::DB_LOGBOOKS . '} lb
+                INNER JOIN {' . self::DB_COURSE_MODULES . '} cm ON cm.id = lb.exerciseid
+                INNER JOIN {' . self::DB_COURSE_SECTIONS . '} cs ON cs.id = cm.section
+                WHERE userid = ' . $studentid .'
+                ORDER BY cs.section';
 
-            $logbook[] = $logentry;
+        $logentryrecs = $DB->get_records_sql($sql);
+        foreach ($logentryrecs as $logentryrec) {
+            $logbook[] = $this->get_logentry_instance($logentryrec, $logbook);
         }
 
         return $logbook;
@@ -72,33 +69,24 @@ class logbook_vault implements logbook_vault_interface {
     /**
      * Get a specific logbook entry.
      *
-     * @param int $courseid     The course id.
-     * @param int $student      The student id.
-     * @param int $logentry     The logentry id.
+     * @param int $studentid    The logentry student id.
+     * @param int $courseid     The id of the course in context.
+     * @param int $logentryid   The logentry id.
+     * @param int $exerciseid   The logentry with exericse id.
+     * @param logbook   $logbook    The logbook_interface of for all entries.
      * @return logentry         A logentry_insterface.
      */
-    public function get_logentry(int $courseid, int $studentid, int $logentryid) {
+    public function get_logentry(int $studentid, int $courseid, int $logentryid = 0, int $exerciseid = 0, $logbook) {
         global $DB;
 
-        $logentryrec = $DB->get_record(static::DB_LOGBOOKS, ['id'=>$logentryid]);
+        $conditions = $logentryid!=0 ? ['id'=>$logentryid] : [
+            'courseid'=>$courseid,
+            'exerciseid'=>$exerciseid,
+            'userid'=>$studentid
+        ];
+        $logentryrec = $DB->get_record(static::DB_LOGBOOKS, $conditions);
 
-        $logentry = new logentry();
-        $logentry->set_id($logentryrec->id);
-        $logentry->set_exerciseid($logentryrec->exerciseid);
-        $logentry->set_aircraft($logentryrec->aircraft);
-        $logentry->set_flighttimemins($logentryrec->flighttimemins);
-        $logentry->set_soloflighttimemins($logentryrec->soloflighttimemins);
-        $logentry->set_sessiontimemins($logentryrec->sessiontimemins);
-        $logentry->set_picid($logentryrec->picid);
-        $logentry->set_picname((!empty($logentryrec->picid) ? get_fullusername($logentryrec->picid) : ''));
-        $logentry->set_sicid($logentryrec->sicid);
-        $logentry->set_sicname((!empty($logentryrec->sicid) ? get_fullusername($logentryrec->sicid) : ''));
-        $logentry->set_pirep($logentryrec->pirep);
-        $logentry->set_fromicao($logentryrec->fromicao);
-        $logentry->set_toicao($logentryrec->toicao);
-        $logentry->set_logentrydate(new DateTime('@' . $logentryrec->timemodified));
-
-        return $logentry;
+        return $this->get_logentry_instance($logentryrec, $logbook);
     }
 
     /**
@@ -109,10 +97,12 @@ class logbook_vault implements logbook_vault_interface {
      * @param logentry  $logentry   A logbook entry of the student.
      * @return int      The log entry id.
      */
-    public function create_logentry(int $courseid, int $studentid, logentry $logentry) {
+    public function insert_logentry(int $courseid, int $studentid, logentry $logentry) {
         global $DB;
 
-        return $DB->insert_record(static::DB_LOGBOOKS, $logentry);
+        $logentryobj = $this->get_logentryrecobj($courseid, $studentid, $logentry);
+
+        return $DB->insert_record(static::DB_LOGBOOKS, $logentryobj);
     }
 
     /**
@@ -126,6 +116,84 @@ class logbook_vault implements logbook_vault_interface {
     public function update_logentry(int $courseid, int $studentid, logentry $logentry){
         global $DB;
 
-        return $DB->update_record(static::DB_LOGBOOKS, $logentry);
+        $logentryobj = $this->get_logentryrecobj($courseid, $studentid, $logentry);
+
+        return $DB->update_record(static::DB_LOGBOOKS, $logentryobj);
+    }
+
+    /**
+     * Update a student's logbook entry
+     *
+     * @param int       $courseid   The course id associated with the logbook.
+     * @param int       $studentid  The student id associated with the logbook.
+     * @return array    $totalflighttime, $totalsessiontime, $totalsolotime
+     */
+    public function get_logbook_summary(int $courseid, int $studentid){
+        global $DB;
+
+        $sql = 'SELECT SUM(flighttimemins) as totalflighttime,  SUM(sessiontimemins) as totalsessiontime,  SUM(soloflighttimemins) as totalsolotime
+                FROM {' . self::DB_LOGBOOKS .'}
+                WHERE courseid = ' . $courseid . '
+                AND userid = ' . $studentid;
+
+        $summary = $DB->get_record_sql($sql);
+        $totalflighttime = $summary->totalflighttime;
+        $totalsessiontime = $summary->totalsessiontime;
+        $totalsolotime = $summary->totalsolotime;
+
+        return [$totalflighttime, $totalsessiontime, $totalsolotime];
+    }
+
+    /**
+     * Create an object to be persisted
+     *
+     * @param logentry  $logentry       A logbook entry of the student.
+     * @return stdClass $logentryobj    The log entry object for persistence.
+     */
+    protected function get_logentryrecobj(int $courseid, int $studentid, logentry $logentry) {
+        $logentryobj = new stdClass();
+
+        $logentryobj->id = $logentry->get_id();
+        $logentryobj->courseid = $courseid;
+        $logentryobj->exerciseid = $logentry->get_exerciseid();
+        $logentryobj->userid = $studentid;
+        $logentryobj->flighttimemins = $logentry->get_flighttimemins();
+        $logentryobj->soloflighttimemins = $logentry->get_soloflighttimemins();
+        $logentryobj->sessiontimemins = $logentry->get_sessiontimemins();
+        $logentryobj->aircrafticao = $logentry->get_aircraft();
+        $logentryobj->picid = $logentry->get_picid();
+        $logentryobj->sicid = $logentry->get_sicid();
+        $logentryobj->pirep = $logentry->get_pirep();
+        $logentryobj->callsign = $logentry->get_callsign();
+        $logentryobj->fromicao = $logentry->get_fromicao();
+        $logentryobj->toicao = $logentry->get_toicao();
+        $logentryobj->timemodified = $logentry->get_sessiondate();
+
+        return $logentryobj;
+    }
+
+    /**
+     * Create an logentry instance from a database recordobject to be persisted
+     *
+     * @param object $dataob: A data record representing a logbook entry.
+     * @return logentry $logentryobj: The log entry instance.
+     */
+    protected function get_logentry_instance($dataobj, $logbook) {
+        $logentry = new logentry($logbook);
+        $logentry->set_id($dataobj->id);
+        $logentry->set_exerciseid($dataobj->exerciseid);
+        $logentry->set_flighttimemins($dataobj->flighttimemins);
+        $logentry->set_sessiontimemins($dataobj->sessiontimemins);
+        $logentry->set_soloflighttimemins($dataobj->soloflighttimemins);
+        $logentry->set_picid($dataobj->picid);
+        $logentry->set_sicid($dataobj->sicid);
+        $logentry->set_aircraft($dataobj->aircrafticao);
+        $logentry->set_callsign(!empty($dataobj->callsign)?$dataobj->callsign:'');
+        $logentry->set_pirep(!empty($dataobj->pirep)?$dataobj->pirep:'');
+        $logentry->set_fromicao(!empty($dataobj->fromicao)?$dataobj->fromicao:'');
+        $logentry->set_toicao(!empty($dataobj->toicao)?$dataobj->toicao:'');
+        $logentry->set_sessiondate($dataobj->timemodified);
+
+        return $logentry;
     }
 }

@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use core\external\exporter;
 use local_booking\local\session\data_access\booking_vault;
-use local_booking\local\participant\data_access\participant_vault;
+use local_booking\local\participant\entities\participant;
 use local_booking\local\session\entities\priority;
 use renderer_base;
 use moodle_url;
@@ -189,8 +189,8 @@ class bookings_exporter extends exporter {
     protected function get_active_students($output) {
         $activestudents = [];
 
-        $vault = new participant_vault();
-        $students = $this->prioritze($vault->get_active_students());
+        $participants = new participant();
+        $students = $this->prioritze($participants->get_active_students());
 
         $i = 0;
         foreach ($students as $student) {
@@ -283,12 +283,6 @@ class bookings_exporter extends exporter {
         $warning = 0;
         $today = getdate(time());
         $waitdays = get_config('local_booking', 'nextsessionwaitdays') ? get_config('local_booking', 'nextsessionwaitdays') : LOCAL_BOOKING_DAYSFROMLASTSESSION;
-
-        // // get days since last session
-        // $lastsession = $bookingvault->get_last_booked_session($studentid);
-        // $lastsessiondate = new DateTime('@' . (!empty($lastsession) ? $lastsession->lastbookedsession : time()));
-        // $interval = $lastsessiondate->diff(new DateTime('@' . $today[0]));
-        // $dayssincelast = $interval->format('%d');
 
         if ($dayssincelast >= ($waitdays * LOCAL_BOOKING_SESSIONOVERDUEMULTIPLIER) &&  $dayssincelast < ($waitdays * LOCAL_BOOKING_SESSIONLATEMULTIPLIER)) {
             $warning = self::OVERDUEWARNING;

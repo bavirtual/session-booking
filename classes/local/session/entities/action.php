@@ -75,12 +75,14 @@ class action implements action_interface {
                 $name = get_string('grade', 'grades');
                 break;
             case 'book':
+                $nextslot = (get_first_posted_slot($userid))->getTimestamp();
+                $week = $nextslot >= time() ? $nextslot : time();
                 $actionurl = new moodle_url('/local/booking/availability.php', [
                     'course' => $COURSE->id,
                     'exid'   => $refid,
                     'userid' => $userid,
                     'action' => 'book',
-                    'time'   => (get_first_posted_slot($userid))->getTimestamp(),
+                    'time'   => $week,
                     'view'   => 'user',
                 ]);
                 $name = get_string('book', 'local_booking');

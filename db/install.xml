@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/booking/db" VERSION="20210903" COMMENT="XMLDB file for Moodle local/booking"
+<XMLDB PATH="local/booking/db" VERSION="20210910" COMMENT="XMLDB file for Moodle local/booking"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -52,15 +52,15 @@
         <FIELD NAME="exerciseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Exercise assignment module id associated with the logentry"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Student pilot user id"/>
         <FIELD NAME="flighttimemins" TYPE="int" LENGTH="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Logentry flight time hours session time minutes"/>
-        <FIELD NAME="soloflighttimemins" TYPE="int" LENGTH="5" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Solo flight time minutes"/>
+        <FIELD NAME="soloflighttimemins" TYPE="int" LENGTH="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Solo flight time minutes"/>
         <FIELD NAME="sessiontimemins" TYPE="int" LENGTH="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Flight session minutes"/>
         <FIELD NAME="aircrafticao" TYPE="char" LENGTH="5" NOTNULL="true" SEQUENCE="false" COMMENT="The ICAO aircraft code of the logbook entry"/>
-        <FIELD NAME="picid" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Logbook entry pilot in command user id"/>
-        <FIELD NAME="sicid" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Secondary in command user id"/>
-        <FIELD NAME="pirep" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="Pilot's report for the logentry"/>
-        <FIELD NAME="callsign" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Logentry aircraft callsign"/>
-        <FIELD NAME="fromicao" TYPE="char" LENGTH="5" NOTNULL="false" SEQUENCE="false" COMMENT="Logentry departure airport ICAO"/>
-        <FIELD NAME="toicao" TYPE="char" LENGTH="5" NOTNULL="false" SEQUENCE="false" COMMENT="Logentry arrival airport ICAO"/>
+        <FIELD NAME="picid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Logbook entry pilot in command user id"/>
+        <FIELD NAME="sicid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Secondary in command user id"/>
+        <FIELD NAME="pirep" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" COMMENT="Pilot's report for the logentry"/>
+        <FIELD NAME="callsign" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Logentry aircraft callsign"/>
+        <FIELD NAME="fromicao" TYPE="char" LENGTH="5" NOTNULL="true" SEQUENCE="false" COMMENT="Logentry departure airport ICAO"/>
+        <FIELD NAME="toicao" TYPE="char" LENGTH="5" NOTNULL="true" SEQUENCE="false" COMMENT="Logentry arrival airport ICAO"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Logentry timestamp"/>
       </FIELDS>
       <KEYS>

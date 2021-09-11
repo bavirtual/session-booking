@@ -308,3 +308,34 @@
 .path-availability .maincalendar .event .card-header img {
     vertical-align: baseline;
 }
+
+.logbook-body {
+    background: #fafafa;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+}
+
+.logbook-h2 {
+    margin-top: 0;
+}
+
+.logbook-card {
+    padding: 40px;
+    background: #fff;
+    max-width: 1000px;
+    border-radius: 20px;
+    margin: 60px auto;
+}
+
+.logbook-highlight {
+    font-weight: bold;
+    color: #294;
+}
+
+.logbook-shadow1 {
+    box-shadow: 0 5px 10px rgba(154, 160, 185, .05), 0 15px 40px rgba(166, 173, 201, 0.2);
+}
+
+.logbook-shadow2 {
+    box-shadow: 0 7px 30px -10px rgba(150, 170, 180, 0.5);
+}

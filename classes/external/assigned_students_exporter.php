@@ -27,7 +27,7 @@ namespace local_booking\external;
 
 defined('MOODLE_INTERNAL') || die();
 
-use local_booking\local\participant\data_access\participant_vault;
+use local_booking\local\participant\entities\participant;
 use core\external\exporter;
 use renderer_base;
 use moodle_url;
@@ -126,10 +126,10 @@ class assigned_students_exporter extends exporter {
         global $COURSE;
         $assignedstudents = [];
 
-        $vault = new participant_vault();
-        $studentobjs = $vault->get_assigned_students();
+        $participants = new participant();
+        $studentobjs = $participants->get_assigned_students();
         foreach ($studentobjs as $studentobj) {
-            list($nextexercise, $exercisesection) = $vault->get_next_exercise($studentobj->userid, $COURSE->id);
+            list($nextexercise, $exercisesection) = $participants->get_next_exercise($studentobj->userid, $COURSE->id);
             $studentobj->nextlesson = get_exercise_name($nextexercise);
             $data = [
                 'student' => $studentobj,

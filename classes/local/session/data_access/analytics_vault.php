@@ -26,7 +26,7 @@
 namespace local_booking\local\session\data_access;
 
 use DateTime;
-use local_booking\local\participant\data_access\participant_vault;
+use local_booking\local\participant\entities\participant;
 
 class analytics_vault implements analytics_vault_interface {
 
@@ -61,13 +61,13 @@ class analytics_vault implements analytics_vault_interface {
         if (!empty($rs)) {
             $lastsessiondate = new DateTime('@' . $rs->lastsessiondate);
         } else {
-            $vault = new participant_vault();
-            $lastsessiondate = $vault->get_enrol_date($studentid);
+            $participants = new participant();
+            $lastsessiondate = $participants->get_enrol_date($studentid);
         }
 
         $today = new DateTime('@' . time());
         $interval = date_diff($lastsessiondate, $today);
-        $days = $interval->d;
+        $days = $interval->days;
 
         return $days;
     }

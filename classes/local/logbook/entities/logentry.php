@@ -38,6 +38,11 @@ defined('MOODLE_INTERNAL') || die();
 class logentry implements logentry_interface {
 
     /**
+     * @var logbook $parent The logbook containing this entry.
+     */
+    protected $parent;
+
+    /**
      * @var int $id The id of this log entry.
      */
     protected $id;
@@ -45,12 +50,7 @@ class logentry implements logentry_interface {
     /**
      * @var int $exercise The course exercise id of this log entry.
      */
-    protected $exercisid;
-
-    /**
-     * @var int $aricraft The flight aircraft typeof this log entry.
-     */
-    protected $aircraft;
+    protected $exerciseid;
 
     /**
      * @var int $flighttimemins The flight duration minutes of this log entry.
@@ -78,6 +78,11 @@ class logentry implements logentry_interface {
     protected $sicid;
 
     /**
+     * @var int $aricraft The flight aircraft typeof this log entry.
+     */
+    protected $aircraft;
+
+    /**
      * @var string $pirep The PIREP of this log entry.
      */
     protected $pirep;
@@ -98,9 +103,43 @@ class logentry implements logentry_interface {
     protected $toicao;
 
     /**
-     * @var DateTime $logentrydate The date timestamp of this log entry.
+     * @var int $sessiondate The date timestamp of this log entry.
      */
-    protected $logentrydate;
+    protected $sessiondate;
+
+    /**
+     * Converts the object to array through casting.
+     *
+     * @param bool  $formattostring: whether to return some values in string format
+     * @return array
+     */
+    public function __construct($parent = null) {
+        $this->parent = $parent;
+    }
+
+    /**
+     * Converts the object to array through casting.
+     *
+     * @param bool  $formattostring: whether to return some values in string format
+     * @return array
+     */
+    public function __toArray(bool $formattostring = false) {
+        return [
+            'id' => $this->id,
+            'exerciseid' => $this->exerciseid,
+            'flighttimemins' => $formattostring ? $this->get_flighttimemins(false) : $this->flighttimemins,
+            'sessiontimemins' => $formattostring ? $this->get_sessiontimemins(false) : $this->sessiontimemins,
+            'soloflighttimemins' => $formattostring ? $this->get_soloflighttimemins(false) : $this->soloflighttimemins,
+            'picid' => $this->picid,
+            'sicid' => $this->sicid,
+            'aircraft' => $this->aircraft,
+            'pirep' => $this->pirep,
+            'callsign' => $this->callsign,
+            'fromicao' => $this->fromicao,
+            'toicao' => $this->toicao,
+            'sessiondate' => $formattostring ? $this->get_sessiondate(true) : $this->sessiondate,
+        ];
+    }
 
     /**
      * Get the id for the logbook entry.
@@ -132,28 +171,31 @@ class logentry implements logentry_interface {
     /**
      * Get the flight duration minutes of the log entry.
      *
-     * @return int
+     * @param bool $numeric whether the request value in number or text format
+     * @return mixed
      */
-    public function get_flighttimemins() {
-        return $this->flighttimemins;
-    }
-
-    /**
-     * Get the solo flight duration minutes of the log entry.
-     *
-     * @return int
-     */
-    public function get_soloflighttimemins() {
-        return $this->soloflighttimemins;
+    public function get_flighttimemins(bool $numeric = true) {
+        return $numeric ? $this->flighttimemins : logbook::convert_duration($this->flighttimemins, 'text');
     }
 
     /**
      * Get the session duration minutes of the log entry.
      *
-     * @return int
+     * @param bool $numeric whether the request value in number or text format
+     * @return mixed
      */
-    public function get_sessiontimemins() {
-        return $this->sessiontimemins;
+    public function get_sessiontimemins(bool $numeric = true) {
+        return $numeric ? $this->sessiontimemins : logbook::convert_duration($this->sessiontimemins, 'text');
+    }
+
+    /**
+     * Get the solo flight duration minutes of the log entry.
+     *
+     * @param bool $numeric whether the request value in number or text format
+     * @return mixed
+     */
+    public function get_soloflighttimemins(bool $numeric = true) {
+        return $numeric ? $this->soloflighttimemins : logbook::convert_duration($this->soloflighttimemins, 'text');
     }
 
     /**
@@ -231,10 +273,13 @@ class logentry implements logentry_interface {
     /**
      * Get the date timestamp of the log entry.
      *
-     * @return int
+     * @param bool $formatted string formatting of the date
+     * @return mixed
      */
-    public function get_logentrydate() {
-        return $this->logentrydate;
+    public function get_sessiondate(bool $formatted = false) {
+        $sessiondate = $formatted ? (new DateTime('@'.$this->sessiondate))->format('l M d, Y') : $this->sessiondate;
+
+        return $sessiondate;
     }
 
     /**
@@ -242,8 +287,8 @@ class logentry implements logentry_interface {
      *
      * @param int
      */
-    public function set_id($id) {
-        return $this->id;
+    public function set_id(int $id) {
+        $this->id = $id;
     }
 
     /**
@@ -252,43 +297,37 @@ class logentry implements logentry_interface {
      * @param int $exerciseid
      */
     public function set_exerciseid(int $exerciseid) {
-        $this->exercisid = $exerciseid;
-    }
-
-    /**
-     * Set the aircraft typeof the log entry.
-     *
-     * @return string
-     */
-    public function set_aircraft(string $aircraft) {
-        $this->aircraft = $aircraft;
+        $this->exerciseid = $exerciseid;
     }
 
     /**
      * Set the flight duration minutes of the log entry.
      *
-     * @param int
+     * @param mixed $flighttimemins The flight time total minutes duration
+     * @param bool $isnumeric whether the passed duration is numberic or string format
      */
-    public function set_flighttimemins(int $flighttimemins) {
-        $this->flightmins = $flighttimemins;
-    }
-
-    /**
-     * Set the solo flight time duration minutes of the log entry.
-     *
-     * @param int
-     */
-    public function set_soloflighttimemins(int $soloflighttimemins) {
-        $this->soloflighttimemins = $soloflighttimemins;
+    public function set_flighttimemins($flighttimemins, bool $isnumeric = true) {
+        $this->flighttimemins = $isnumeric ? $flighttimemins : logbook::convert_duration($flighttimemins, 'number');
     }
 
     /**
      * Set the session duration minutes of the log entry.
      *
-     * @param int
+     * @param mixed $sessiontimemins The session time total minutes duration
+     * @param bool $isnumeric whether the passed duration is numberic or string format
      */
-    public function set_sessiontimemins(int $sessiontimemins) {
-        $this->sessiontimemins = $sessiontimemins;
+    public function set_sessiontimemins($sessiontimemins, bool $isnumeric = true) {
+        $this->sessiontimemins = $isnumeric ? $sessiontimemins : logbook::convert_duration($sessiontimemins, 'number');
+    }
+
+    /**
+     * Set the solo flight time duration minutes of the log entry.
+     *
+     * @param mixed $soloflighttimemins The solo flight time total minutes duration
+     * @param bool $isnumeric whether the passed duration is numberic or string format
+     */
+    public function set_soloflighttimemins($soloflighttimemins, bool $isnumeric = true) {
+        $this->soloflighttimemins = $isnumeric ? $soloflighttimemins : logbook::convert_duration($soloflighttimemins, 'number');
     }
 
     /**
@@ -301,15 +340,6 @@ class logentry implements logentry_interface {
     }
 
     /**
-     * Set the pilot in command name of the log entry.
-     *
-     * @param string $picname
-     */
-    public function set_picname(string $picname) {
-        $this->picname = $picname;
-    }
-
-    /**
      * Set the secondary in command user id of the log entry.
      *
      * @param int $sicid
@@ -319,12 +349,12 @@ class logentry implements logentry_interface {
     }
 
     /**
-     * Set the secondary in command name of the log entry.
+     * Set the aircraft typeof the log entry.
      *
-     * @param string $sicname
+     * @return string
      */
-    public function set_sicname(string $sicname) {
-        $this->sicname = $sicname;
+    public function set_aircraft(string $aircraft) {
+        $this->aircraft = $aircraft;
     }
 
     /**
@@ -366,9 +396,33 @@ class logentry implements logentry_interface {
     /**
      * Set the date timestamp of the log entry.
      *
-     * @param DateTime $logentrydate
+     * @param int $sessiondate
      */
-    public function set_logentrydate(DateTime $logentrydate) {
-        $this->logentrydate = $logentrydate;
+    public function set_sessiondate(int $sessiondate) {
+        $this->sessiondate = $sessiondate;
+    }
+
+    /**
+     * Populates a log book entry with a modal form data.
+     *
+     * @param object $formdata
+     */
+    public function populate(object $formdata) {
+        if (!empty($formdata->logentryid)) {
+            $this->id = $formdata->logentryid;
+        }
+
+        $this->exerciseid = $formdata->exerciseid;
+        $this->soloflighttimemins = logbook::convert_duration($formdata->soloflighttimemins, 'number');
+        $this->flighttimemins = logbook::convert_duration($formdata->flighttimemins, 'number');
+        $this->sessiontimemins = !empty($formdata->sessiontimemins) ? logbook::convert_duration($formdata->sessiontimemins, 'number') : 0;
+        $this->picid = $formdata->picid;
+        $this->sicid = $formdata->sicid;
+        $this->pirep = $formdata->pirep;
+        $this->aircraft = $formdata->aircraft;
+        $this->callsign = strtoupper($formdata->callsign);
+        $this->fromicao = strtoupper($formdata->fromicao);
+        $this->toicao = strtoupper($formdata->toicao);
+        $this->sessiondate = $formdata->sessiondate;
     }
 }

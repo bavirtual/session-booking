@@ -1,3 +1,5 @@
+/* eslint-disable babel/new-cap */
+/* eslint-disable no-undef */
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,12 +17,14 @@
 
 /**
  * This module handles logbook entry form
+ * Improvised from core_calendar.
  *
  * @module     local_booking/modal_logentry_form
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 define([
             'jquery',
             'core/event',
@@ -31,7 +35,7 @@ define([
             'core/modal_registry',
             'core/fragment',
             'local_booking/events',
-            'local_booking/repository'
+            'local_booking/repository',
         ],
         function(
             $,
@@ -43,7 +47,7 @@ define([
             ModalRegistry,
             Fragment,
             LogbookEvents,
-            Repository
+            Repository,
         ) {
 
     var registered = false;
@@ -211,7 +215,7 @@ define([
      * @return {bool}
      */
     ModalLogEntryForm.prototype.hasLogentryId = function() {
-        return this.logentryId !== null;
+        return this.logentryId !== null && this.logentryId != 0;
     };
 
     /**
@@ -274,8 +278,8 @@ define([
 
     /**
      * Reload the title for the modal to the appropriate value
-     * depending on whether we are creating a new event or
-     * editing an existing event.
+     * depending on whether we are creating a new log book entry
+     * or editing an existing one.
      *
      * @method reloadTitleContent
      * @return {object} A promise resolved with the new title text
@@ -307,7 +311,7 @@ define([
     };
 
     /**
-     * Send a request to the server to get the event_form in a fragment
+     * Send a request to the server to get the logentry_form in a fragment
      * and render the result in the body of the modal.
      *
      * If serialised form data is provided then it will be sent in the
@@ -350,7 +354,7 @@ define([
         }
 
         if (typeof formData !== 'undefined') {
-            args.formdata = formData; //{jsonformdata: JSON.stringify(formData)}; //
+            args.formdata = formData;
         }
 
         // Get the content of the modal
@@ -360,6 +364,17 @@ define([
 
         this.bodyPromise.then(function() {
             this.enableButtons();
+
+            // Mask session, flight, and solo times < 5hrs
+            $(document).ready(function() {
+                var flighttimemins = document.getElementById("id_flighttimemins"),
+                    soloflighttimemins = document.getElementById("id_soloflighttimemins"),
+                    sessiontimemins = document.getElementById("id_sessiontimemins");
+                Inputmask({"regex": "^([0]?[0-4]):([0-5]?[0-9])$"}).mask(flighttimemins);
+                Inputmask({"regex": "^([0]?[0-4]):([0-5]?[0-9])$"}).mask(soloflighttimemins);
+                Inputmask({"regex": "^([0]?[0-4]):([0-5]?[0-9])$"}).mask(sessiontimemins);
+            });
+
             return;
         }.bind(this))
         .fail(Notification.exception)
@@ -385,7 +400,7 @@ define([
     /**
      * Kick off a reload the modal content before showing it. This
      * is to allow us to re-use the same modal for creating and
-     * editing different events within the page.
+     * editing different log book entries within the booking view page.
      *
      * We do the reload when showing the modal rather than hiding it
      * to save a request to the server if the user closes the modal
@@ -403,7 +418,7 @@ define([
      * that it is loaded fresh next time it's displayed.
      *
      * The logentry id will be set by the calling code if it wants
-     * to edit a specific event.
+     * to edit a specific log entry.
      *
      * @method hide
      */
@@ -428,14 +443,14 @@ define([
 
     /**
      * Send the form data to the server to create or update
-     * an event.
+     * a log book entry.
      *
      * If there is a server side validation error then we re-request the
      * rendered form (with the data) from the server in order to get the
      * server side errors to display.
      *
      * On success the modal is hidden and the page is reloaded so that the
-     * new event will display.
+     * new log book entry will display in the booking view student tooltip.
      *
      * @method save
      * @return {object} A promise
@@ -457,9 +472,12 @@ define([
         this.disableButtons();
 
         var formData = this.getFormData();
+        var formArgs = 'contextid=' + this.contextId + '&courseid=' + this.courseId
+            + '&exerciseid=' + this.exerciseId + '&studentid=' + this.studentId;
+
         // Send the form data to the server for processing.
         // eslint-disable-next-line consistent-return
-        return Repository.submitCreateUpdateForm(formData)
+        return Repository.submitCreateUpdateForm(formArgs, formData)
             .then(function(response) {
                 if (response.validationerror) {
                     // If there was a server side validation error then
@@ -468,7 +486,7 @@ define([
                     this.reloadBodyContent(formData);
                     return;
                 } else {
-                    // Check whether this was a new event or not.
+                    // Check whether this was a new logbook entry or not.
                     // The hide function unsets the form data so grab this before the hide.
                     var isExisting = this.hasLogentryId();
 

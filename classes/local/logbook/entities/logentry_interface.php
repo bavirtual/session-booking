@@ -61,23 +61,26 @@ interface logentry_interface {
     /**
      * Get the flight duration minutes of the log entry.
      *
-     * @return int
+     * @param bool $numeric whether the request value in number or text format
+     * @return mixed
      */
-    public function get_flighttimemins();
-
-    /**
-     * Get the solo flight duration hours of the log entry.
-     *
-     * @return int
-     */
-    public function get_soloflighttimemins();
+    public function get_flighttimemins(bool $numeric = true);
 
     /**
      * Get the session duration minutes of the log entry.
      *
-     * @return int
+     * @param bool $numeric whether the request value in number or text format
+     * @return mixed
      */
-    public function get_sessiontimemins();
+    public function get_sessiontimemins(bool $numeric = true);
+
+    /**
+     * Get the solo flight duration minutes of the log entry.
+     *
+     * @param bool $numeric whether the request value in number or text format
+     * @return mixed
+     */
+    public function get_soloflighttimemins(bool $numeric = true);
 
     /**
      * Get the pilot in command user id of the log entry.
@@ -138,16 +141,17 @@ interface logentry_interface {
     /**
      * Get the date timestamp of the log entry.
      *
-     * @return DateTime
+     * @param bool $formatted string formatting of the date
+     * @return mixed
      */
-    public function get_logentrydate();
+    public function get_sessiondate(bool $formatted = false);
 
     /**
      * Set the id for the logbook entry.
      *
      * @param int
      */
-    public function set_id($id);
+    public function set_id(int $id);
 
     /**
      * Set the course exercise id for the log entry.
@@ -166,23 +170,26 @@ interface logentry_interface {
     /**
      * Set the flight duration minutes of the log entry.
      *
-     * @param int
+     * @param mixed $flighttimemins The flight time total minutes duration
+     * @param bool $isnumeric whether the passed duration is numberic or string format
      */
-    public function set_flighttimemins(int $flighttimemins);
-
-    /**
-     * Set the solo flight duration hours of the log entry.
-     *
-     * @param int
-     */
-    public function set_soloflighttimemins(int $soloflighttimemins);
+    public function set_flighttimemins($flighttimemins, bool $isnumeric = true);
 
     /**
      * Set the session duration minutes of the log entry.
      *
-     * @param int
+     * @param mixed $sessiontimemins The session time total minutes duration
+     * @param bool $isnumeric whether the passed duration is numberic or string format
      */
-    public function set_sessiontimemins(int $sessiotimenmins);
+    public function set_sessiontimemins($sessiontimemins, bool $isnumeric = true);
+
+    /**
+     * Set the solo flight time duration minutes of the log entry.
+     *
+     * @param mixed $soloflighttimemins The solo flight time total minutes duration
+     * @param bool $isnumeric whether the passed duration is numberic or string format
+     */
+    public function set_soloflighttimemins($soloflighttimemins, bool $isnumeric = true);
 
     /**
      * Set the pilot in command user id of the log entry.
@@ -222,14 +229,21 @@ interface logentry_interface {
     /**
      * Set the flight arrival airport ICAO of the log entry.
      *
-     * @return string
+     * @param string
      */
     public function set_toicao(string $toicao);
 
     /**
      * Set the date timestamp of the log entry.
      *
-     * @param DateTime $logentrydate
+     * @param int $sessiondate
      */
-    public function set_logentrydate(DateTime $logentrydate);
+    public function set_sessiondate(int $sessiondate);
+
+    /**
+     * Populates a log book entry with a modal form data.
+     *
+     * @param object $formdata
+     */
+    public function populate(object $formdata);
 }

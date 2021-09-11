@@ -36,7 +36,7 @@
     }}{{#courseid}} data-courseid="{{courseid}}"{{/courseid}}{{!
     }} data-context-id="{{contextid}}"{{!
     }}>
-    <p><h3>{{#str}}title,local_booking{{/str}}</h3></p>
+    <p><h3>{{#str}}activestudents,local_booking{{/str}}</h3></p>
     <table id="progression-detail-{{uniqid}}" data-region="student-progression" data-testid="666" class="table-hover table-bordered">
         <thead>
             <tr>
@@ -91,7 +91,7 @@
                         <a href="{{actionurl}}"{{#lessonincomplete}} class="disabled-link"{{/lessonincomplete}}>
                         <button class="session-button session-button-{{actiontype}}"
                             data-region="action-button">
-                            <i class="fa fa-{{#actionbook}}plane{{/actionbook}}{{^actionbook}}bookmark{{/actionbook}}" style="padding-right: 5px;"></i>
+                            <i class="fa fa-{{#actionbook}}plane{{/actionbook}}{{^actionbook}}pencil-square{{/actionbook}}" style="padding-right: 5px;"></i>
                             {{actionname}}
                         </button>
                          </a>
@@ -99,11 +99,13 @@
                 </td>
             {{#sessions}}
                 <td class="text-sm-center"
+                    data-action="view-logentry"
                     data-exercise-status="{{sessionstatus}}"
                     {{#graded}}data-region="session-entry"
                     data-student-id="{{studentid}}"
                     data-exercise-id="{{exerciseid}}"
                     data-session-date="{{sessionts}}"
+                    data-logentry-id="{{logentryid}}"
                     {{/graded}}
                     {{^sessionempty}}
                     data-toggle="tooltip"
@@ -111,10 +113,16 @@
                     {{/sessionempty}}>
                     <div class="d-md-block text-xs-center{{#graded}} clickable{{/graded}}" >
                         <span id="exercise-{{studentid}}-{{exerciseid}}" class="session-date media-body fa-inverse{{!
-                        }}{{#graded}} session-graded{{/graded}}{{!
-                        }}{{#booked}} session-booked{{/booked}}{{!
-                        }}{{#tentative}} session-tentative{{/tentative}}{{!
-                        }}">&nbsp;</span>
+                            }}{{#graded}} session-graded{{/graded}}{{!
+                            }}{{#booked}} session-booked{{/booked}}{{!
+                            }}{{#tentative}} session-tentative{{/tentative}}{{!
+                            }}">&nbsp;
+                            {{#graded}}{{^logentryid}}
+                                <i class="icon fa fa-info-circle fa-fw"
+                                title="{{#str}}logentrymissing,local_booking{{/str}}"
+                                aria-label="{{#str}}logentrymissing,local_booking{{/str}}"></i>
+                            {{/logentryid}}{{/graded}}
+                        </span>
                     </div>
                 </td>
             {{/sessions}}

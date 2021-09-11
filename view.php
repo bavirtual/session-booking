@@ -35,8 +35,8 @@ use html_writer;
 $categoryid = optional_param('categoryid', null, PARAM_INT);
 $courseid = optional_param('courseid', SITEID, PARAM_INT);
 $course = get_course($courseid);
-$pluginname = $course->shortname . ' ' . get_string('title', 'local_booking');
-$title = get_string('title', 'local_booking');
+$title = $course->shortname . ' ' . get_string('pluginname', 'local_booking');
+$title = get_string('pluginname', 'local_booking');
 
 $url = new moodle_url('/local/booking/view.php');
 
@@ -66,10 +66,15 @@ require_login($course, false);
 
 $url->param('courseid', $courseid);
 
+
+// RobinHerbots-Inputmask library to mask flight times in the Log Book modal form
+$PAGE->requires->jquery();
+$PAGE->requires->js( new moodle_url($CFG->wwwroot . '/node_modules/inputmask/dist/jquery.inputmask.min.js'), true);
+
 $PAGE->navbar->add(userdate(time(), get_string('strftimedate')));
 $PAGE->set_pagelayout('standard');  // otherwise use 'standard' layout
-$PAGE->set_title($pluginname, 'local_booking');
-$PAGE->set_heading($pluginname, 'local_booking');// . ' course id='  . $courseid);
+$PAGE->set_title($title, 'local_booking');
+$PAGE->set_heading($title, 'local_booking');
 $PAGE->add_body_class('path-local-booking');
 
 $renderer = $PAGE->get_renderer('local_booking');

@@ -1,0 +1,116 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_booking/logentry_details
+
+    Calendar logentry details.
+
+    The purpose of this template is to render the logentry details.
+
+    This template is used in the summary modal, day and upcoming views to output logentry information consistently
+    across the calendar.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Example context (json):
+    {
+        "formattedtime": "Wednesday, 17 April, 9:27 AM",
+        "location": "Moodle HQ",
+        "isactionevent": "true",
+        "course": {
+            "viewurl": "http://mymoodlesite/course/view.php?id=1",
+            "fullname": "Course name"
+        },
+        "source": "Ical imported",
+        "iscategoryevent": "true",
+        "category": {
+            "nestedname": "Category name"
+        },
+        "subscription": "true",
+    }
+}}
+
+<div class="row mb-5">
+    <div class="col-1">{{#pix}} book, local_booking {{/pix}}</div>
+    <div class="col-11" style="font-weight: bolder;">{{{formattedtime}}}</div>
+</div>
+<div class="row mt-1">
+    <div class="col-1"><i class="icon fa fa-question-circle fa-fw"
+        style="color: cornflowerblue;"title="{{#str}} exercise, local_booking {{/str}}"
+        aria-label="{{#str}} exercise, local_booking {{/str}}"></i></div>
+    <div class="col-5">{{#str}} exercise, local_booking {{/str}}</div>
+    <div class="col-6">{{exercisename}}</div>
+</div>
+<div class="row mt-1">
+    <div class="col-1">{{#pix}} i/calendareventtime, core {{/pix}}</div>
+    <div class="col-5">{{#str}} flighttimemins, local_booking {{/str}}</div>
+    <div class="col-6">{{flighttime}}</div>
+</div>
+<div class="row mt-1">
+    <div class="col-1">{{#pix}} i/calendareventtime, core {{/pix}}</div>
+    <div class="col-5">{{#str}} sessiontimemins, local_booking {{/str}}</div>
+    <div class="col-6">{{sessiontime}}</div>
+</div>
+<div class="row mt-1">
+    <div class="col-1">{{#pix}} i/calendareventtime, core {{/pix}}</div>
+    <div class="col-5">{{#str}} soloflighttimemins, local_booking {{/str}}</div>
+    <div class="col-6">{{soloflighttime}}</div>
+</div>
+<div class="row mt-1">
+    <div class="col-1"><i class="icon fa fa-user fa-fw"
+        style="color: cornflowerblue;"title="{{#str}} pic, local_booking {{/str}}"
+        aria-label="{{#str}} pic, local_booking {{/str}}"></i></div>
+    <div class="col-5">{{#str}} pic, local_booking {{/str}}</div>
+    <div class="col-6">{{picname}}</div>
+</div>
+<div class="row mt-1">
+    <div class="col-1"><i class="icon fa fa-user fa-fw"
+        style="color: cornflowerblue;"title="{{#str}} sic, local_booking {{/str}}"
+        aria-label="{{#str}} sic, local_booking {{/str}}"></i></div>
+    <div class="col-5">{{#str}} sic, local_booking {{/str}}</div>
+    <div class="col-6">{{sicname}}</div>
+</div>
+<div class="row mt-1">
+    <div class="col-1"></div>
+    <div class="col-5">{{#str}} aircraft, local_booking {{/str}}</div>
+    <div class="col-6">{{aircraft}}</div>
+</div>
+<div class="row mt-1">
+    <div class="col-1"></div>
+    <div class="col-5">{{#str}} pirep, local_booking {{/str}}</div>
+    <div class="col-6">{{pirep}}</div>
+</div>
+<div class="row mt-1">
+    <div class="col-1"></div>
+    <div class="col-5">{{#str}} callsign, local_booking {{/str}}</div>
+    <div class="col-6">{{callsign}}</div>
+</div>
+<div class="row mt-1">
+    <div class="col-1"></div>
+    <div class="col-5">{{#str}} fromicao, local_booking {{/str}}</div>
+    <div class="col-6">{{fromicao}}</div>
+</div>
+<div class="row mt-1">
+    <div class="col-1"></div>
+    <div class="col-5">{{#str}} toicao, local_booking {{/str}}</div>
+    <div class="col-6">{{toicao}}</div>
+</div>
+

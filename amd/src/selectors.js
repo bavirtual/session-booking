@@ -15,6 +15,7 @@
 
 /**
  * This module is responsible for the calendar filter.
+ * Improvised from core_calendar.
  *
  * @module     local_booking/selectors
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
@@ -23,31 +24,21 @@
  */
 define([], function() {
     return {
-        popoverType: {
-            site: "[data-popover-eventtype-site]",
-            category: "[data-popover-eventtype-category]",
-            course: "[data-popover-eventtype-course]",
-            group: "[data-popover-eventtype-group]",
-            user: "[data-popover-eventtype-user]",
-            other: "[data-popover-eventtype-other]",
-        },
         viewSelector: 'div[data-region="view-selector"]',
         actions: {
             create: '[data-action="new-event-button"]',
             edit: '[data-action="edit"]',
             remove: '[data-action="delete"]',
-            viewEvent: '[data-action="view-event"]',
-        },
-        elements: {
-            courseSelector: 'select[name="course"]',
+            viewEvent: '[data-action="view-logentry"]',
+            gotoFeedback: '[data-action="feedback"]',
         },
         today: '.today',
         day: '[data-region="day"]',
-        calendarMain: '[data-region="calendar"]',
-        wrapper: '.bookingwrapper',
+        calendarwrapper: '.calendarwrapper',
         progressionwrapper: '.progressionwrapper',
+        mybookingswrapper: '.mybookingswrapper',
         table: '.calendartable',
-        eventItem: '[data-type="event"]',
+        logentryItem: '[data-type="logentry"]',
         links: {
             navLink: '.calendarwrapper .arrow_link',
             eventLink: "[data-region='event-item']",

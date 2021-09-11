@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Session Booking Plugin
+ * Class for data access of course participants
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
@@ -102,9 +102,7 @@ class participant_vault implements participant_vault_interface {
      * @return {Object}[]          Array of database records.
      */
     public function get_active_students(int $courseid = 0) {
-        global $DB, $COURSE;
-
-        $studentcourseid = $courseid == 0 ? $COURSE->id : $courseid;
+        global $DB;
 
         $sql = 'SELECT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
                     'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
@@ -117,8 +115,8 @@ class participant_vault implements participant_vault_interface {
                 INNER JOIN {' . self::DB_USER_FIELD . '} uf on uf.id = ud.fieldid
                 INNER JOIN {' . self::DB_USER_ENROL . '} ue on ud.userid = ue.userid
                 INNER JOIN {' . self::DB_ENROL . '} en on ue.enrolid = en.id
-                WHERE en.courseid = ' . $studentcourseid . '
-                    AND ra.contextid = ' . \context_course::instance($studentcourseid)->id .'
+                WHERE en.courseid = ' . $courseid . '
+                    AND ra.contextid = ' . \context_course::instance($courseid)->id .'
                     AND r.shortname = "student"
                     AND uf.shortname = "simulator"
                     AND ue.status = 0
@@ -139,9 +137,7 @@ class participant_vault implements participant_vault_interface {
      * @return {Object}[]          Array of database records.
      */
     public function get_active_instructors(int $courseid = 0) {
-        global $DB, $COURSE;
-
-        $instructorcourseid = $courseid == 0 ? $COURSE->id : $courseid;
+        global $DB;
 
         $sql = 'SELECT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
                     'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
@@ -152,8 +148,8 @@ class participant_vault implements participant_vault_interface {
                 INNER JOIN {' . self::DB_ROLE . '} r on r.id = ra.roleid
                 INNER JOIN {' . self::DB_USER_ENROL . '} ue on ra.userid = ue.userid
                 INNER JOIN {' . self::DB_ENROL . '} en on ue.enrolid = en.id
-                WHERE en.courseid = ' . $instructorcourseid . '
-                    AND ra.contextid = ' . \context_course::instance($instructorcourseid)->id .'
+                WHERE en.courseid = ' . $courseid . '
+                    AND ra.contextid = ' . \context_course::instance($courseid)->id .'
                     AND r.shortname IN ("instructor", "seniorinstructor", "flighttrainingmanager")
                     AND ue.status = 0';
 
@@ -163,12 +159,13 @@ class participant_vault implements participant_vault_interface {
     /**
      * Get students assigned to an instructor from the database.
      *
-     * @return {Object}[]          Array of database records.
+     * @param int $courseid The course in context
+     * @param int $userid   The instructor user id
+     * @return {Object}[]   Array of database records.
      */
-    public function get_assigned_students() {
-        global $DB, $COURSE, $USER;
+    public function get_assigned_students(int $courseid, int $userid) {
+        global $DB;
 
-        $courseid = $COURSE->id;
         $sql = 'SELECT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
                     'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
                     ud.data AS simulator, ue.timemodified AS enroldate
@@ -182,12 +179,12 @@ class participant_vault implements participant_vault_interface {
                 INNER JOIN {' . self::DB_GROUPS_MEM . '} gm on ue.userid = gm.userid
                 INNER JOIN {' . self::DB_GROUPS . '} g on g.id = gm.groupid
                 WHERE en.courseid = ' . $courseid . '
-                    AND ra.contextid = ' . \context_course::instance($COURSE->id)->id .'
+                    AND ra.contextid = ' . \context_course::instance($courseid)->id .'
                     AND r.shortname = "student"
                     AND uf.shortname = "simulator"
                     AND ue.status = 0
                     AND g.courseid = ' . $courseid . '
-                    AND g.name= "' . get_fullusername($USER->id, false) . '";';
+                    AND g.name= "' . get_fullusername($userid, false) . '";';
 
         return $DB->get_records_sql($sql);
     }
@@ -297,19 +294,16 @@ class participant_vault implements participant_vault_interface {
      * @param int       $studentid  The student id in reference
      * @return DateTime $enroldate  The enrolment date of the student.
      */
-    public function get_enrol_date(int $studentid) {
-        global $DB, $COURSE;
+    public function get_enrol_date(int $courseid, int $studentid) {
+        global $DB;
 
         $sql = 'SELECT ue.timecreated
                 FROM {' . self::DB_USER_ENROL . '} ue
                 INNER JOIN {' . self::DB_ENROL . '} e ON e.id = ue.enrolid
                 WHERE ue.userid = ' . $studentid . '
-                AND e.courseid = ' . $COURSE->id;
+                AND e.courseid = ' . $courseid;
 
-        $enrol = $DB->get_record_sql($sql);
-        $enroldate = new DateTime('@' . $enrol->timecreated);
-
-        return $enroldate;
+        return $DB->get_record_sql($sql);
     }
 
     /**
@@ -334,25 +328,52 @@ class participant_vault implements participant_vault_interface {
     /**
      * Returns full username
      *
-     * @return string  The full BAV username (first, last, and BAWID)
+     * @return object  The full participant username
      */
-    public static function get_fullname(int $userid, bool $BAVname = true) {
+    public static function get_participant_name(int $userid) {
         global $DB;
 
-        $fullusername = '';
-        if ($userid != 0) {
-            // Get the full user name
-            $sql = 'SELECT ' . $DB->sql_concat('u.firstname', '" "',
-                        'u.lastname', '" "', 'u.alternatename') . ' AS bavname, '
-                        . $DB->sql_concat('u.firstname', '" "',
-                        'u.lastname') . ' AS username
-                    FROM {' . DB_USER . '} u
-                    WHERE u.id = ' . $userid;
+        // Get the full user name
+        $sql = 'SELECT ' . $DB->sql_concat('u.firstname', '" "',
+                    'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
+                    ' . $DB->sql_concat('u.firstname', '" "',
+                    'u.lastname') . ' AS username
+                FROM {' . DB_USER . '} u
+                WHERE u.id = ' . $userid;
 
-            $userinfo = $DB->get_record_sql($sql);
-            $fullusername = $BAVname ? $userinfo->bavname : $userinfo->username;
+        return $DB->get_record_sql($sql);
+    }
+
+    /**
+     * Returns custom field value from the user's profile
+     *
+     * @param int $courseid         The course id
+     * @param int $participantid    The user id
+     * @param string $field         The field name associated with the rquested data
+     * @return string               The full participatn username
+     */
+    public static function get_customfield_data(int $courseid, int $userid, string $field) {
+        global $DB;
+
+        // Look for BAV category
+        $category = $DB->get_record('user_info_category', array('name'=>LOCAL_BOOKING_ATO));
+        $categoryid = 0;
+
+        if (empty($category)) {
+            return '';
+        } else {
+            $categoryid = $category->id;
         }
 
-        return $fullusername;
+        $sql = "SELECT uid.data
+                FROM {" . self::DB_USER_DATA . "} uid
+                INNER JOIN {" . self::DB_USER_FIELD . "} uif ON uif.id = uid.fieldid
+                WHERE uif.shortname = '" . $field . "'
+                AND uid.userid = " . $userid . "
+                AND uif.categoryid = " . $categoryid;
+
+        $customfieldobj = $DB->get_record_sql($sql);
+
+        return $customfieldobj->data;
     }
 }

@@ -131,12 +131,14 @@ class booking_vault implements booking_vault_interface {
     public function save_booking(booking $booking) {
         global $DB, $USER;
 
+        $slot = $booking->get_slot();
+
         $sessionrecord = new \stdClass();
         $sessionrecord->userid       = $USER->id;
         $sessionrecord->studentid    = $booking->get_studentid();
         $sessionrecord->courseid     = $booking->get_courseid();
         $sessionrecord->exerciseid   = $booking->get_exerciseid();
-        $sessionrecord->slotid       = $booking->get_slot();
+        $sessionrecord->slotid       = $slot->id;
         $sessionrecord->timemodified = time();
 
         return $DB->insert_record(static::DB_BOOKINGS, $sessionrecord);
@@ -183,6 +185,7 @@ class booking_vault implements booking_vault_interface {
      *
      * @param int $studentid
      * @param int $exerciseid
+     * @return int $exercisedate
      */
     public function get_exercise_date(int $studentid, int $exerciseid) {
         global $DB;

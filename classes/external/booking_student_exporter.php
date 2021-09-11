@@ -31,8 +31,9 @@ defined('MOODLE_INTERNAL') || die();
 
 use renderer_base;
 use core\external\exporter;
+use local_booking\local\logbook\entities\logbook;
 use local_booking\local\session\entities\action;
-use local_booking\local\participant\data_access\participant_vault;
+use local_booking\local\participant\entities\participant;
 use local_booking\local\session\data_access\booking_vault;
 
 /**
@@ -71,9 +72,9 @@ class booking_student_exporter extends exporter {
     protected $bookingvault;
 
     /**
-     * @var participant_vault $studentvault A vault to access student data.
+     * @var participants $participants A vault to access student data.
      */
-    protected $studentvault;
+    protected $participants;
 
     /**
      * Constructor.
@@ -86,7 +87,7 @@ class booking_student_exporter extends exporter {
         $this->studentid = $data['studentid'];
         $this->courseexercises = $related['courseexercises'];
         $this->bookingvault = new booking_vault();
-        $this->studentvault = new participant_vault();
+        $this->participants = new participant();
 
         parent::__construct($data, $related);
     }
@@ -201,7 +202,9 @@ class booking_student_exporter extends exporter {
      * @return  $submissions[]
      */
     protected function get_sessions($output) {
-        $this->studentgrades = $this->studentvault->get_grades($this->studentid);
+        $this->studentgrades = $this->participants->get_grades($this->studentid);
+        $logbook = new logbook($this->courseid, $this->studentid);
+        $logbook->load();
 
         foreach ($this->courseexercises as $exercise) {
             $studentinfo = [];
@@ -211,6 +214,7 @@ class booking_student_exporter extends exporter {
                 'courseid'    => $this->courseid,
                 'exerciseid'  => $exercise->exerciseid,
                 'grades'      => $this->studentgrades,
+                'logentry'    => $logbook->get_logentry(0, $exercise->exerciseid, false),
                 'booking'     => $this->bookingvault->get_student_booking($this->studentid),
             ];
             $exercisesession = new booking_session_exporter($studentinfo, $this->related);

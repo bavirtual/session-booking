@@ -15,6 +15,7 @@
 
 /**
  * This module handles logbook entry events
+ * Improvised from core_calendar.
  *
  * @module     local_booking/events
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
@@ -23,10 +24,11 @@
  */
 define([], function() {
     return {
-        created: 'logbook-entry:created',
-        updated: 'logbook-entry:updated',
-        editEvent: 'logbook-entry:edit_event',
-        editActionEvent: 'logbook-entry:edit_action_event',
-        viewUpdated: 'logbook-entry:view_updated',
+        canceled: 'booking-events:canceled',
+        created: 'booking-events:created',
+        updated: 'booking-events:updated',
+        editLogentry: 'booking-events:edit_logentry',
+        viewUpdated: 'booking-events:view_updated',
+        gotoFeedback: 'booking-events:goto_feedback',
     };
 });

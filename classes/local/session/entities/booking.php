@@ -26,6 +26,7 @@
 namespace local_booking\local\session\entities;
 
 use local_booking\local\session\data_access\booking_vault;
+use \local_booking\local\slot\entities\slot;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -129,7 +130,7 @@ class booking implements booking_interface {
     /**
      * Get the slot id for the booking.
      *
-     * @return int
+     * @return slot
      */
     public function get_slot() {
         return $this->slot;
@@ -225,9 +226,9 @@ class booking implements booking_interface {
     /**
      * Set the id of booked slot.
      *
-     * @return stdClass
+     * @return slot
      */
-    public function set_slot(stdClass $slot) {
+    public function set_slot(slot $slot) {
         $this->slot = $slot;
     }
 

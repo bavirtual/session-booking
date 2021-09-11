@@ -37,11 +37,18 @@ defined('MOODLE_INTERNAL') || die();
 interface logbook_interface {
 
     /**
-     * Get the logbook of a student.
+     * Loads the logbook of entries for a student.
      *
-     * @return logentry[]
+     * @return bool true if the Logbook has entries
      */
     public function load();
+
+    /**
+     * Whether the logbook as entries or not.
+     *
+     * @return bool true if the Logbook has entries
+     */
+    public function has_entries();
 
     /**
      * Save a logbook entry.
@@ -56,6 +63,13 @@ interface logbook_interface {
      * @return bool
      */
     public function update(logentry $logentry);
+
+    /**
+     * Saves a logbook entry (create or update).
+     *
+     * @return bool
+     */
+    public function save(logentry $logentry);
 
     /**
      * Load a logbook entry.
