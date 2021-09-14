@@ -38,13 +38,11 @@ function(
     Modal,
     ModalEvents,
     ModalRegistry,
-    BookingEvents
 ) {
 
     var registered = false;
     var SELECTORS = {
-        DELETE_ONE_BUTTON: '[data-action="deleteone"]',
-        DELETE_ALL_BUTTON: '[data-action="deleteall"]',
+        DELETE_BUTTON: '[data-action="delete"]',
         CANCEL_BUTTON: '[data-action="cancel"]',
     };
 
@@ -73,18 +71,8 @@ function(
         // Apply parent event listeners.
         Modal.prototype.registerEventListeners.call(this);
 
-        this.getModal().on(CustomEvents.events.activate, SELECTORS.DELETE_ONE_BUTTON, function(e, data) {
+        this.getModal().on(CustomEvents.events.activate, SELECTORS.DELETE_BUTTON, function(e, data) {
             var saveEvent = $.Event(ModalEvents.save);
-            this.getRoot().trigger(saveEvent, this);
-
-            if (!saveEvent.isDefaultPrevented()) {
-                this.hide();
-                data.originalEvent.preventDefault();
-            }
-        }.bind(this));
-
-        this.getModal().on(CustomEvents.events.activate, SELECTORS.DELETE_ALL_BUTTON, function(e, data) {
-            var saveEvent = $.Event(BookingEvents.deleteAll);
             this.getRoot().trigger(saveEvent, this);
 
             if (!saveEvent.isDefaultPrevented()) {

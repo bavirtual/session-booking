@@ -125,6 +125,17 @@ class logbook implements logbook_interface {
     }
 
     /**
+     * Deletes a logbook entry.
+     *
+     * @return bool
+     */
+    public function delete(int $logentryid) {
+        $vault = new logbook_vault();
+
+        return $vault->delete_logentry($logentryid);
+    }
+
+    /**
      * Get the logbook of a student.
      *
      * @return logentry[]

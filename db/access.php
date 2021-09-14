@@ -54,6 +54,15 @@ $capabilities = array(
         )
     ),
 
+    'local/booking:participationview' => array(
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'coursecreator' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        )
+    ),
+
     'local/booking:studentnotification' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,

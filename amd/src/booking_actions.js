@@ -79,7 +79,7 @@ function(
             .then(function(response) {
                 if (response.validationerror) {
                     // eslint-disable-next-line no-alert
-                    alert('Errors encountered: Unable to cancel booking!');
+                    alert(Str.get_string('errorlogentrycancel', 'local_booking'));
                 }
                 return;
             })
@@ -94,11 +94,12 @@ function(
     /**
      * Prepares the action for the summary modal's delete action.
      *
-     * @param {Number} logentrytId The ID of the logentry.
-     * @param {string} logentrytTitle The logentry title.
+     * @param {Number} logentryId The ID of the logentry.
+     * @param {Number} studentId The student of the logentry.
+     * @param {Number} courseId The course of the logentry.
      * @return {Promise}
      */
-    function confirmDeletion(logentrytId, logentrytTitle) {
+    function confirmDeletion(logentryId, studentId, courseId) {
         var pendingPromise = new Pending('local_booking/logentry_actions:confirmDeletion');
         var deleteStrings = [
             {
@@ -110,8 +111,7 @@ function(
         var deletePromise;
         deleteStrings.push({
             key: 'confirmlogentrydelete',
-            component: 'local_booking',
-            param: logentrytTitle
+            component: 'local_booking'
         });
 
 
@@ -132,20 +132,9 @@ function(
 
             deleteModal.getRoot().on(ModalEvents.save, function() {
                 var pendingPromise = new Pending('local_booking/logentry_actions:initModal:deletedlogentry');
-                Repository.deleteLogentry(logentrytId, false)
+                Repository.deleteLogentry(logentryId, studentId, courseId)
                     .then(function() {
-                        $('body').trigger(BookingEvents.deleted, [logentrytId, false]);
-                        return;
-                    })
-                    .then(pendingPromise.resolve)
-                    .catch(Notification.exception);
-            });
-
-            deleteModal.getRoot().on(BookingEvents.deleteAll, function() {
-                var pendingPromise = new Pending('local_booking/logentry_actions:initModal:deletedalllogentry');
-                Repository.deleteLogentry(logentrytId, true)
-                    .then(function() {
-                        $('body').trigger(BookingEvents.deleted, [logentrytId, true]);
+                        $('body').trigger(BookingEvents.deleted, [logentryId, false]);
                         return;
                     })
                     .then(pendingPromise.resolve)
@@ -187,7 +176,7 @@ function(
             logentryFormPromise.then(function(modal) {
                 // When something within the progression booking tells us the user wants
                 // to edit an logentry then show the logentry form modal.
-                modal.setLogentryId(logentryWrapper.data('logentrytId'));
+                modal.setLogentryId(logentryWrapper.data('logentryId'));
                 modal.setStudentId(logentryWrapper.data('studentId'));
                 modal.setCourseId(bookingWrapper.data('courseId'));
                 modal.setContextId(bookingWrapper.data('contextId'));
@@ -203,24 +192,26 @@ function(
     };
 
     /**
-     * Register the listeners required to remove the logentry.
+     * Register the listeners required to delete the logentry.
      *
      * @param   {jQuery} root
      */
-     function registerRemove(root) {
-        root.on('click', BookingSelectors.actions.remove, function(e) {
+     function registerDelete(root) {
+        root.on('click', BookingSelectors.actions.delete, function(e) {
             // Fetch the logentry title, and pass them into the new dialogue.
-            var logentrySource = $(this).closest(BookingSelectors.logentryItem);
-            var logentrytId = logentrySource.data('logentrytId'),
-                logentrytTitle = logentrySource.data('logentrytTitle');
-            confirmDeletion(logentrytId, logentrytTitle);
+            var logentrySource = root.find(BookingSelectors.logentryItem),
+                logentryId = logentrySource.data('logentryId'),
+                studentId = logentrySource.data('studentId'),
+                courseId = logentrySource.data('courseId');
+            confirmDeletion(logentryId, studentId, courseId);
 
             e.preventDefault();
         });
     }
 
     /**
-     * Register the listeners required to remove the logentry.
+     * Register the listeners required to redirect to
+     * assignment grading page.
      *
      * @param   {jQuery} root
      */
@@ -254,9 +245,9 @@ function(
         .then(function(modal) {
             // When something within the progression booking tells us the user wants
             // to edit an logentry then show the logentry form modal.
-            $('body').on(BookingEvents.editLogentry, function(e, logentrytId, studentId) {
+            $('body').on(BookingEvents.editLogentry, function(e, logentryId, studentId) {
                 var bookingWrapper = root.find(BookingSelectors.progressionwrapper);
-                modal.setLogentryId(logentrytId);
+                modal.setLogentryId(logentryId);
                 modal.setStudentId(studentId);
                 modal.setCourseId(bookingWrapper.data('courseid'));
                 modal.setContextId(bookingWrapper.data('contextId'));
@@ -276,7 +267,7 @@ function(
 
     return {
         registerRedirect: registerRedirect,
-        registerRemove: registerRemove,
+        registerDelete: registerDelete,
         registerEditListeners: registerEditListeners,
         registerLogentryFormModal: registerLogentryFormModal,
         cancelBooking: cancelBooking

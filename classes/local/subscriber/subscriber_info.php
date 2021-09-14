@@ -35,6 +35,17 @@ defined('MOODLE_INTERNAL') || die();
  */
 class subscriber_info  {
 
+    // $handler = \core_customfield\handler::get_handler('core_course', 'course');
+    // $datas = $handler->get_instance_data($courseid);
+    // $metadata = [];
+    // foreach ($datas as $data) {
+    //     if (empty($data->get_value())) {
+    //         continue;
+    //     }
+    //     $cat = $data->get_field()->get_category()->get('name');
+    //     $metadata[$data->get_field()->get('shortname')] = $cat . ': ' . $data->get_value();
+    // }
+
     /**
      * Constructor.
      *

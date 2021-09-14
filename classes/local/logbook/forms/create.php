@@ -155,7 +155,7 @@ class create extends \moodleform {
         $mform->setAdvanced('toicao');
 
         // Add the javascript required to enhance this mform.
-        $PAGE->requires->js_call_amd('local_booking/logentry_form', 'init', [$mform->getAttribute('id')]);
+        $PAGE->requires->js_call_amd('local_booking/modal_logentry_form', 'init', [$mform->getAttribute('id')]);
     }
 
     /**

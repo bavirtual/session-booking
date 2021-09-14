@@ -112,6 +112,24 @@ class participant implements participant_interface {
     }
 
     /**
+     * Returns the date of the last
+     * graded session.
+     *
+     * @param   int         The user id
+     * @param   int         The course id
+     * @return  DateTime    The timestamp of the last grading
+     */
+    function get_last_graded_date($instructorid, $courseid) {
+        $vault = new participant_vault();
+
+        $lastgraded = $vault->get_last_graded_date($instructorid, $courseid);
+
+        $lastgradeddate = !empty($lastgraded) ? new DateTime('@' . $lastgraded->timemodified) : null;
+
+        return $lastgradeddate;
+    }
+
+    /**
      * Returns whether the student complete
      * all sessons prior to the upcoming next
      * exercise.

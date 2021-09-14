@@ -52,7 +52,10 @@ class logbook_vault implements logbook_vault_interface {
         global $DB;
 
         $logbook = [];
-        $sql = 'SELECT * FROM {' . self::DB_LOGBOOKS . '} lb
+        $sql = 'SELECT lb.id, lb.courseid, lb.exerciseid, lb.userid, lb.flighttimemins,
+                    lb.sessiontimemins, lb.soloflighttimemins, lb.aircrafticao, lb.callsign,
+                    lb.picid, lb.sicid, lb.pirep, lb.fromicao, lb.toicao, lb.timemodified
+                FROM {' . self::DB_LOGBOOKS . '} lb
                 INNER JOIN {' . self::DB_COURSE_MODULES . '} cm ON cm.id = lb.exerciseid
                 INNER JOIN {' . self::DB_COURSE_SECTIONS . '} cs ON cs.id = cm.section
                 WHERE userid = ' . $studentid .'
@@ -142,6 +145,18 @@ class logbook_vault implements logbook_vault_interface {
         $totalsolotime = $summary->totalsolotime;
 
         return [$totalflighttime, $totalsessiontime, $totalsolotime];
+    }
+
+    /**
+     * Delete a logbook entry by id
+     *
+     * @param int   $logentryid   The logbook entry id to be deleted.
+     * @return bool result of the database update operation.
+     */
+    public function delete_logentry($logentryid) {
+        global $DB;
+
+        return $DB->delete_records(static::DB_LOGBOOKS, ['id'=>$logentryid]);
     }
 
     /**

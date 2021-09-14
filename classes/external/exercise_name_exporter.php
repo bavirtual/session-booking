@@ -64,9 +64,6 @@ class exercise_name_exporter extends exporter {
             'exercisetitle' => [
                 'type' => PARAM_RAW,
             ],
-            'exercisetype' => [
-                'type' => PARAM_RAW,
-            ],
         ];
     }
 }

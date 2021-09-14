@@ -115,7 +115,7 @@ class local_booking_external extends external_api {
     }
 
     /**
-     * Retrieve instructor's booking.
+     * Retrieve a logbook entry by its id.
      *
      * @param int $logentryid The logbook entry id.
      * @param int $courseid The course id in context.
@@ -158,6 +158,62 @@ class local_booking_external extends external_api {
             'warnings' => new external_warnings()
             )
         );
+    }
+
+    /**
+     * Returns description of method parameters.
+     *
+     * @return external_function_parameters.
+     * @since Moodle 2.5
+     */
+    public static function delete_logentry_parameters() {
+        return new external_function_parameters(
+            array(
+                'logentryid'  => new external_value(PARAM_INT, 'The logbook entry id', VALUE_DEFAULT),
+                'studentid'  => new external_value(PARAM_INT, 'The student id', VALUE_DEFAULT),
+                'courseid'  => new external_value(PARAM_INT, 'The course id in context', VALUE_DEFAULT),
+            )
+        );
+    }
+
+    /**
+     * Delete a logbook entry.
+     *
+     * @param int $logentryid The logbook entry id.
+     * @param int $studentid The student user id in context.
+     * @param int $courseid The course id in context.
+     * @return array array of slots created.
+     * @throws moodle_exception if user doesnt have the permission to create events.
+     */
+    public static function delete_logentry($logentryid, $studentid, $courseid) {
+        global $PAGE;
+
+        // Parameter validation.
+        $params = self::validate_parameters(self::delete_logentry_parameters(), array(
+                'logentryid' => $logentryid,
+                'courseid' => $courseid,
+                'studentid' => $studentid,
+                )
+            );
+
+        $context = context_course::instance($courseid);
+        self::validate_context($context);
+        $PAGE->set_url('/local/booking/');
+
+        $logbook = new logbook($courseid, $studentid);
+        $logbook->delete($logentryid);
+
+        return null;
+    }
+
+    /**
+     * Returns description of method result value.
+     *
+     * @return external_description.
+     * @since Moodle 2.5
+     */
+    public static function delete_logentry_returns() {
+        return null;
     }
 
     /**

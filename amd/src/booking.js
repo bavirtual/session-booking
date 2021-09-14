@@ -68,6 +68,9 @@ define([
         body.on(BookingEvents.updated, function() {
             ViewManager.refreshProgressionContent(root);
         });
+        body.on(BookingEvents.deleted, function() {
+            ViewManager.refreshProgressionContent(root);
+        });
 
         if (logentryFormModalPromise !== 'undefined') {
             BookingActions.registerEditListeners(root, logentryFormModalPromise);

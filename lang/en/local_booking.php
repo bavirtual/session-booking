@@ -9,16 +9,35 @@
  */
 
 // Booking
+$string['activestudents'] = 'Active Trainees Progression';
+$string['book'] = 'Book';
+$string['booking'] = 'Booking';
+$string['bookingactive'] = 'My Active Bookings';
+$string['bookingcancel'] = 'Cancel';
+$string['bookingcanceledsuccess'] = 'Booking with \'{$a->studentname}\' cancelled!';
+$string['bookingcanceledunable'] = 'Unable to cancel booking!';
+$string['bookingconfirmmsg'] = '{$a->status} session on \'{$a->exercise}\' with instructor {$a->instructor}.';
+$string['bookingconfirmsuccess'] = 'Booking confirmed for \'{$a->exercise}\' with \'{$a->instructor}\' on \'{$a->sessiondate}\' zulu.';
+$string['bookingconfirmunable'] = 'Unable to confirm booking!';
+$string['bookinginfo'] = '{$a->status} session on \'{$a->exercise}\' with instructor {$a->instructor}';
+$string['bookingsavesuccess'] = 'Booking saved for \'{$a->exercise}\' with \'{$a->studentname}\' on \'{$a->sessiondate}\' zulu.';
+$string['bookingsaveunable'] = 'Unable to save booking!';
 $string['bookingfooter'] = '{$a->coursename} -> <a href="{$a->bookingurl}">Session Booking</a>';
+$string['booksave'] = 'Save Booking';
 $string['cancellationcomment'] = 'Please provide the student with a short comment on this cancellation:';
 $string['crontask'] = 'Background processing for session booking';
+$string['elapseddays'] = 'Elapsed Days';
 $string['enroldate'] = 'Enrol Date';
 $string['exercise'] = 'Exercise';
 $string['incompletelessontooltip'] = 'The student has not completed ground lesson';
+$string['instructors'] = 'Instructors';
+$string['lastsessiondate'] = 'Last VFC Flight/Lesson';
+$string['participation'] = 'Instructor Participation';
 $string['pluginname'] = 'Session Booking';
 $string['progression'] = 'Students Progression';
 $string['mystudents'] = 'My Assigned Trainees';
 $string['nextlesson'] = 'Next Lesson';
+$string['role'] = 'Role';
 $string['sequencetooltip'] = 'Score: {$a->score}<br/>Last session: {$a->recency} days<br/>Course activity: {$a->activity} views
 <br/>Availability: {$a->slots} posts<br/>Completion: {$a->completion} lessons';
 $string['sessionaction'] = 'Action';
@@ -28,30 +47,18 @@ $string['sessiongradeddby'] = 'Graded date: {$a->sessiondate} Graded by \'{$a->i
 $string['simulator'] = 'Sim';
 $string['statusbooked'] = 'confirmed';
 $string['statustentative'] = 'tentative';
-$string['studentavialability'] = 'Student Availability';
 $string['students'] = 'Trainees';
-$string['activestudents'] = 'Active Trainees Progression';
+$string['studentavialability'] = 'Student Availability';
+$string['unknown'] = 'No grading record!';
 $string['zulutime'] = 'Zulu';
-$string['book'] = 'Book';
-$string['booking'] = 'Booking';
-$string['bookingactive'] = 'My Active Bookings';
-$string['bookingcancel'] = 'Cancel';
-$string['bookingcanceledsuccess'] = 'Booking with \'{$a->studentname}\' cancelled!';
-$string['bookingcanceledunable'] = 'Unable to cancel booking!';
-$string['bookingconfirmmsg'] = '{$a->status} session on \'{$a->exercise}\' with instructor {$a->instructor}.';
-$string['bookinginfo'] = '{$a->status} session on \'{$a->exercise}\' with instructor {$a->instructor}';
-$string['bookingconfirmsuccess'] = 'Booking confirmed for \'{$a->exercise}\' with \'{$a->instructor}\' on \'{$a->sessiondate}\' zulu.';
-$string['bookingconfirmunable'] = 'Unable to confirm booking!';
-$string['bookingsavesuccess'] = 'Booking saved for \'{$a->exercise}\' with \'{$a->studentname}\' on \'{$a->sessiondate}\' zulu.';
-$string['bookingsaveunable'] = 'Unable to save booking!';
-$string['booksave'] = 'Save Booking';
 
 // capabilities
-$string['booking:view'] = 'View session bookings';
 $string['booking:availabilityview'] = 'View availability posting';
-$string['booking:logbookview'] = 'View pilot log book';
-$string['booking:studentnotification'] = 'Instructor notifications';
 $string['booking:instructornotification'] = 'Student notifications';
+$string['booking:logbookview'] = 'View pilot log book';
+$string['booking:participationview'] = 'View instructor participation';
+$string['booking:studentnotification'] = 'Instructor notifications';
+$string['booking:view'] = 'View session bookings';
 
 // message providers
 $string['messageprovider:booking_notification'] = 'Session booked notification';
@@ -72,14 +79,14 @@ $string['emailnotifyhtml'] = '<font face="sans-serif"><p>{$a->coursename} -> Ass
 // email to instructor: confirming session tentative by him/her
 $string['emailconfirm'] = 'Session booked';
 $string['emailconfirmsubject'] = '{$a->coursename} session booked: \'{$a->exercise}\'';
-$string['emailconfirmnmsg'] = '\'{$a->exercise}\' session booked on {$a->sessiondate} for {$a->student}.';
-$string['emailconfirmhtml'] = '<font face="sans-serif"><p>{$a->coursename} -> Assignment -> {$a->exercise}</p><hr /><p>Session booked on <strong>{$a->sessiondate}</strong> for \'<i>{$a->exercise}</i>\' with <strong>{$a->student}</strong>.</p></p><hr />';
+$string['emailconfirmnmsg'] = '\'{$a->exercise}\' session booked with {$a->student} for \'{$a->exercise}\' on {$a->sessiondate}.';
+$string['emailconfirmhtml'] = '<font face="sans-serif"><p>{$a->coursename} -> Assignment -> {$a->exercise}</p><hr /><p>Session booked with <strong>{$a->student}</strong> for \'<i>{$a->exercise}</i>\' on <strong>{$a->sessiondate}</strong>.</p></p><hr />';
 
 // email to instructor: session confirmed by student
 $string['emailinstconfirm'] = 'Booked session confirmed by Student';
 $string['emailinstconfirmsubject'] = '{$a->coursename} - Student confirmed booking: \'{$a->exercise}\'';
-$string['emailinstconfirmnmsg'] = '{$a->student} confirmed session booked on {$a->sessiondate} for \'{$a->exercise}\'.';
-$string['emailinstconfirmhtml'] = '<font face="sans-serif"><p>{$a->coursename} -> Assignment -> {$a->exercise}</p><hr /><p><strong>{$a->student}</strong> confirmed booked session on <strong>{$a->sessiondate}</strong> for \'<i>{$a->exercise}</i>\'.</p></p><hr />';
+$string['emailinstconfirmnmsg'] = '{$a->student} confirmed session booked for \'{$a->exercise}\' on {$a->sessiondate}.';
+$string['emailinstconfirmhtml'] = '<font face="sans-serif"><p>{$a->coursename} -> Assignment -> {$a->exercise}</p><hr /><p><strong>{$a->student}</strong> confirmed booked session for \'<i>{$a->exercise}</i>\' on <strong>{$a->sessiondate}</strong>.</p></p><hr />';
 
 // email to student: session cancellation
 $string['emailcancel'] = '{$a->coursename} session booking cancellation: \'{$a->exercise}\'';
@@ -106,16 +113,14 @@ $string['emailsuspendnotifymsg'] = 'Please note that you have been suspended fro
 $string['emailsuspendnotifyhtml'] = '<font face="sans-serif">Please note you have been suspended from the \'{$a->coursename}\' course due to session booking inactivity since <strong>\'{$a->lastsessiondate}\'</strong>.<p>Please contact your instructor if you are still interested in being enrolled in this course.</p></font><hr />';
 
 // email to instructor: session overdue notification
+$string['emailoverduenobooking'] = 'no booking on record';
 $string['emailoverduenotify'] = '{$a->coursename}: Session overdue notification';
-$string['emailoverduenotifymsg'] = 'Please note that you have not booked a session since \'{$a->lastsessiondate}\'.  Please book a session with your assigned student or any student from the booking view. Otherwise, please ask the course administrator to remove you from the list of active instructors for this course.
+$string['emailoverduenotifymsg'] = 'Please note that you have {$a->status}.  Please book a session with your assigned student or any student from the booking view. Otherwise, please ask the course administrator to remove you from the list of active instructors for this course.
 You can book a session from the following view link: {$a->bookingurl}';
 $string['emailoverduenotifyhtml'] = '<font face="sans-serif">Please note that you have not booked a session since <strong>\'{$a->lastsessiondate}\'</strong>.<p>Please book a session with your assigned student or any student from the <a href="{$a->bookingurl}">booking view</a> as soon as possible. To stop receiving these messages, please ask the course administrator to remove you from the list of active instructors for this course.</p></font><hr />';
+$string['emailoverduestatus'] = 'not booked a session since \'{$a}\'';
 
 // settings
-$string['coursesusing'] = 'Courses using Session Booking plugin:';
-$string['coursesusingdesc'] = 'Course shortnames delimited by commas';
-$string['exercisetitles'] = 'Course exercise titles:';
-$string['exercisetitlesdesc'] = 'titles delimited by commas';
 $string['recencydaysweight'] = 'Recency prioritization weight multiplier';
 $string['recencydaysweightdesc'] = 'multipler to calculate prioritization for session recency';
 $string['slotcountweight'] = 'Slot count weight multiplier';
@@ -164,9 +169,12 @@ $string['weeknext'] = 'Next week';
 // Logbook
 $string['aircraft'] = 'Aircraft';
 $string['callsign'] = 'Callsign';
-$string['deletelogentry'] = 'Delete this event';
-$string['editlogentry'] = 'Editing Log Book Entry';
+$string['confirmlogentrydelete'] = 'Are you sure you want to delete this entry?';
+$string['deletelogentry'] = 'Delete entry';
+$string['editlogentry'] = 'Editing Log Book entry';
 $string['errorinvaliddate'] = 'Flight date cannot be before booked session date';
+$string['errorlogentrycancel'] = 'Errors encountered: Unable to cancel booking!';
+$string['errorlogentryfetch'] = 'Error encountered while trying to fetch logbook entry with ID: ';
 $string['feedback'] = 'Feedback';
 $string['flightdate'] = 'Flight date';
 $string['flightdate2'] = 'flight date';
@@ -178,7 +186,7 @@ $string['logbooksummary'] = 'LOG BOOK SUMMARY';
 $string['logentry'] = 'Log Book Entry';
 $string['logentry2'] = 'Log entry';
 $string['logentrymissing'] = 'Log book entry missing!';
-$string['newlogentry'] = 'New Log Book Entry';
+$string['newlogentry'] = 'New Log Book entry';
 $string['pic'] = 'Pilot in command';
 $string['pic2'] = 'PIC';
 $string['pilot'] = 'Pilot';
@@ -193,3 +201,11 @@ $string['toicao'] = 'Arrival ICAO';
 $string['totalflighttime'] = 'Total flight time';
 $string['totalsessiontime'] = 'Total session time';
 $string['totalsolotime'] = 'Total solo flight time';
+
+// install
+$string['useplugin'] = 'Use Session Booking';
+$string['homeicao'] = 'Home airport ICAO';
+$string['exercisetitles'] = 'Course exercise titles:';
+$string['exercisetitlesdesc'] = 'Session Booking column titles (one title per line, use &lt;br/&gt; tag to break a title)';
+$string['trainingaircraft'] = 'Training Aircraft ICAO';
+$string['trainingaircraftdesc'] = '(one per line)';

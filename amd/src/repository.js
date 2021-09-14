@@ -212,3 +212,26 @@ export const getCalendarWeekData = (year, week, time, courseId, categoryId, acti
 
     return Ajax.call([request])[0];
 };
+
+/**
+ * Delete a log book entry by id.
+ *
+ * @method deleteLogentry
+ * @param {number} logentryId The logbook entry id to delete.
+ * @param {number} studentId The logbook entry course id.
+ * @param {number} courseId The logbook entry student id.
+ * @return {promise} Resolved with requested calendar event
+ */
+ export const deleteLogentry = (logentryId, studentId, courseId) => {
+
+    const request = {
+        methodname: 'local_booking_delete_logentry',
+        args: {
+            logentryid: logentryId,
+            studentid: studentId,
+            courseid: courseId
+        }
+    };
+
+    return Ajax.call([request])[0];
+};

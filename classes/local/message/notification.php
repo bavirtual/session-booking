@@ -255,12 +255,12 @@ class notification extends \core\message\message {
      *
      * @return bool  The notification message id.
      */
-    public function send_session_overdue_notification($instructorid, $lastsessiondate, $courseid, $coursename) {
+    public function send_session_overdue_notification($instructorid, $status, $courseid, $coursename) {
         // notification message data
         $data = (object) array(
-            'coursename'        => $coursename,
-            'lastsessiondate'   => $lastsessiondate->format('M d, Y'),
-            'bookingurl'        => (new \moodle_url('/local/booking/view.php', array('courseid'=>$courseid)))->out(false),
+            'coursename'    => $coursename,
+            'status'        => $status->format('M d, Y'),
+            'bookingurl'    => (new \moodle_url('/local/booking/view.php', array('courseid'=>$courseid)))->out(false),
         );
 
         $this->name              = 'sessionoverdue_notification';

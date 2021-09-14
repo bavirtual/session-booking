@@ -72,4 +72,12 @@ interface logbook_vault_interface {
      * @return bool     $result of the database update operation.
      */
     public function update_logentry(int $courseid, int $studentid, logentry $logentry);
+
+    /**
+     * Delete a logbook entry by id
+     *
+     * @param int   $logentryid   The logbook entry id to be deleted.
+     * @return bool result of the database update operation.
+     */
+    public function delete_logentry($logentryid);
 }

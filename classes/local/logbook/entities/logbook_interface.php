@@ -72,6 +72,13 @@ interface logbook_interface {
     public function save(logentry $logentry);
 
     /**
+     * Deletes a logbook entry.
+     *
+     * @return bool
+     */
+    public function delete(int $logentryid);
+
+    /**
      * Load a logbook entry.
      *
      * @return logentry

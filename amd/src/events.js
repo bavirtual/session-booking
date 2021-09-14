@@ -26,6 +26,7 @@ define([], function() {
     return {
         canceled: 'booking-events:canceled',
         created: 'booking-events:created',
+        deleted: 'booking-events:deleted',
         updated: 'booking-events:updated',
         editLogentry: 'booking-events:edit_logentry',
         viewUpdated: 'booking-events:view_updated',

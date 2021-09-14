@@ -42,8 +42,6 @@ define([
         var registerEventListeners = function(root, type) {
             var body = $('body');
 
-            BookingActions.registerRemove(root);
-
             var reloadFunction = 'reloadCurrent' + type.charAt(0).toUpperCase() + type.slice(1);
 
             body.on(BookingEvents.created, function() {

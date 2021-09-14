@@ -32,22 +32,6 @@ if ($hassiteconfig) {
     $settingspage = new admin_settingpage('managelocalbooking', LOCAL_BOOKING_ATO . (new lang_string('pluginname', 'local_booking')));
 
     if ($ADMIN->fulltree) {
-        // exercise titles
-        $settingspage->add(new admin_setting_configtext('local_booking/coursesusing',
-            new lang_string('coursesusing', 'local_booking'), new lang_string('coursesusingdesc', 'local_booking'),
-            '', PARAM_RAW)
-        );
-    }
-
-    if ($ADMIN->fulltree) {
-        // exercise titles
-        $settingspage->add(new admin_setting_configtext('local_booking/exercisetitles',
-            new lang_string('exercisetitles', 'local_booking'), new lang_string('exercisetitlesdesc', 'local_booking'),
-            '', PARAM_RAW)
-        );
-    }
-
-    if ($ADMIN->fulltree) {
         // last session recency days weight multiplier
         $settingspage->add(new admin_setting_configtext('local_booking/recencydaysweight',
             new lang_string('recencydaysweight', 'local_booking'), new lang_string('recencydaysweightdesc', 'local_booking'),

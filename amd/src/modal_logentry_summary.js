@@ -161,7 +161,7 @@ function(
                 logentryId: this.getLogentryId(),
             })
             .attr('data-type', 'logentry');
-            BookingActions.registerRemove(this.getModal());
+            BookingActions.registerDelete(this.getModal());
             BookingActions.registerRedirect(this.getModal());
             M.util.js_complete('local_booking/modal_logentry_summary:registerEventListeners:bodyRendered');
         }.bind(this));

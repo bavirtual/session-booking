@@ -31,6 +31,7 @@ use core\external\exporter;
 use local_booking\local\session\data_access\booking_vault;
 use local_booking\local\participant\entities\participant;
 use local_booking\local\session\entities\priority;
+use local_booking\local\subscriber\subscriber_info;
 use renderer_base;
 use moodle_url;
 
@@ -152,25 +153,20 @@ class bookings_exporter extends exporter {
      */
     protected function get_exercises($output) {
         $this->exercisenames = get_exercise_names();
-
-        // get titles from the plugin settings which should be delimited by comma
-        $exercisetitles = explode(',', get_config('local_booking', 'exercisetitles'));
-
+        // get titles from the course custom fields exercise titles array
+        $subscribedcourse = new subscriber_info($this->data['courseid']);
         $exerciseslabels = [];
 
-        $i = 0;
+        $titlevalue = array_values($subscribedcourse->exercisetitles);
         foreach($this->exercisenames as $name) {
             // break down each setting title by <br/> tag, until a better way is identified
-            $titleitem = explode('<br/>', $exercisetitles[$i]);
-            $name->title = $titleitem[0];
-            $name->type = $titleitem[1];
+            $customtitle = array_shift($titlevalue);
+            $name->title = !empty($customtitle) ? $customtitle : $name->exercisename;
             $data = [
                 'exerciseid'    => $name->exerciseid,
                 'exercisename'  => $name->exercisename,
                 'exercisetitle' => $name->title,
-                'exercisetype'  => $name->type,
             ];
-            $i++;
 
             $exercisename = new exercise_name_exporter($data);
             $exerciseslabels[] = $exercisename->export($output);

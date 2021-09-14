@@ -57,8 +57,7 @@
                 </th>
                 {{#exercisenames}}
                 <th class="header booking-header text-xs-center" data-region="lesson-exercise" style="width: 100px;">
-                    <span class="media-body small" aria-hidden="true">{{exercisetitle}}</span><br/>
-                    <span class="media-body small" aria-hidden="true">{{exercisetype}}</span>
+                    <span class="media-body small" aria-hidden="true">{{#shortentext}} 15, {{{exercisetitle}}} {{/shortentext}}</span>
                 </th>
                 {{/exercisenames}}
             </tr>

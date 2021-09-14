@@ -177,7 +177,7 @@ class booking_student_exporter extends exporter {
             'actionurl'        => $action->get_url()->out(false),
             'actiontype'       => $action->get_type(),
             'actionname'       => $action->get_name(),
-            'actionbook'       => $action->get_type() == 'book',
+            'actionbook'       => $action->get_name() == 'Book',
             'lessonincomplete' => $hasincompletelessons,
         ];
 

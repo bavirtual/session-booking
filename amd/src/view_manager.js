@@ -284,7 +284,7 @@ export const refreshProgressionContent = (root, courseId, categoryId, target = n
     return Repository.getLogentryById(logentryId, courseId, studentId)
     .then((getEventResponse) => {
         if (!getEventResponse.logentry) {
-            throw new Error('Error encountered while trying to fetch logbook entry with ID: ' + logentryId);
+            throw new Error(Str.get_string('errorlogentryfetch', 'local_booking') + logentryId);
         }
 
         return getEventResponse.logentry;

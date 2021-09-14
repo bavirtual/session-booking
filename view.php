@@ -65,14 +65,14 @@ if ($iscourse && !empty($courseid)) {
 require_login($course, false);
 
 $url->param('courseid', $courseid);
-
+$context = context_course::instance($courseid);
 
 // RobinHerbots-Inputmask library to mask flight times in the Log Book modal form
 $PAGE->requires->jquery();
 $PAGE->requires->js( new moodle_url($CFG->wwwroot . '/node_modules/inputmask/dist/jquery.inputmask.min.js'), true);
 
 $PAGE->navbar->add(userdate(time(), get_string('strftimedate')));
-$PAGE->set_pagelayout('standard');  // otherwise use 'standard' layout
+$PAGE->set_pagelayout('standard');
 $PAGE->set_title($title, 'local_booking');
 $PAGE->set_heading($title, 'local_booking');
 $PAGE->add_body_class('path-local-booking');
@@ -83,14 +83,16 @@ echo $OUTPUT->header();
 echo $renderer->start_layout();
 echo html_writer::start_tag('div', array('class'=>'heightcontainer'));
 
-// list($data, $template) = get_progression_view($courseid, $categoryid);
-// echo $renderer->render_from_template($template, $data);
-
 list($data, $template) = get_bookings_view($courseid);
 echo $renderer->render_from_template($template, $data);
 
 list($data, $template) = get_students_view($courseid);
 echo $renderer->render_from_template($template, $data);
+
+if (has_capability('local/booking:participationview', $context)) {
+    list($data, $template) = get_participation_view($courseid);
+    echo $renderer->render_from_template($template, $data);
+}
 
 echo html_writer::end_tag('div');
 echo $renderer->complete_layout();

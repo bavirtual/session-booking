@@ -139,7 +139,7 @@ class participant_vault implements participant_vault_interface {
     public function get_active_instructors(int $courseid = 0) {
         global $DB;
 
-        $sql = 'SELECT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
+        $sql = 'SELECT DISTINCT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
                     'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
                     ue.timemodified AS enroldate, en.courseid AS courseid,
                     u.lastlogin AS lastlogin
@@ -227,6 +227,29 @@ class participant_vault implements participant_vault_interface {
                 ORDER BY cm.section';
 
         return $DB->get_records_sql($sql);
+    }
+
+    /**
+     * Returns the timestamp of the last
+     * graded session.
+     *
+     * @param   int The user id
+     * @param   int The course id
+     * @return  stdClass The record containing timestamp of the last grading
+     */
+    function get_last_graded_date($userid, $courseid) {
+        global $DB;
+
+        // Get the student's grades
+        $sql = 'SELECT timemodified
+                FROM {' . self::DB_GRADES . '} ag
+                INNER JOIN {' . self::DB_COURSE_MODS . '} cm ON cm.instance = ag.assignment
+                WHERE grader = ' . $userid . '
+                AND cm.course = ' . $courseid . '
+                ORDER BY timemodified DESC
+                LIMIT 1';
+
+        return $DB->get_record_sql($sql);
     }
 
     /**

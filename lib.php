@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use local_booking\external\bookings_exporter;
 use local_booking\external\assigned_students_exporter;
+use local_booking\external\instructor_participation_exporter;
 use local_booking\external\logbook_exporter;
 use local_booking\external\logentry_exporter;
 use local_booking\local\slot\data_access\slot_vault;
@@ -40,8 +41,8 @@ use local_booking\local\logbook\forms\create as update_logentry_form;
 use local_booking\external\week_exporter;
 use local_booking\local\logbook\entities\logbook;
 use local_booking\local\logbook\entities\logentry;
+use local_booking\local\subscriber\subscriber_info;
 
-global $COURSE;
 /**
 * LOCAL_BOOKING_ATO - constant value for VATSIM’s Authorized Training Organizations (ATOs)
 */
@@ -136,62 +137,66 @@ const DB_SECTIONS = 'course_sections';
 function local_booking_extend_navigation(global_navigation $navigation) {
     global $COURSE, $USER;
 
-    $context = context_course::instance($COURSE->id);
+    $courseid = $COURSE->id;
+    $context = context_course::instance($courseid);
+    $course = new subscriber_info($courseid);
 
-    // Add student availability navigation node
-    if (has_capability('local/booking:logbookview', $context)) {
-        $node = $navigation->find('logbook', navigation_node::NODETYPE_LEAF);
-        if (!$node && $COURSE->id!==SITEID) {
-            // form URL and parameters
-            $params = array('course'=>$COURSE->id);
-            $url = new moodle_url('/local/booking/logbook.php', $params);
+    if ($course->subscribed) {
+        // Add student availability navigation node
+        if (has_capability('local/booking:logbookview', $context)) {
+            $node = $navigation->find('logbook', navigation_node::NODETYPE_LEAF);
+            if (!$node && $courseid!==SITEID) {
+                // form URL and parameters
+                $params = array('course'=>$courseid);
+                $url = new moodle_url('/local/booking/logbook.php', $params);
 
-            $parent = $navigation->find($COURSE->id, navigation_node::TYPE_COURSE);
-            $node = navigation_node::create(get_string('logbook', 'local_booking'), $url);
-            $node->key = 'logbook';
-            $node->type = navigation_node::NODETYPE_LEAF;
-            $node->forceopen = true;
-            $node->icon = new  pix_icon('logbook', '', 'local_booking');
-            $parent->add_node($node);
-        }
-    }
-
-    // Add student availability navigation node
-    if (has_capability('local/booking:availabilityview', $context)) {
-        $node = $navigation->find('availability', navigation_node::NODETYPE_LEAF);
-        if (!$node && $COURSE->id!==SITEID) {
-            // form URL and parameters
-            $params = array('course'=>$COURSE->id);
-            // view all capability for instructors
-            if (has_capability('local/booking:view', $context)) {
-                $params['view'] = 'all';
-            } else {
-                $params['time'] = (get_next_allowed_session_date($USER->id))->getTimestamp();
+                $parent = $navigation->find($courseid, navigation_node::TYPE_COURSE);
+                $node = navigation_node::create(get_string('logbook', 'local_booking'), $url);
+                $node->key = 'logbook';
+                $node->type = navigation_node::NODETYPE_LEAF;
+                $node->forceopen = true;
+                $node->icon = new  pix_icon('logbook', '', 'local_booking');
+                $parent->add_node($node);
             }
-            $url = new moodle_url('/local/booking/availability.php', $params);
-
-            $parent = $navigation->find($COURSE->id, navigation_node::TYPE_COURSE);
-            $node = navigation_node::create(get_string('availability', 'local_booking'), $url);
-            $node->key = 'availability';
-            $node->type = navigation_node::NODETYPE_LEAF;
-            $node->forceopen = true;
-            $node->icon = new  pix_icon('availability', '', 'local_booking');
-            $parent->add_node($node);
         }
-    }
 
-    // Add instructor booking navigation node
-    if (has_capability('local/booking:view', $context)) {
-        $node = $navigation->find('booking', navigation_node::NODETYPE_LEAF);
-        if (!$node && $COURSE->id!==SITEID) {
-            $parent = $navigation->find($COURSE->id, navigation_node::TYPE_COURSE);
-            $node = navigation_node::create(get_string('booking', 'local_booking'), new moodle_url('/local/booking/view.php', array('courseid'=>$COURSE->id)));
-            $node->key = 'booking';
-            $node->type = navigation_node::NODETYPE_LEAF;
-            $node->forceopen = true;
-            $node->icon = new  pix_icon('booking', '', 'local_booking');
+        // Add student availability navigation node
+        if (has_capability('local/booking:availabilityview', $context)) {
+            $node = $navigation->find('availability', navigation_node::NODETYPE_LEAF);
+            if (!$node && $courseid!==SITEID) {
+                // form URL and parameters
+                $params = array('course'=>$courseid);
+                // view all capability for instructors
+                if (has_capability('local/booking:view', $context)) {
+                    $params['view'] = 'all';
+                } else {
+                    $params['time'] = (get_next_allowed_session_date($USER->id))->getTimestamp();
+                }
+                $url = new moodle_url('/local/booking/availability.php', $params);
 
-            $parent->add_node($node);
+                $parent = $navigation->find($courseid, navigation_node::TYPE_COURSE);
+                $node = navigation_node::create(get_string('availability', 'local_booking'), $url);
+                $node->key = 'availability';
+                $node->type = navigation_node::NODETYPE_LEAF;
+                $node->forceopen = true;
+                $node->icon = new  pix_icon('availability', '', 'local_booking');
+                $parent->add_node($node);
+            }
+        }
+
+        // Add instructor booking navigation node
+        if (has_capability('local/booking:view', $context)) {
+            $node = $navigation->find('booking', navigation_node::NODETYPE_LEAF);
+            if (!$node && $courseid!==SITEID) {
+                $parent = $navigation->find($courseid, navigation_node::TYPE_COURSE);
+                $node = navigation_node::create(get_string('booking', 'local_booking'), new moodle_url('/local/booking/view.php', array('courseid'=>$courseid)));
+                $node->key = 'booking';
+                $node->type = navigation_node::NODETYPE_LEAF;
+                $node->forceopen = true;
+                $node->icon = new  pix_icon('booking', '', 'local_booking');
+
+                $parent->add_node($node);
+            }
         }
     }
 }
@@ -387,7 +392,6 @@ function get_logentry_output($logentryid, $courseid, $studentid) {
  * Get instructor assigned students view output.
  *
  * @param   int     $courseid the associated course.
- * @param   int     $categoryid the course's category.
  * @return  array[array, string]
  */
 function get_students_view($courseid) {
@@ -402,6 +406,28 @@ function get_students_view($courseid) {
 
     $students = new assigned_students_exporter($data, ['context' => \context_course::instance($courseid)]);
     $data = $students->export($renderer);
+
+    return [$data, $template];
+}
+
+/**
+ * Get instructor participation view output.
+ *
+ * @param   int     $courseid the associated course.
+ * @return  array[array, string]
+ */
+function get_participation_view($courseid) {
+    global $PAGE;
+
+    $renderer = $PAGE->get_renderer('local_booking');
+
+    $template = 'local_booking/participation';
+    $data = [
+        'courseid'  => $courseid,
+    ];
+
+    $participation = new  instructor_participation_exporter($data, ['context' => \context_course::instance($courseid)]);
+    $data = $participation->export($renderer);
 
     return [$data, $template];
 }
@@ -759,9 +785,9 @@ function get_first_posted_slot($studentid) {
 /**
  * Returns full username
  *
- * @return string  The full BAV username (first, last, and BAWID)
+ * @return string  The full  username (first, last, and optional alternate name)
  */
-function get_fullusername(int $userid, bool $BAVname = true) {
+function get_fullusername(int $userid, bool $includealternate = true) {
     global $DB;
 
     $fullusername = '';
@@ -775,7 +801,7 @@ function get_fullusername(int $userid, bool $BAVname = true) {
                 WHERE u.id = ' . $userid;
 
         $userinfo = $DB->get_record_sql($sql);
-        $fullusername = $BAVname ? $userinfo->bavname : $userinfo->username;
+        $fullusername = $includealternate ? $userinfo->bavname : $userinfo->username;
     }
 
     return $fullusername;

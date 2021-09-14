@@ -187,6 +187,7 @@ class logentry_exporter extends exporter {
         $soloflighttimemins = !empty($this->logentry) ? $this->logentry->get_soloflighttimemins(false) : $this->data['soloflighttimemins'];
         $picid = !empty($this->logentry) ? $this->logentry->get_picid() : $this->data['picid'];
         $sicid = !empty($this->logentry) ? $this->logentry->get_sicid() : $this->data['sicid'];
+        $sectionname = !empty($this->logentry) ? '' : get_course_section_name($this->data['courseid'], $exerciseid);
 
         return [
             'exercisename' => get_exercise_name($exerciseid),
@@ -196,7 +197,7 @@ class logentry_exporter extends exporter {
             'soloflighttime' => $soloflighttimemins,
             'picname' => get_fullusername($picid),
             'sicname' => get_fullusername($sicid),
-            'sectionname' => get_course_section_name($this->data['courseid'], $exerciseid),
+            'sectionname' => $sectionname,
         ];
     }
 
