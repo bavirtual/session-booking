@@ -170,7 +170,11 @@ function local_booking_extend_navigation(global_navigation $navigation) {
                 if (has_capability('local/booking:view', $context)) {
                     $params['view'] = 'all';
                 } else {
-                    $params['time'] = (get_next_allowed_session_date($USER->id))->getTimestamp();
+                    $weekday = get_next_allowed_session_date($USER->id);
+                    if ((getdate($weekday->getTimestamp()))['wday'] == 0) {
+                        date_add($weekday, date_interval_create_from_date_string('1 days'));
+                    }
+                    $params['time'] = $weekday->getTimestamp();
                 }
                 $url = new moodle_url('/local/booking/availability.php', $params);
 
@@ -243,6 +247,7 @@ function local_booking_output_fragment_logentry_form($args) {
         $formoptions['logentry'] = $logentry;
         $formdata = $logentry->__toArray(true);
         $data = $formdata;
+        $data['sessiondate'] = $logentry->get_sessiondate();
         $mform = new update_logentry_form(null, $formoptions, 'post', '', null, true, $formdata);
     } else {
         $logentry = new logentry($logbook);

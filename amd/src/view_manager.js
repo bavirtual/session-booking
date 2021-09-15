@@ -45,24 +45,24 @@ import * as BookingsSelectors from 'local_booking/selectors';
     root = $(root);
 
     // Bind click events to logentry exercise session.
-    root.on('click', BookingsSelectors.links.logentryLink, (e) => {
+    root.on('click', BookingsSelectors.links.logentrySession, (e) => {
         const target = e.target;
-        let logentryLink = null;
+        let logentrySession = null;
         let logentryId = null;
         let courseId = null;
         let studentId = null;
-        const pendingPromise = new Pending('local_booking/view_manager:logentryLink:click');
+        const pendingPromise = new Pending('local_booking/view_manager:logentrySession:click');
 
         if (target.matches(BookingsSelectors.actions.viewEvent)) {
-            logentryLink = target;
+            logentrySession = target;
         } else {
-            logentryLink = target.closest(BookingsSelectors.actions.viewEvent);
+            logentrySession = target.closest(BookingsSelectors.actions.viewEvent);
         }
 
-        if (logentryLink) {
-            logentryId = logentryLink.dataset.logentryId;
-            courseId = logentryLink.dataset.courseId;
-            studentId = logentryLink.dataset.studentId;
+        if (logentrySession) {
+            logentryId = logentrySession.dataset.logentryId;
+            courseId = logentrySession.dataset.courseId;
+            studentId = logentrySession.dataset.studentId;
         } else {
             logentryId = target.querySelector(BookingsSelectors.actions.viewEvent).dataset.logentryId;
             courseId = target.querySelector(BookingsSelectors.actions.viewEvent).dataset.courseId;
@@ -158,7 +158,7 @@ import * as BookingsSelectors from 'local_booking/selectors';
         .always(() => {
             M.util.js_complete([root.get('id'), year, week, courseId].join('-'));
             SlotActions.setPasteState(root);
-            SlotActions.setBookState(root, action);
+            SlotActions.setSaveButtonState(root, action);
             return stopLoading(root);
         })
         .fail(Notification.exception);

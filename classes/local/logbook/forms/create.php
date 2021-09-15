@@ -72,7 +72,7 @@ class create extends \moodleform {
 
         $mform = $this->_form;
         $logentry = isset($this->_customdata['logentry']) ? $this->_customdata['logentry'] : null;
-        if (!empty($logentry)) {
+        if (!empty($logentry) && !empty($logentry->get_id())) {
             $sessiondate = $logentry->get_sessiondate();
         } else {
             $sessiondate = isset($this->_customdata['sessiondate']) ? $this->_customdata['sessiondate'] : null;
@@ -91,7 +91,7 @@ class create extends \moodleform {
         $this->add_default_hidden_elements($mform);
 
         // Logbook entry date field.
-        $mform->addElement('date_selector', 'sessiondate', get_string('sessiondate', 'local_booking'));
+        $mform->addElement('date_selector', 'sessiondate', get_string('sessiondate', 'local_booking'));//, ['defaulttime' => $sessiondate]);
         $mform->addRule('sessiondate', get_string('required'), 'required', null, 'client');
         $mform->setType('sessiondate', PARAM_TEXT);
         $mform->setDefault('sessiondate', $sessiondate);
@@ -155,7 +155,7 @@ class create extends \moodleform {
         $mform->setAdvanced('toicao');
 
         // Add the javascript required to enhance this mform.
-        $PAGE->requires->js_call_amd('local_booking/modal_logentry_form', 'init', [$mform->getAttribute('id')]);
+        $PAGE->requires->js_call_amd('local_booking/modal_logentry_form');
     }
 
     /**

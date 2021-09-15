@@ -25,6 +25,40 @@
 import Ajax from 'core/ajax';
 
 /**
+ * Get calendar data for the month view.
+ *
+ * @method getCalendarWeekData
+ * @param {number} year Year
+ * @param {number} week Week
+ * @param {number} time Timestamp
+ * @param {number} courseId The course id.
+ * @param {number} categoryId The category id.
+ * @param {string} action The action type.
+ * @param {string} view The view type user/all.
+ * @param {number} studentId The id of the associated user.
+ * @param {number} exerciseId The exercise id for the booked session.
+ * @return {promise} Resolved with the month view data.
+ */
+ export const getCalendarWeekData = (year, week, time, courseId, categoryId, action, view, studentId, exerciseId) => {
+    const request = {
+        methodname: 'local_booking_get_weekly_view',
+        args: {
+            year,
+            week,
+            time,
+            courseid: courseId,
+            categoryid: categoryId,
+            action: action,
+            view: view,
+            studentid: studentId,
+            exerciseid: exerciseId,
+        }
+    };
+
+    return Ajax.call([request])[0];
+};
+
+/**
  * Get sesison booking, my bookings, and my students data to view.
  *
  * @method getBookingsData
@@ -139,51 +173,17 @@ import Ajax from 'core/ajax';
 /**
  * Submit the form data for the logbook entry form.
  *
- * @method submitCreateUpdateForm
+ * @method submitCreateUpdateLogentryForm
  * @param {string} formArgs An array of J URL encoded values from the form
  * @param {string} formData The URL encoded values from the form
  * @return {promise} Resolved with the new or edited logbook entry
  */
- export const submitCreateUpdateForm = (formArgs, formData) => {
+ export const submitCreateUpdateLogentryForm = (formArgs, formData) => {
     const request = {
         methodname: 'local_booking_submit_create_update_form',
         args: {
             formargs: formArgs,
             formdata: formData
-        }
-    };
-
-    return Ajax.call([request])[0];
-};
-
-/**
- * Get calendar data for the month view.
- *
- * @method getCalendarWeekData
- * @param {number} year Year
- * @param {number} week Week
- * @param {number} time Timestamp
- * @param {number} courseId The course id.
- * @param {number} categoryId The category id.
- * @param {string} action The action type.
- * @param {string} view The view type user/all.
- * @param {number} studentId The id of the associated user.
- * @param {number} exerciseId The exercise id for the booked session.
- * @return {promise} Resolved with the month view data.
- */
-export const getCalendarWeekData = (year, week, time, courseId, categoryId, action, view, studentId, exerciseId) => {
-    const request = {
-        methodname: 'local_booking_get_weekly_view',
-        args: {
-            year,
-            week,
-            time,
-            courseid: courseId,
-            categoryid: categoryId,
-            action: action,
-            view: view,
-            studentid: studentId,
-            exerciseid: exerciseId,
         }
     };
 

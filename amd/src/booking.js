@@ -26,7 +26,10 @@
 define([
             'jquery',
             'core/str',
+            'core/modal_factory',
+            'core/modal_events',
             'core/pending',
+            'local_booking/modal_logentry_form',
             'local_booking/view_manager',
             'local_booking/booking_actions',
             'local_booking/events',
@@ -35,11 +38,14 @@ define([
         function(
             $,
             Str,
+            ModalFactory,
+            ModalEvents,
             Pending,
+            ModalLogentryForm,
             ViewManager,
             BookingActions,
             BookingEvents,
-            BookingsSelectors
+            BookingSelectors
         ) {
 
     var SELECTORS = {
@@ -78,16 +84,55 @@ define([
     };
 
     /**
+     * Create the logentry form modal for creating new logentries and
+     * editing existing logentries.
+     *
+     * @method registerLogentryFormModal
+     * @param {object} root The progression booking root element
+     * @return {object} The create modal promise
+     */
+     var registerLogentryFormModal = function(root) {
+        var logentryFormPromise = ModalFactory.create({
+            type: ModalLogentryForm.TYPE,
+            large: true
+        });
+
+        root.on('click', BookingSelectors.actions.edit, function(e) {
+            e.preventDefault();
+            var target = $(e.currentTarget),
+                bookingWrapper = target.closest(BookingSelectors.progressionwrapper),
+                logentryWrapper = target.closest(BookingSelectors.logentryItem);
+
+            logentryFormPromise.then(function(modal) {
+                // When something within the progression booking tells us the user wants
+                // to edit an logentry then show the logentry form modal.
+                modal.setSessionDate(logentryWrapper.data('sessionDate'));
+                modal.setLogentryId(logentryWrapper.data('logentryId'));
+                modal.setStudentId(logentryWrapper.data('studentId'));
+                modal.setCourseId(bookingWrapper.data('courseId'));
+                modal.setContextId(bookingWrapper.data('contextId'));
+                modal.show();
+
+                e.stopImmediatePropagation();
+                return;
+            }).fail(Notification.exception);
+        });
+
+
+        return logentryFormPromise;
+    };
+
+    /**
      * Register event listeners for the module.
      *
      * @param {object} root The calendar root element
      */
      var registerEventListeners = function(root) {
 
-        var eventFormPromise = BookingActions.registerLogentryFormModal(root),
+        var logentryFormPromise = registerLogentryFormModal(root),
             contextId = $(SELECTORS.PROGRESSION_WRAPPER).data('context-id'),
             courseId = $(SELECTORS.PROGRESSION_WRAPPER).data('courseid');
-        registerBookingEventListeners(root, eventFormPromise);
+        registerBookingEventListeners(root, logentryFormPromise);
 
         if (contextId) {
             // Listen the click on the progression table of sessions.
@@ -98,7 +143,7 @@ define([
                 var logentryId = $(this).attr('data-logentry-id');
 
                 if (logentryId == 0) {
-                    eventFormPromise.then(function(modal) {
+                    logentryFormPromise.then(function(modal) {
                         modal.setContextId(contextId);
                         modal.setCourseId(courseId);
                         modal.setStudentId(studentId);
@@ -112,21 +157,21 @@ define([
 
                     e.preventDefault();
                 } else {
-                    let gradedSession = null;
+                    let logentrySession = null;
                     let logentryId = null;
                     const target = e.target;
-                    const pendingPromise = new Pending('local_booking/view_manager:logentryLink:click');
+                    const pendingPromise = new Pending('local_booking/view_manager:logentrySession:click');
 
-                    if (target.matches(BookingsSelectors.actions.viewEvent)) {
-                        gradedSession = target;
+                    if (target.matches(BookingSelectors.actions.viewEvent)) {
+                        logentrySession = target;
                     } else {
-                        gradedSession = target.closest(BookingsSelectors.actions.viewEvent);
+                        logentrySession = target.closest(BookingSelectors.actions.viewEvent);
                     }
 
-                    if (gradedSession) {
-                        logentryId = gradedSession.dataset.logentryId;
+                    if (logentrySession) {
+                        logentryId = logentrySession.dataset.logentryId;
                     } else {
-                        logentryId = target.querySelector(BookingsSelectors.actions.viewEvent).dataset.logentryId;
+                        logentryId = target.querySelector(BookingSelectors.actions.viewEvent).dataset.logentryId;
                     }
 
                     if (logentryId) {
@@ -165,6 +210,7 @@ define([
         init: function(root) {
             root = $(root);
             registerEventListeners(root);
+            registerLogentryFormModal(root);
         }
     };
 });

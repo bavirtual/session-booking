@@ -174,26 +174,26 @@
 }
 
 /* availability calendar */
-.path-availability .calendartable {
+.path-availability .slotcalendartable {
     width: 100%;
     table-layout: fixed;
 }
-.path-availability .calendartable tr:not(:first-child):last-child td:not(:nth-child(1)):not(:nth-child(2)) {
+.path-availability .slotcalendartable tr:not(:first-child):last-child td:not(:nth-child(1)):not(:nth-child(2)) {
     border-bottom: 2px solid grey;
 }
-.path-availability .calendartable th,
-.path-availability .calendartable td {
+.path-availability .slotcalendartable th,
+.path-availability .slotcalendartable td {
     width: 14%;
     vertical-align: top;
     text-align: center;
     border: 0;
 }
-.path-availability .calendartable .zulutime,
-.path-availability .calendartable .localtime {
+.path-availability .slotcalendartable .zulutime,
+.path-availability .slotcalendartable .localtime {
     width: 60px;
     vertical-align: bottom;
 }
-.path-availability .calendartable .zulutime {
+.path-availability .slotcalendartable .zulutime {
     color: rgb(122, 26, 26);
 }
 .path-availability .calendar-controls .previous,
@@ -292,11 +292,11 @@
     color: #0a477e;
     text-decoration: underline;
 }
-.path-availability .maincalendar .calendartable td,
-.path-availability .maincalendar .calendartable li {
+.path-availability .maincalendar .slotcalendartable td,
+.path-availability .maincalendar .slotcalendartable li {
     padding: 0 4px 4px 4px;
 }
-.path-availability .maincalendar .calendartable li {
+.path-availability .maincalendar .slotcalendartable li {
     text-align: left;
 }
 .path-availability .maincalendar .header {

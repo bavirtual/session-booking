@@ -477,7 +477,7 @@ define([
 
         // Send the form data to the server for processing.
         // eslint-disable-next-line consistent-return
-        return Repository.submitCreateUpdateForm(formArgs, formData)
+        return Repository.submitCreateUpdateLogentryForm(formArgs, formData)
             .then(function(response) {
                 if (response.validationerror) {
                     // If there was a server side validation error then

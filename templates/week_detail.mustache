@@ -52,7 +52,7 @@
             border-right: 2px solid grey;
         }
     </style>
-    <table id="week-detail-{{uniqid}}" data-region="slots-week" class="calendarmonth calendartable mb0 table-hover">
+    <table id="week-detail-{{uniqid}}" data-region="slots-week" class="calendarmonth slotcalendartable mb0 table-hover">
         <thead>
             <tr>
                 {{#showlocaltime}}
@@ -98,6 +98,7 @@
                     data-region="{{#slotavailable}}day{{/slotavailable}}"
                     {{#slotbooked}}
                     data-toggle="tooltip"
+                    data-html="true"
                     title="{{slotstatustooltip}}"
                     {{/slotbooked}}
                     {{#groupview}}
@@ -155,7 +156,7 @@
     </div>
     <div class="bottom">
         <div class="singlebutton">
-            <button type="submit" class="slot-action-button slot-button-blue"
+            <button type="submit" class="slot-action-button slot-button-gray"
                 data-region="save-button"
                 id="save_button"
                 title="">

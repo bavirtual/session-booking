@@ -24,18 +24,24 @@
  */
 define([
     'jquery',
+    'core/str',
+    'core/notification',
     'core/custom_interaction_events',
     'core/modal',
     'core/modal_registry',
+    'core/modal_factory',
     'core/modal_events',
     'local_booking/events',
     'local_booking/booking_actions',
 ],
 function(
     $,
+    Str,
+    Notification,
     CustomEvents,
     Modal,
     ModalRegistry,
+    ModalFactory,
     ModalEvents,
     BookingEvents,
     BookingActions

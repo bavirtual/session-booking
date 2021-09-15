@@ -39,11 +39,10 @@ define([
         CALENDAR_WRAPPER: '[class=calendarwrapper]',
         SLOTS_TABLE: '[data-region="slots-week"]',
         SLOT_DAY: '[data-region="day"]',
-        SAVE_BUTTON: '[data-action="save"]',
+        SAVE_BUTTON: '[data-region="save-button"]',
         PASTE_BUTTON: "[data-region='paste-button']",
         BOOK_BUTTON: "[data-region='book-button']",
         LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
-        VIEW_DAY_LINK: "[data-action='view-day-link']",
     };
 
     var Slots = [];
@@ -164,7 +163,7 @@ define([
 
         Slots.length = 0;
 
-        // Get column index for the week days only
+        // Get column index for the start of the week
         head.each(function() {
             if ($(this).data('region') == 'slot-week-day') {
                 colOffset = head.index(this) + 1;
@@ -175,33 +174,55 @@ define([
         // Get all slots for this week from the UI table
         for (let i = colOffset; i <= colCount; i++) {
             // Get slots for the current day
-            const daySlots = $('#' + tableid + ' td:nth-child(' + i + ')').map(function() {
+            const dayHour = $('#' + tableid + ' td:nth-child(' + i + ')').map(function() {
                 return [[$(this).data(slottype), $(this).data('slot-timestamp')]];
             }).get();
 
             // Get each slot in the day (start and end times)
             let aSlot = {};
+
+            // Check each day (column) and record marked slot start-end times
             // eslint-disable-next-line no-loop-func
-            daySlots.forEach(element => {
-                if (element[0]) {
+            dayHour.forEach((hourSlot, index) => {
+                let isLastElement = index == dayHour.length - 1;
+                // Check if the slot is marked to record start or end time in marked sequence
+                if (hourSlot[0]) {
                     if (Object.keys(aSlot).length === 0 && aSlot.constructor === Object) {
-                        aSlot.starttime = element[1];
+                        aSlot.starttime = hourSlot[1];
                     } else {
-                        aSlot.endtime = element[1];
+                        aSlot.endtime = hourSlot[1];
                     }
+                // Add the slot if it has start and end, and this slot is empty => slot sequence ended
                 } else if (!(Object.keys(aSlot).length === 0 && aSlot.constructor === Object)) {
-                    if (slottype == 'slot-marked') {
-                        Slots.push(aSlot);
-                    } else if (slottype == 'slot-booked') {
-                        aSlot.week = week;
-                        aSlot.year = year;
-                        BookedSlot = aSlot;
-                        return;
-                    }
-                    aSlot = {};
+                    aSlot = addSlot(aSlot, slottype);
+                }
+                // Add slot if it ends at the end of the day
+                if (isLastElement && !(Object.keys(aSlot).length === 0 && aSlot.constructor === Object)) {
+                    aSlot = addSlot(aSlot, slottype, week, year);
                 }
             });
         }
+    }
+
+    /**
+     * Adds a slot to local object array.
+     *
+     * @method addSlot
+     * @param {object} aSlot The slot to be add to the local object array
+     * @param {string} slottype The slot type availability post vs booked
+     * @param {int} week The week of the year
+     * @param {int} year The year
+     * @return {object} empty object
+     */
+     function addSlot(aSlot, slottype, week = 0, year = 0) {
+        if (slottype == 'slot-marked') {
+            Slots.push(aSlot);
+        } else if (slottype == 'slot-booked') {
+            aSlot.week = week;
+            aSlot.year = year;
+            BookedSlot = aSlot;
+        }
+        return {};
     }
 
     /**
@@ -261,19 +282,34 @@ define([
      /**
      * Set the cells from the CopiedSlotsIndexes to the current table
      *
-     * @method bookSlots
+     * @method setSaveButtonState
      * @param {object} root     The calendar root element
      * @param {string} action   The action behind the view
      */
-      function setBookState(root, action) {
+      function setSaveButtonState(root, action) {
         getUISlots(root, action);
 
-        if (BookedSlot !== undefined) {
-            root.find(SELECTORS.BOOK_BUTTON).addClass('slot-button-blue').removeClass('slot-button-gray');
+        if (action == 'book') {
+            // Enable or disable the booking save button if it has booked slots
+            let bookSaveButton = root.find(SELECTORS.BOOK_BUTTON);
+            if (BookedSlot !== undefined && BookedSlot.length !== 0) {
+                bookSaveButton.addClass('slot-button-blue').removeClass('slot-button-gray');
+                bookSaveButton.attr('disabled', 'enabled');
+            } else {
+                bookSaveButton.addClass('slot-button-gray').removeClass('slot-button-blue');
+                bookSaveButton.attr('disabled', 'disabled');
+            }
         } else {
-            root.find(SELECTORS.BOOK_BUTTON).addClass('slot-button-gray').removeClass('slot-button-blue');
+            // Enable or disable the slot posting save button if it has slots
+            let slotSaveButton = root.find(SELECTORS.SAVE_BUTTON);
+            if (Slots !== undefined && Slots.length !== 0) {
+                slotSaveButton.addClass('slot-button-blue').removeClass('slot-button-gray');
+                slotSaveButton.prop('disabled', false);
+            } else {
+                slotSaveButton.addClass('slot-button-gray').removeClass('slot-button-blue');
+                slotSaveButton.prop('disabled', true);
+            }
         }
-
         return;
      }
 
@@ -305,7 +341,7 @@ define([
         clearWeekSlots: clearWeekSlots,
         pasteSlots: pasteSlots,
         setPasteState: setPasteState,
-        setBookState: setBookState,
+        setSaveButtonState: setSaveButtonState,
         copySlots: copySlots,
         setSlot: setSlot,
         Slots: Slots,

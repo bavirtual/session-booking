@@ -49,11 +49,8 @@ define([
         COPY_BUTTON: "[data-region='copy-button']",
         PASTE_BUTTON: "[data-region='paste-button']",
         CLEAR_BUTTON: "[data-region='clear-button']",
-        LOADING_ICON_CONTAINER: '[data-region="loading-icon-container"]',
-        NEW_EVENT_BUTTON: "[data-action='new-event-button']",
-        DAY_CONTENT: "[data-region='day-content']",
         LOADING_ICON: '.loading-icon',
-        VIEW_DAY_LINK: "[data-action='view-day-link']",
+        DAY_TIME_SLOT: "[data-action='day-time-slot']",
         CALENDAR_WEEK_WRAPPER: ".calendarwrapper",
         TODAY: '.today',
     };
@@ -100,13 +97,9 @@ define([
                 var target = $(e.target);
                 // Change marked state
                 if (typeof target !== 'undefined') {
-                    if (!target.is(SELECTORS.VIEW_DAY_LINK) && action !== 'all') {
+                    if (!target.is(SELECTORS.DAY_TIME_SLOT) && action !== 'all') {
                         SlotActions.setSlot(this, root, action);
-
-                        // Set active status of booking button
-                        if (action == 'book') {
-                            SlotActions.setBookState(root, action);
-                        }
+                        SlotActions.setSaveButtonState(root, action);
                     }
                 }
 
