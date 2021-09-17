@@ -28,7 +28,7 @@ define([], function() {
         actions: {
             create: '[data-action="new-event-button"]',
             edit: '[data-action="edit"]',
-            delete: '[data-action="delete"]',
+            deleteLogentry: '[data-action="delete"]',
             viewEvent: '[data-action="view-logentry"]',
             gotoFeedback: '[data-action="feedback"]',
         },
@@ -41,8 +41,6 @@ define([], function() {
         logentryItem: '[data-type="logentry"]',
         links: {
             navLink: '.calendarwrapper .arrow_link',
-            logentryLink: "[data-region='logentry-item']",
-            miniDayLink: "[data-region='mini-day-link']",
         },
         containers: {
             loadingIcon: '[data-region="overlay-icon-container"]',

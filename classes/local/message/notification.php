@@ -27,6 +27,8 @@ namespace local_booking\local\message;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/local/booking/lib.php');
+
 /**
  * Class for sending session booking notifications.
  *
@@ -99,7 +101,7 @@ class notification extends \core\message\message {
             'student'       => get_fullusername($studentid),
             'sessiondate'   => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
             'exercise'      => get_exercise_name($exerciseid),
-            'bookingurl'    => (new \moodle_url('/local/booking/'))->out(false),
+            'bookingurl'    => (new \moodle_url('/local/booking/view.php', array('courseid'=>$COURSE->id)))->out(false),
         );
 
         $this->name              = 'booking_confirmation';
@@ -108,7 +110,7 @@ class notification extends \core\message\message {
         $this->fullmessage       = get_string('emailconfirmnmsg', 'local_booking', $data);
         $this->fullmessagehtml   = get_string('emailconfirmhtml', 'local_booking', $data);
         $this->contexturl        = $data->bookingurl;
-        $this->contexturlname    = LOCAL_BOOKING_ATO . ' ' . get_string('pluginname', 'local_booking');
+        $this->contexturlname    = get_booking_config('ATO') . ' ' . get_string('pluginname', 'local_booking');
         $this->set_additional_content('email', array('*' => array(
             'footer' => get_string('bookingfooter', 'local_booking', $data))));
 
@@ -130,7 +132,7 @@ class notification extends \core\message\message {
             'student'           => get_fullusername($studentid),
             'sessiondate'       => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
             'exercise'          => get_exercise_name($exerciseid),
-            'bookingurl'        => (new \moodle_url('/local/booking/'))->out(false),
+            'bookingurl'        => (new \moodle_url('/local/booking/view.php', array('courseid'=>$COURSE->id)))->out(false),
         );
 
         $this->name              = 'instructor_notification';

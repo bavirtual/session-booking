@@ -176,7 +176,7 @@ class week_timeslot_exporter extends exporter {
                 $slotdaydata['istoday']     = $this->is_today($daydata);
                 $slotdaydata['isweekend']   = $this->is_weekend($daydata);
                 $slotdaydata['daytitle']    = get_string('dayeventsnone', 'calendar', userdate($daydata[0], get_string('strftimedayshort')));
-                $slotdata['slotavailable']  = !$this->is_slot_unavailable($daydata);
+                $slotdata['slotavailable']  = !$this->slot_restricted($daydata);
                 $slotdata['slot']           = $this->getSlotinfo($laneslots, $slotdaydata);
 
                 $day = new week_day_exporter($this->calendar, $this->groupview, $slotdaydata, $slotdata, [
@@ -215,7 +215,7 @@ class week_timeslot_exporter extends exporter {
      *
      * @return  bool
      */
-    protected function is_slot_unavailable($date) {
+    protected function slot_restricted($date) {
         $now = $this->related['type']->timestamp_to_date_array(time());
         $today = $this->related['type']->timestamp_to_date_array(gmmktime(0, 0, 0, $now['mon'], $now['mday'], $now['year']));
 
@@ -224,7 +224,7 @@ class week_timeslot_exporter extends exporter {
         $datepassed = $datepassed && $today['year'] >= $date['year'];
         $datepassed = $datepassed && $today['yday'] >= $date['yday'];
 
-        // can't mark before x days from last booked session. x set in settings
+        // can't mark before x days from last booked session (durnig wait days)
         $lastsessionwait = true;
         if (!$this->groupview) {
             $nextsessiondt = get_next_allowed_session_date($this->studentid);

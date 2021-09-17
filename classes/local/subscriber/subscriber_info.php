@@ -27,6 +27,8 @@ namespace local_booking\local\subscriber;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/local/booking/lib.php');
+
 /**
  * Class representing subscribed courses
  *
@@ -60,7 +62,7 @@ class subscriber_info  {
         foreach ($customfields as $customfield) {
             $cat = $customfield->get_field()->get_category()->get('name');
 
-            if ($cat == LOCAL_BOOKING_ATO) {
+            if ($cat == get_booking_config('ATO')) {
                 // split textarea values into cleaned up array values
                 if ($customfield->get_field()->get('type') == 'textarea') {
                     $fieldvalues = array_filter(explode(PHP_EOL, format_text($customfield->get_value(), FORMAT_MARKDOWN)));

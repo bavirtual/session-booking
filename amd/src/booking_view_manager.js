@@ -17,7 +17,7 @@
  * A javascript module to handler booking view changes.
  * Improvised from core_calendar.
  *
- * @module     local_booking/view_manager
+ * @module     local_booking/booking_view_manager
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -30,11 +30,9 @@ import Notification from 'core/notification';
 import Pending from 'core/pending';
 import ModalFactory from 'core/modal_factory';
 import ModalEvents from 'core/modal_events';
-import CustomEvents from 'core/custom_interaction_events';
-import SlotActions from 'local_booking/slot_actions';
 import SummaryModal from 'local_booking/modal_logentry_summary';
 import * as Repository from 'local_booking/repository';
-import * as BookingsSelectors from 'local_booking/selectors';
+import * as Selectors from 'local_booking/selectors';
 
 /**
  * Register event listeners for the module.
@@ -45,18 +43,18 @@ import * as BookingsSelectors from 'local_booking/selectors';
     root = $(root);
 
     // Bind click events to logentry exercise session.
-    root.on('click', BookingsSelectors.links.logentrySession, (e) => {
+    root.on('click', Selectors.logentrySession, (e) => {
         const target = e.target;
         let logentrySession = null;
         let logentryId = null;
         let courseId = null;
         let studentId = null;
-        const pendingPromise = new Pending('local_booking/view_manager:logentrySession:click');
+        const pendingPromise = new Pending('local_booking/booking_view_manager:logentrySession:click');
 
-        if (target.matches(BookingsSelectors.actions.viewEvent)) {
+        if (target.matches(Selectors.actions.viewEvent)) {
             logentrySession = target;
         } else {
-            logentrySession = target.closest(BookingsSelectors.actions.viewEvent);
+            logentrySession = target.closest(Selectors.actions.viewEvent);
         }
 
         if (logentrySession) {
@@ -64,9 +62,9 @@ import * as BookingsSelectors from 'local_booking/selectors';
             courseId = logentrySession.dataset.courseId;
             studentId = logentrySession.dataset.studentId;
         } else {
-            logentryId = target.querySelector(BookingsSelectors.actions.viewEvent).dataset.logentryId;
-            courseId = target.querySelector(BookingsSelectors.actions.viewEvent).dataset.courseId;
-            studentId = target.querySelector(BookingsSelectors.actions.viewEvent).dataset.studentId;
+            logentryId = target.querySelector(Selectors.actions.viewEvent).dataset.logentryId;
+            courseId = target.querySelector(Selectors.actions.viewEvent).dataset.courseId;
+            studentId = target.querySelector(Selectors.actions.viewEvent).dataset.studentId;
         }
 
         if (logentryId) {
@@ -84,125 +82,6 @@ import * as BookingsSelectors from 'local_booking/selectors';
             pendingPromise.resolve();
         }
     });
-
-    root.on('click', BookingsSelectors.links.navLink, (e) => {
-        const wrapper = root.find(BookingsSelectors.calendarwrapper);
-        const courseId = wrapper.data('courseid');
-        const categoryId = wrapper.data('categoryid');
-        const link = e.currentTarget;
-
-        changeWeek(root, link.href, link.dataset.year, link.dataset.week, link.dataset.time, courseId, categoryId);
-        e.preventDefault();
-    });
-
-    const viewSelector = root.find(BookingsSelectors.viewSelector);
-    CustomEvents.define(viewSelector, [CustomEvents.events.activate]);
-    viewSelector.on(
-        CustomEvents.events.activate,
-        (e) => {
-            e.preventDefault();
-
-            const option = e.target;
-            if (option.classList.contains('active')) {
-                return;
-            }
-
-            const year = option.dataset.year,
-                week = option.dataset.week,
-                time = option.dataset.time,
-                courseId = option.dataset.courseid,
-                categoryId = option.dataset.categoryid;
-
-            refreshWeekContent(root, year, week, time, courseId, categoryId, root, 'local_booking/calendar_week')
-                .then(() => {
-                    return window.history.pushState({}, '', '?view=user');
-                }).fail(Notification.exception);
-        }
-    );
-};
-
-/**
- * Refresh the week content.
- *
- * @param {object} root The root element.
- * @param {number} year Year
- * @param {number} week week
- * @param {number} time The timestamp of the begining current week
- * @param {number} courseId The id of the course associated with the calendar shown
- * @param {number} categoryId The id of the category associated with the calendar shown
- * @param {object} target The element being replaced. If not specified, the calendarwrapper is used.
- * @param {string} template The template to be rendered.
- * @return {promise}
- */
- export const refreshWeekContent = (root, year, week, time, courseId, categoryId, target = null, template = '') => {
-    startLoading(root);
-
-    target = target || root.find(BookingsSelectors.calendarwrapper);
-    template = template || root.attr('data-template');
-    M.util.js_pending([root.get('id'), year, week, courseId].join('-'));
-
-    const action = target.data('action');
-    const view = target.data('viewall') ? 'all' : 'user';
-    const studentId = target.data('student-id');
-    const exerciseId = target.data('exercise-id');
-    time = time == 0 ? Date.now() / 1000 : time;
-
-    return Repository.getCalendarWeekData(year, week, time, courseId, categoryId, action, view, studentId, exerciseId)
-        .then(context => {
-            context.viewingmonth = true;
-            return Templates.render(template, context);
-        })
-        .then((html, js) => {
-            return Templates.replaceNode(target, html, js);
-        })
-        .always(() => {
-            M.util.js_complete([root.get('id'), year, week, courseId].join('-'));
-            SlotActions.setPasteState(root);
-            SlotActions.setSaveButtonState(root, action);
-            return stopLoading(root);
-        })
-        .fail(Notification.exception);
-};
-
-/**
- * Handle changes to the current calendar view.
- *
- * @param {object} root The container element
- * @param {string} url The calendar url to be shown
- * @param {number} year Year
- * @param {number} week week
- * @param {number} time The timestamp of the begining current week
- * @param {number} courseId The id of the course associated with the calendar shown
- * @param {number} categoryId The id of the category associated with the calendar shown
- * @return {promise}
- */
-export const changeWeek = (root, url, year, week, time, courseId, categoryId) => {
-    return refreshWeekContent(root, year, week, time, courseId, categoryId, null, '')
-        .then((...args) => {
-            if (url.length && url !== '#') {
-                window.history.pushState({}, '', url);
-            }
-            return args;
-        });
-};
-
-/**
- * Reload the current month view data.
- *
- * @param {object} root The container element.
- * @param {number} courseId The id of the course associated with the calendar shown
- * @param {number} categoryId The id of the category associated with the calendar shown
- * @return {promise}
- */
-export const reloadCurrentMonth = (root, courseId = 0, categoryId = 0) => {
-    const year = root.find(BookingsSelectors.calendarwrapper).data('year');
-    const week = root.find(BookingsSelectors.calendarwrapper).data('week');
-    const time = root.find(BookingsSelectors.calendarwrapper).data('time');
-
-    courseId = courseId || root.find(BookingsSelectors.calendarwrapper).data('courseid');
-    categoryId = categoryId || root.find(BookingsSelectors.calendarwrapper).data('categoryid');
-
-    return refreshWeekContent(root, year, week, time, courseId, categoryId, null, '');
 };
 
 /**
@@ -218,8 +97,8 @@ export const reloadCurrentMonth = (root, courseId = 0, categoryId = 0) => {
 export const refreshProgressionContent = (root, courseId, categoryId, target = null, template = '') => {
     startLoading(root);
 
-    target = target || root.find(BookingsSelectors.progressionwrapper);
-    courseId = courseId || root.find(BookingsSelectors.progressionwrapper).data('courseid');
+    target = target || root.find(Selectors.progressionwrapper);
+    courseId = courseId || root.find(Selectors.progressionwrapper).data('courseid');
     template = template || root.attr('data-template');
     M.util.js_pending([root.get('id'), courseId, categoryId].join('-'));
     return Repository.getBookingsData(courseId, categoryId)
@@ -251,8 +130,8 @@ export const refreshProgressionContent = (root, courseId, categoryId, target = n
  export const refreshMyBookingsContent = (root, courseId) => {
     startLoading(root);
 
-    const target = root.find(BookingsSelectors.mybookingswrapper);
-    courseId = courseId || root.find(BookingsSelectors.progressionwrapper).data('courseid');
+    const target = root.find(Selectors.mybookingswrapper);
+    courseId = courseId || root.find(Selectors.progressionwrapper).data('courseid');
     M.util.js_pending([root.get('id'), courseId].join('-'));
     return Repository.getBookingsData(courseId)
         .then((context) => {
@@ -278,7 +157,7 @@ export const refreshProgressionContent = (root, courseId, categoryId, target = n
  * @returns {Promise}
  */
  export const renderLogentrySummaryModal = (logentryId, courseId, studentId) => {
-    const pendingPromise = new Pending('local_booking/view_manager:renderLogentrySummaryModal');
+    const pendingPromise = new Pending('local_booking/booking_view_manager:renderLogentrySummaryModal');
 
     // Calendar repository promise.
     return Repository.getLogentryById(logentryId, courseId, studentId)
@@ -334,7 +213,7 @@ export const refreshProgressionContent = (root, courseId, categoryId, target = n
  * @method startLoading
  */
  export const startLoading = (root) => {
-    const loadingIconContainer = root.find(BookingsSelectors.containers.loadingIcon);
+    const loadingIconContainer = root.find(Selectors.containers.loadingIcon);
     loadingIconContainer.removeClass('hidden');
 
     $(root).one('submit', function() {
@@ -349,7 +228,7 @@ export const refreshProgressionContent = (root, courseId, categoryId, target = n
  * @method stopLoading
  */
 export const stopLoading = (root) => {
-    const loadingIconContainer = root.find(BookingsSelectors.containers.loadingIcon);
+    const loadingIconContainer = root.find(Selectors.containers.loadingIcon);
     loadingIconContainer.addClass('hidden');
 
     $(root).one('submit', function() {

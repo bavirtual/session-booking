@@ -23,6 +23,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require('../config.php');
-$PAGE->set_url('/local/booking/view.php');
-redirect($CFG->wwwroot.'/local/booking/view.php');
+require_once("../../config.php");
+require_once("lib.php");
+
+$courseid = optional_param('id', SITEID, PARAM_INT);   // course
+
+$PAGE->set_url('/local/booking/index.php', array('courseid'=>$courseid));
+
+redirect("$CFG->wwwroot/local/booking/view.php?courseid=$courseid");

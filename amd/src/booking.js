@@ -30,7 +30,7 @@ define([
             'core/modal_events',
             'core/pending',
             'local_booking/modal_logentry_form',
-            'local_booking/view_manager',
+            'local_booking/booking_view_manager',
             'local_booking/booking_actions',
             'local_booking/events',
             'local_booking/selectors'
@@ -160,7 +160,7 @@ define([
                     let logentrySession = null;
                     let logentryId = null;
                     const target = e.target;
-                    const pendingPromise = new Pending('local_booking/view_manager:logentrySession:click');
+                    const pendingPromise = new Pending('local_booking/booking_view_manager:logentrySession:click');
 
                     if (target.matches(BookingSelectors.actions.viewEvent)) {
                         logentrySession = target;

@@ -29,8 +29,6 @@ require_once(__DIR__ . '/lib.php');
 
 global $USER, $DB;
 
-use html_writer;
-
 // Set up the page.
 $categoryid = optional_param('categoryid', null, PARAM_INT);
 $courseid = optional_param('courseid', SITEID, PARAM_INT);

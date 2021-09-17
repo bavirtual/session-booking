@@ -30,7 +30,7 @@
 
 define([
             'jquery',
-            'local_booking/view_manager',
+            'local_booking/calendar_view_manager',
             'local_booking/slot_actions',
             'core_calendar/selectors',
         ],

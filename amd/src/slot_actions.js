@@ -26,7 +26,7 @@ define([
     'jquery',
     'core/notification',
     'local_booking/repository',
-    'local_booking/view_manager',
+    'local_booking/calendar_view_manager',
     ],
     function(
         $,
@@ -194,7 +194,7 @@ define([
                     }
                 // Add the slot if it has start and end, and this slot is empty => slot sequence ended
                 } else if (!(Object.keys(aSlot).length === 0 && aSlot.constructor === Object)) {
-                    aSlot = addSlot(aSlot, slottype);
+                    aSlot = addSlot(aSlot, slottype, week, year);
                 }
                 // Add slot if it ends at the end of the day
                 if (isLastElement && !(Object.keys(aSlot).length === 0 && aSlot.constructor === Object)) {
@@ -294,10 +294,10 @@ define([
             let bookSaveButton = root.find(SELECTORS.BOOK_BUTTON);
             if (BookedSlot !== undefined && BookedSlot.length !== 0) {
                 bookSaveButton.addClass('slot-button-blue').removeClass('slot-button-gray');
-                bookSaveButton.attr('disabled', 'enabled');
+                bookSaveButton.prop('disabled', false);
             } else {
                 bookSaveButton.addClass('slot-button-gray').removeClass('slot-button-blue');
-                bookSaveButton.attr('disabled', 'disabled');
+                bookSaveButton.prop('disabled', true);
             }
         } else {
             // Enable or disable the slot posting save button if it has slots

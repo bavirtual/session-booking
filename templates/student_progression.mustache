@@ -84,6 +84,7 @@
                 <td class="day text-sm-center text-md-left"
                     {{#lessonincomplete}}
                     data-toggle="tooltip"
+                    data-html="true"
                     title="{{#str}}incompletelessontooltip,local_booking{{/str}}"
                     {{/lessonincomplete}}>
                     <div id="action-button-{{studentid}}" class="singlebutton" style="float: right;">
@@ -108,16 +109,19 @@
                     {{/graded}}
                     {{^sessionempty}}
                     data-toggle="tooltip"
+                    data-html="true"
                     title="{{sessionstatustooltip}}"
                     {{/sessionempty}}>
-                    <div class="d-md-block text-xs-center{{#graded}} clickable{{/graded}}" >
+                    <div class="d-md-block text-xs-center{{#graded}} clickable{{/graded}}">
                         <span id="exercise-{{studentid}}-{{exerciseid}}" class="session-date media-body fa-inverse{{!
                             }}{{#graded}} session-graded{{/graded}}{{!
                             }}{{#booked}} session-booked{{/booked}}{{!
                             }}{{#tentative}} session-tentative{{/tentative}}{{!
-                            }}">&nbsp;
+                            }}">{{^graded}}&nbsp;{{/graded}}
+                            {{#graded}}{{#logentryid}}&nbsp;
+                            {{/logentryid}}{{/graded}}
                             {{#graded}}{{^logentryid}}
-                                <i class="icon fa fa-info-circle fa-fw"
+                                <i class="fa fa-info-circle fa-fw"
                                 title="{{#str}}logentrymissing,local_booking{{/str}}"
                                 aria-label="{{#str}}logentrymissing,local_booking{{/str}}"></i>
                             {{/logentryid}}{{/graded}}

@@ -91,7 +91,7 @@ class create extends \moodleform {
         $this->add_default_hidden_elements($mform);
 
         // Logbook entry date field.
-        $mform->addElement('date_selector', 'sessiondate', get_string('sessiondate', 'local_booking'));//, ['defaulttime' => $sessiondate]);
+        $mform->addElement('date_selector', 'sessiondate', get_string('sessiondate', 'local_booking'), array('timezone'=>0));
         $mform->addRule('sessiondate', get_string('required'), 'required', null, 'client');
         $mform->setType('sessiondate', PARAM_TEXT);
         $mform->setDefault('sessiondate', $sessiondate);

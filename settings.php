@@ -28,40 +28,8 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/local/booking/lib.php');
 
 if ($hassiteconfig) {
-    $ADMIN->add('localplugins', new admin_category('local_booking_settings', LOCAL_BOOKING_ATO . (new lang_string('pluginname', 'local_booking'))));
-    $settingspage = new admin_settingpage('managelocalbooking', LOCAL_BOOKING_ATO . (new lang_string('pluginname', 'local_booking')));
-
-    if ($ADMIN->fulltree) {
-        // last session recency days weight multiplier
-        $settingspage->add(new admin_setting_configtext('local_booking/recencydaysweight',
-            new lang_string('recencydaysweight', 'local_booking'), new lang_string('recencydaysweightdesc', 'local_booking'),
-            10, PARAM_INT)
-        );
-    }
-
-    if ($ADMIN->fulltree) {
-        // slot count weight multiplier
-        $settingspage->add(new admin_setting_configtext('local_booking/slotcountweight',
-            new lang_string('slotcountweight', 'local_booking'), new lang_string('slotcountweightdesc', 'local_booking'),
-            10, PARAM_INT)
-        );
-    }
-
-    if ($ADMIN->fulltree) {
-        // activity count weight multiplier
-        $settingspage->add(new admin_setting_configtext('local_booking/activitycountweight',
-            new lang_string('activitycountweight', 'local_booking'), new lang_string('activitycountweightdesc', 'local_booking'),
-            1, PARAM_INT)
-        );
-    }
-
-    if ($ADMIN->fulltree) {
-        // lesson completion weight multiplier
-        $settingspage->add(new admin_setting_configtext('local_booking/completionweight',
-            new lang_string('completionweight', 'local_booking'), new lang_string('completionweightdesc', 'local_booking'),
-            10, PARAM_INT)
-        );
-    }
+    $ADMIN->add('localplugins', new admin_category('local_booking_settings', new lang_string('pluginname', 'local_booking')));
+    $settingspage = new admin_settingpage('managelocalbooking', new lang_string('pluginname', 'local_booking'));
 
     if ($ADMIN->fulltree) {
         // hours in the day 24-hour format
@@ -80,16 +48,40 @@ if ($hassiteconfig) {
             23, $options)
         );
 
-        // availability recording days after last session restriction
+        // availability recording weeks ahead
+        $settingspage->add(new admin_setting_configtext('local_booking/weeksahead',
+            new lang_string('weeksahead', 'local_booking'), new lang_string('weeksaheaddesc', 'local_booking'),
+            4, PARAM_INT)
+        );
+
+        // availability posting restriction to prevent posting before x amount of wait days had passed after student's last session
         $settingspage->add(new admin_setting_configtext('local_booking/nextsessionwaitdays',
             new lang_string('nextsessionwaitdays', 'local_booking'), new lang_string('nextsessionwaitdaysdesc', 'local_booking'),
             12, PARAM_INT)
         );
 
-        // availability recording weeks ahead
-        $settingspage->add(new admin_setting_configtext('local_booking/weeksahead',
-            new lang_string('weeksahead', 'local_booking'), new lang_string('weeksaheaddesc', 'local_booking'),
-            4, PARAM_INT)
+        // last session recency days weight multiplier
+        $settingspage->add(new admin_setting_configtext('local_booking/recencydaysweight',
+            new lang_string('recencydaysweight', 'local_booking'), new lang_string('recencydaysweightdesc', 'local_booking'),
+            10, PARAM_INT)
+        );
+
+        // slot count weight multiplier
+        $settingspage->add(new admin_setting_configtext('local_booking/slotcountweight',
+            new lang_string('slotcountweight', 'local_booking'), new lang_string('slotcountweightdesc', 'local_booking'),
+            10, PARAM_INT)
+        );
+
+        // activity count weight multiplier
+        $settingspage->add(new admin_setting_configtext('local_booking/activitycountweight',
+            new lang_string('activitycountweight', 'local_booking'), new lang_string('activitycountweightdesc', 'local_booking'),
+            1, PARAM_INT)
+        );
+
+        // lesson completion weight multiplier
+        $settingspage->add(new admin_setting_configtext('local_booking/completionweight',
+            new lang_string('completionweight', 'local_booking'), new lang_string('completionweightdesc', 'local_booking'),
+            10, PARAM_INT)
         );
     }
 

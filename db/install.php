@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Add BA Virtual specific fields and course groups
+ * Add ATO specific fields and course groups
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
@@ -59,7 +59,7 @@ function xmldb_local_booking_install() {
 }
 
 /**
- * Add to user profile ATO category and custom fields.
+ * Add user profile ATO category and custom fields.
  *
  * @return bool
  */
@@ -67,7 +67,7 @@ function create_user_profile_customfields() {
     global $DB;
 
     // Look for ATO category and add to the end if doesn't exist
-    $category = $DB->get_record('user_info_category', array('name'=>LOCAL_BOOKING_ATO));
+    $category = $DB->get_record('user_info_category', array('name'=>get_booking_config('ATO')));
     $categoryid = 0;
     $sortorder = 0;
     if (empty($category)) {
@@ -78,7 +78,7 @@ function create_user_profile_customfields() {
 
         // insert ATO category
         $categoryobj = new \stdClass();
-        $categoryobj->name       = LOCAL_BOOKING_ATO;
+        $categoryobj->name       = get_booking_config('ATO');
         $categoryobj->sortorder  = $sortorder;
 
         $categoryid = $DB->insert_record('user_info_category', $categoryobj);
@@ -153,7 +153,7 @@ function create_user_profile_customfields() {
 }
 
 /**
- * Add to user profile ATO category and custom fields.
+ * Add custom ATO category and custom fields for all courses
  */
 function create_course_customfields() {
     // get handler for course custom fields
@@ -168,7 +168,7 @@ function create_course_customfields() {
     foreach ($categories as $coursecategory) {
         $categoryid = $coursecategory->get('id');
         $categorysortorder = $coursecategory->get('sortorder');
-        if ($coursecategory->get('name') == LOCAL_BOOKING_ATO) {
+        if ($coursecategory->get('name') == get_booking_config('ATO')) {
             $categoryexists = true;
             $category = $coursecategory;
             continue;
@@ -178,7 +178,7 @@ function create_course_customfields() {
     // create course category for ATO if it doesn't exist
     if (!$categoryexists) {
         $category = category_controller::create(0, new \stdClass(), $handler);
-        $category->set('name', LOCAL_BOOKING_ATO);
+        $category->set('name', get_booking_config('ATO'));
         $category->set('descriptionformat', 0);
         $category->set('sortorder', $categorysortorder + 1);
         $category->set('component', 'core_course');

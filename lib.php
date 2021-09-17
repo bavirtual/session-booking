@@ -44,69 +44,69 @@ use local_booking\local\logbook\entities\logentry;
 use local_booking\local\subscriber\subscriber_info;
 
 /**
-* LOCAL_BOOKING_ATO - constant value for VATSIM’s Authorized Training Organizations (ATOs)
-*/
-define('LOCAL_BOOKING_ATO', 'BA Virtual');
-
-/**
- * PLUGIN GLOBAL CONSTANTS
- *
  * LOCAL_BOOKING_RECENCYWEIGHT - constant value for session recency weight multipler
- * LOCAL_BOOKING_SLOTSWEIGHT - constant value for session availability slots weight multipler
- * LOCAL_BOOKING_ACTIVITYWEIGHT - constant value for course activity weight multipler
- * LOCAL_BOOKING_COMPLETIONWEIGHT - constant value for lesson completion weight multipler
- * LOCAL_BOOKING_MAXLANES - constant value for maximum number of student slots shown in parallel a day
- * LOCAL_BOOKING_FIRSTSLOT - default value of the first slot of the day
- * LOCAL_BOOKING_LASTSLOT - default value of the first slot of the day
- * LOCAL_BOOKING_WEEKSLOOKAHEAD - default value of the first slot of the day
- * LOCAL_BOOKING_DAYSFROMLASTSESSION - default value of the days allowed to mark since last session
- * LOCAL_BOOKING_ONHOLDGROUP - constant string value for On-hold students for group quering purposes
- * LOCAL_BOOKING_GRADUATESGROUP - constant string value for graduated students for group quering purposes
- * LOCAL_BOOKING_ONHOLDWAITMULTIPLIER - constant for multiplying wait period (in days) for placing students on-hold: 3x wait period
- * LOCAL_BOOKING_SUSPENDWAITMULTIPLIER - constant for multiplying wait period (in days) for suspending inactive students: 9x wait period
- * LOCAL_BOOKING_SESSIONOVERDUEMULTIPLIER - constant for multiplying wait period (in days) for overdue sessions: 3x wait period
- * LOCAL_BOOKING_SESSIONLATEMULTIPLIER - constant for multiplying wait period (in days) for late sessions: 4x wait period
- * LOCAL_BOOKING_INSTRUCTORINACTIVEMULTIPLIER - constant for multiplying wait period (in days) for late sessions: 3x wait period
- * LOCAL_BOOKING_SLOT_COLORS - constant array of slot colors per student color assignment
  */
 define('LOCAL_BOOKING_RECENCYWEIGHT', 10);
+/**
+ * LOCAL_BOOKING_SLOTSWEIGHT - constant value for session availability slots weight multipler
+ */
 define('LOCAL_BOOKING_SLOTSWEIGHT', 10);
+/**
+ * LOCAL_BOOKING_ACTIVITYWEIGHT - constant value for course activity weight multipler
+ */
 define('LOCAL_BOOKING_ACTIVITYWEIGHT', 1);
+/**
+ * LOCAL_BOOKING_COMPLETIONWEIGHT - constant value for lesson completion weight multipler
+ */
 define('LOCAL_BOOKING_COMPLETIONWEIGHT', 10);
+/**
+ * LOCAL_BOOKING_MAXLANES - constant value for maximum number of student slots shown in parallel a day
+ */
 define('LOCAL_BOOKING_MAXLANES', 20);
+/**
+ * LOCAL_BOOKING_FIRSTSLOT - default value of the first slot of the day
+ */
 define('LOCAL_BOOKING_FIRSTSLOT', 8);
+/**
+ * LOCAL_BOOKING_LASTSLOT - default value of the first slot of the day
+ */
 define('LOCAL_BOOKING_LASTSLOT', 23);
+/**
+ * LOCAL_BOOKING_WEEKSLOOKAHEAD - default value of the first slot of the day
+ */
 define('LOCAL_BOOKING_WEEKSLOOKAHEAD', 4);
+/**
+ * LOCAL_BOOKING_DAYSFROMLASTSESSION - default value of the days allowed to mark since last session
+ */
 define('LOCAL_BOOKING_DAYSFROMLASTSESSION', 12);
+/**
+ * LOCAL_BOOKING_ONHOLDGROUP - constant string value for On-hold students for group quering purposes
+ */
 define('LOCAL_BOOKING_ONHOLDGROUP', 'OnHold');
+/**
+ * LOCAL_BOOKING_GRADUATESGROUP - constant string value for graduated students for group quering purposes
+ */
 define('LOCAL_BOOKING_GRADUATESGROUP', 'Graduates');
+/**
+ * LOCAL_BOOKING_ONHOLDWAITMULTIPLIER - constant for multiplying wait period (in days) for placing students on-hold: 3x wait period
+ */
 define('LOCAL_BOOKING_ONHOLDWAITMULTIPLIER', 3);
+/**
+ * LOCAL_BOOKING_SUSPENDWAITMULTIPLIER - constant for multiplying wait period (in days) for suspending inactive students: 9x wait period
+ */
 define('LOCAL_BOOKING_SUSPENDWAITMULTIPLIER', 9);
+/**
+ * LOCAL_BOOKING_SESSIONOVERDUEMULTIPLIER - constant for multiplying wait period (in days) for overdue sessions: 3x wait period
+ */
 define('LOCAL_BOOKING_SESSIONOVERDUEMULTIPLIER', 2);
+/**
+ * LOCAL_BOOKING_SESSIONLATEMULTIPLIER - constant for multiplying wait period (in days) for late sessions: 4x wait period
+ */
 define('LOCAL_BOOKING_SESSIONLATEMULTIPLIER', 3);
+/**
+ * LOCAL_BOOKING_INSTRUCTORINACTIVEMULTIPLIER - constant for multiplying wait period (in days) for late sessions: 3x wait period
+ */
 define('LOCAL_BOOKING_INSTRUCTORINACTIVEMULTIPLIER', 2);
-define('LOCAL_BOOKING_SLOT_COLORS', array(
-        'red'         => '#d50000',
-        'green'       => '#689f38',
-        'yellow'      => '#ffeb3b',
-        'deep orange' => '#ff3d00',
-        'lime'        => '#aeea00',
-        'dark green'  => '#1b5e20',
-        'blue'        => '#2962ff',
-        'light blue'  => '#0091ea',
-        'orange'      => '#ff6d00',
-        'deep purple' => '#9fa8da',
-        'pink'        => '#fce4ec',
-        'light green' => '#00e676',
-        'dark blue'   => '#0d47a1',
-        'teal'        => '#00897b',
-        'light purple'=> '#c5cae9',
-        'brown'       => '#5d4037',
-        'light indigo'=> '#dcedc8',
-        'light cyan'  => '#b2ebf2',
-        'dark purple' => '#4a148c',
-        'light yellow'=> '#ffff00',
-    ));
 
 /**
  * Process user  table name.
@@ -141,7 +141,7 @@ function local_booking_extend_navigation(global_navigation $navigation) {
     $context = context_course::instance($courseid);
     $course = new subscriber_info($courseid);
 
-    if ($course->subscribed) {
+    if (!empty($course->subscribed) && $course->subscribed) {
         // Add student availability navigation node
         if (has_capability('local/booking:logbookview', $context)) {
             $node = $navigation->find('logbook', navigation_node::NODETYPE_LEAF);
@@ -628,7 +628,7 @@ function booking_process_submission_graded($exerciseid, $studentid) {
 /**
  * Returns exercise assignment name
  *
- * @return string  The BAV exercise name.
+ * @return string  The course exercise name.
  */
 function get_exercise_name($exerciseid) {
     global $DB;
@@ -678,12 +678,16 @@ function get_active_student_slots($weekno, $year, $studentid = 0) {
         $students = $participants->get_active_students();
     }
 
+    $colors = (array) get_booking_config('colors', true);
     $i = 0;
     // get slots for each student
     foreach ($students as $student) {
+        $color = "#00e676"; // standard green color
         $slots = $slotvault->get_slots($student->userid, $year, $weekno);
         // $color = '#' . random_color();
-        $color = array_values(LOCAL_BOOKING_SLOT_COLORS)[$i % LOCAL_BOOKING_MAXLANES];
+        if (count($colors) > 0 ) {
+            $color = array_values($colors)[$i % LOCAL_BOOKING_MAXLANES];
+        }
         // add random color to each student
         foreach ($slots as $slot) {
             $slot->slotcolor = $color;
@@ -855,7 +859,7 @@ function random_color() {
 /**
  * Returns course id of the passed course
  *
- * @return string  The BAV exercise name.
+ * @return int  The course id.
  */
 function get_course_id($exerciseid) {
     global $DB;
@@ -866,4 +870,23 @@ function get_course_id($exerciseid) {
             WHERE cm.id = ' . $exerciseid;
 
     return $DB->get_record_sql($sql)->courseid;
+}
+
+/**
+ * Returns the ATO name from config.xml
+ *
+ * @return string  The ATO name.
+ */
+function get_booking_config(string $key, $associative = null) {
+    global $CFG;
+    $configfile = $CFG->dirroot . '/local/booking/config.json';
+    $config = null;
+    if (file_exists($configfile)) {
+        $jsoncontent = file_get_contents($configfile);
+        $configdata = json_decode($jsoncontent, $associative);
+        $config = $associative ? $configdata[$key] : $configdata->{$key};
+    } else {
+        var_dump(get_string('configmissing', 'local_booking', $configfile));
+    }
+    return $config;
 }

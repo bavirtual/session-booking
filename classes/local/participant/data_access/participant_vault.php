@@ -378,8 +378,8 @@ class participant_vault implements participant_vault_interface {
     public static function get_customfield_data(int $courseid, int $userid, string $field) {
         global $DB;
 
-        // Look for BAV category
-        $category = $DB->get_record('user_info_category', array('name'=>LOCAL_BOOKING_ATO));
+        // Look for ATO category
+        $category = $DB->get_record('user_info_category', array('name'=>get_booking_config('ATO')));
         $categoryid = 0;
 
         if (empty($category)) {

@@ -37,7 +37,7 @@ define([
     'local_booking/events',
     'local_booking/modal_delete',
     'local_booking/selectors',
-    'local_booking/view_manager',
+    'local_booking/booking_view_manager',
 ],
 function(
     $,
@@ -159,7 +159,7 @@ function(
      * @param   {jQuery} root
      */
      function registerDelete(root) {
-        root.on('click', BookingSelectors.actions.delete, function(e) {
+        root.on('click', BookingSelectors.actions.deleteLogentry, function(e) {
             // Fetch the logentry title, and pass them into the new dialogue.
             var logentrySource = root.find(BookingSelectors.logentryItem),
                 logentryId = logentrySource.data('logentryId'),
