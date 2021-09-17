@@ -43,6 +43,13 @@ interface grade_interface {
     public function get_exerciseid();
 
     /**
+     * Get the course exercise type for the grade.
+     *
+     * @return string
+     */
+    public function get_exercisetype();
+
+    /**
      * Get the grader user id of the grade.
      *
      * @return int
@@ -85,11 +92,18 @@ interface grade_interface {
     public function get_finalgrade();
 
     /**
-     * Set the grader user id of the grade.
+     * Set the exercise id of the grade.
      *
      * @param int
      */
     public function set_exerciseid(int $exerciseid);
+
+    /**
+     * Set the exercise type of the grade.
+     *
+     * @param string
+     */
+    public function set_exercisetype(string $exercisetype);
 
     /**
      * Set the grader user id of the grade.

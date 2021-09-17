@@ -87,12 +87,17 @@ class participant_vault implements participant_vault_interface {
     const DB_COURSE_MODS = 'course_modules';
 
     /**
-     * Process user enrollments table name.
+     * Process user assignment grades table name.
      */
     const DB_GRADES = 'assign_grades';
 
     /**
-     * Process assignment completion in timer table.
+     * Process user enrollments table name.
+     */
+    const DB_QUIZ_GRADES = 'quiz_grades';
+
+    /**
+     * Process lesson completion in timer table.
      */
     const DB_LESSON_TIMER = 'lesson_timer';
 
@@ -209,7 +214,7 @@ class participant_vault implements participant_vault_interface {
      * Get grades for a specific student.
      *
      * @param int       $studentid  The student id.
-     * @return grade[]              A student booking.
+     * @return grade[]  A student grades.
      */
     public function get_grades($studentid) {
         global $DB;
@@ -218,13 +223,37 @@ class participant_vault implements participant_vault_interface {
         $sql = 'SELECT cm.id AS exerciseid, ag.assignment AS assignid,
                     ag.userid, ag.grade, ag.timemodified AS gradedate,
                     u.id AS instructorid, ' . $DB->sql_concat('u.firstname', '" "',
-                    'u.lastname', '" "', 'u.alternatename') . ' AS instructorname
+                    'u.lastname', '" "', 'u.alternatename') . ' AS instructorname,
+                    m.name AS exercisetype
                 FROM {' . self::DB_GRADES . '} ag
                 INNER JOIN {' . self::DB_COURSE_MODS . '} cm on ag.assignment = cm.instance
                 INNER JOIN {' . self::DB_MODULES . '} as m ON m.id = cm.module
                 INNER JOIN {' . self::DB_USER . '} u on ag.grader = u.id
                 WHERE m.name = "assign" AND ag.userid = ' . $studentid . '
                 ORDER BY cm.section';
+
+        return $DB->get_records_sql($sql);
+    }
+
+    /**
+     * Get grades for a specific student.
+     *
+     * @param int       $studentid  The student id.
+     * @return grade[]  A student quizes.
+     */
+    public function get_quizes($studentid) {
+        global $DB;
+
+        // Get the student's grades
+        $sql = 'SELECT cm.id AS exerciseid, qg.quiz AS assignid,
+                    qg.userid, qg.grade, qg.timemodified AS gradedate,
+                    0 AS instructorid, \'\' AS instructorname,
+                    m.name AS exercisetype
+                FROM {' . self::DB_QUIZ_GRADES . '} qg
+                INNER JOIN {' . self::DB_COURSE_MODS . '} cm on qg.quiz = cm.instance
+                INNER JOIN {' . self::DB_MODULES . '} as m ON m.id = cm.module
+                WHERE m.name = \'quiz\' AND qg.userid = ' . $studentid . '
+                ORDER BY cm.section;';
 
         return $DB->get_records_sql($sql);
     }

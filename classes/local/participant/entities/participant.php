@@ -100,15 +100,19 @@ class participant implements participant_interface {
     }
 
     /**
-     * Get grades for a specific student.
+     * Get grades for a specific student from
+     * assignments and quizes.
      *
      * @param int       $studentid  The student id.
-     * @return {object}[]  A student booking.
+     * @return {object}[]  A student grades.
      */
     public function get_grades($studentid) {
         $vault = new participant_vault();
+        $assignments = $vault->get_grades($studentid);
+        $quizes = $vault->get_quizes($studentid);
+        $grades = $assignments + $quizes;
 
-        return $vault->get_grades($studentid);
+        return $grades;
     }
 
     /**

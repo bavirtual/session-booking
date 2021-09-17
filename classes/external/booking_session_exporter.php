@@ -49,6 +49,11 @@ class booking_session_exporter extends exporter {
     protected $session;
 
     /**
+     * @var grade $this->grade An object containing grade info.
+     */
+    protected $grade;
+
+    /**
      * Constructor.
      *
      * @param mixed $data An array of exercise data.
@@ -57,14 +62,15 @@ class booking_session_exporter extends exporter {
     public function __construct($data, $related) {
         $type = \core_calendar\type_factory::get_calendar_instance();
 
-        $grade = null;
+        $this->grade = null;
         $booking = null;
 
-        // Get the student's last graded session if available
+        // Get student's grade for this session if available
         if (count($data['grades']) > 0) {
             if (array_search($data['exerciseid'], array_column($data['grades'], 'exerciseid')) !== false) {
-                $grade = new grade(
+                $this->grade = new grade(
                         $data['exerciseid'],
+                        $data['grades'][$data['exerciseid']]->exercisetype,
                         $data['grades'][$data['exerciseid']]->instructorid,
                         $data['grades'][$data['exerciseid']]->instructorname,
                         $data['studentid'],
@@ -74,8 +80,8 @@ class booking_session_exporter extends exporter {
             }
         }
 
-        // Get the student's booking if available
-        if (empty($grade) && count($data['booking']) > 0) {
+        // Get the student's booking for this session if available
+        if (empty($this->grade) && count($data['booking']) > 0) {
             $bookings = array_reverse($data['booking']);
             $bookingobj = array_pop($bookings);
             if ($bookingobj->exerciseid == $data['exerciseid']) {
@@ -87,14 +93,16 @@ class booking_session_exporter extends exporter {
         $sessionstatus = '';
         $sessionstatustooltip = '';
         $sessiondate = new \DateTime('@' . time());
-        if ($grade !== null) {
+        if ($this->grade !== null) {
             $sessionstatus = 'graded';
-            $sessiondate = new \DateTime('@' . $grade->get_gradedate()[0]);
-            $gradeinfo = [
-                'instructor' => $grade->get_gradername(),
-                'sessiondate' => $sessiondate->format('j M \'y')
+            $sessiondate = new \DateTime('@' . $this->grade->get_gradedate()[0]);
+            $this->gradeinfo = [
+                'instructor'  => $this->grade->get_gradername(),
+                'sessiondate' => $sessiondate->format('j M \'y'),
+                'grade'       => intval($this->grade->get_finalgrade())
             ];
-            $sessionstatustooltip = get_string('sessiongradeddby', 'local_booking', $gradeinfo);
+            $sessionstatustooltip = $this->grade->get_exercisetype() == 'assign' ? get_string('sessiongradeddby', 'local_booking', $this->gradeinfo) :
+                get_string('sessiongradeexampass', 'local_booking', $this->gradeinfo);
         } else if ($booking !== null) {
             $slotvault = new slot_vault();
             $sessionstatus = $booking->confirmed ? 'booked' : 'tentative';
@@ -108,7 +116,7 @@ class booking_session_exporter extends exporter {
             $sessionstatustooltip = get_string('sessionbookedby', 'local_booking', $bookinginfo);
         }
 
-        $this->session = new session($grade, $booking, $sessionstatus, $sessiondate);
+        $this->session = new session($this->grade, $booking, $sessionstatus, $sessiondate);
 
         $data = [
             'studentid'     => $data['studentid'],
@@ -182,6 +190,14 @@ class booking_session_exporter extends exporter {
                 'type' => PARAM_BOOL,
                 'default' => false,
             ],
+            'haslogentry' => [
+                'type' => PARAM_BOOL,
+                'default' => true,
+            ],
+            'logentrymissing' => [
+                'type' => PARAM_BOOL,
+                'default' => true,
+            ],
         ];
     }
 
@@ -197,6 +213,8 @@ class booking_session_exporter extends exporter {
             'graded'        => $this->session->hasgrade(),
             'booked'        => $this->session->hasbooking() && $this->session->get_booking()->confirmed,
             'tentative'     => $this->session->hasbooking() && !$this->session->get_booking()->confirmed,
+            'haslogentry'   => $this->session->hasgrade() && $this->grade->get_exercisetype() != 'quiz',
+            'logentrymissing' => empty($this->data['logentryid']) && $this->session->hasgrade() && $this->grade->get_exercisetype() != 'quiz'
         ];
 
         return $return;

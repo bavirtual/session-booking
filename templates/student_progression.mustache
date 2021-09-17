@@ -112,19 +112,17 @@
                     data-html="true"
                     title="{{sessionstatustooltip}}"
                     {{/sessionempty}}>
-                    <div class="d-md-block text-xs-center{{#graded}} clickable{{/graded}}">
+                    <div class="d-md-block text-xs-center{{#haslogentry}} clickable{{/haslogentry}}">
                         <span id="exercise-{{studentid}}-{{exerciseid}}" class="session-date media-body fa-inverse{{!
                             }}{{#graded}} session-graded{{/graded}}{{!
                             }}{{#booked}} session-booked{{/booked}}{{!
                             }}{{#tentative}} session-tentative{{/tentative}}{{!
-                            }}">{{^graded}}&nbsp;{{/graded}}
-                            {{#graded}}{{#logentryid}}&nbsp;
-                            {{/logentryid}}{{/graded}}
-                            {{#graded}}{{^logentryid}}
+                            }}">{{^logentrymissing}}&nbsp;{{/logentrymissing}}
+                            {{#logentrymissing}}
                                 <i class="fa fa-info-circle fa-fw"
                                 title="{{#str}}logentrymissing,local_booking{{/str}}"
                                 aria-label="{{#str}}logentrymissing,local_booking{{/str}}"></i>
-                            {{/logentryid}}{{/graded}}
+                            {{/logentrymissing}}
                         </span>
                     </div>
                 </td>

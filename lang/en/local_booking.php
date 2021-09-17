@@ -45,6 +45,7 @@ $string['sessionaction'] = 'Action';
 $string['sessiondate'] = 'Session Date';
 $string['sessionbookedby'] = 'Session date: {$a->sessiondate}<br/>{$a->bookingstatus}: booked by \'{$a->instructor}\'';
 $string['sessiongradeddby'] = 'Graded date: {$a->sessiondate}<br/>Graded by \'{$a->instructor}\'';
+$string['sessiongradeexampass'] = 'Passed exam with grade: {$a->grade}<br/>On {$a->sessiondate}';
 $string['simulator'] = 'Sim';
 $string['statusbooked'] = 'confirmed';
 $string['statustentative'] = 'tentative';

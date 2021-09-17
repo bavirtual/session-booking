@@ -62,9 +62,14 @@ class booking_student_exporter extends exporter {
     protected $courseexercises;
 
     /**
-     * @var array $studentgrades An array of the student's grades.
+     * @var array $studentgrades An array of the student's exercise grades.
      */
     protected $studentgrades;
+
+    /**
+     * @var array $studentquizes An array of the student's quizes.
+     */
+    protected $studentquizes;
 
     /**
      * @var booking_vault $bookingvault A vault to access booking data.

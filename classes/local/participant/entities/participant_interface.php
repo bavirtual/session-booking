@@ -61,7 +61,7 @@ interface participant_interface {
      * Get grades for a specific student.
      *
      * @param int       $studentid  The student id.
-     * @return grade[]              A student booking.
+     * @return grade[]              A student grades.
      */
     public function get_grades($studentid);
 

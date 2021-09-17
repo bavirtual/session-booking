@@ -119,6 +119,16 @@ const DB_USER = 'user';
 const DB_ASSIGN = 'assign';
 
 /**
+ * Process quiz table name.
+ */
+const DB_QUIZ = 'quiz';
+
+/**
+ * Process  modules table name.
+ */
+const DB_MODULES = 'modules';
+
+/**
  * Process course modules table name.
  */
 const DB_COURSE_MODULES = 'course_modules';
@@ -651,14 +661,32 @@ function get_exercise_name($exerciseid) {
 function get_exercise_names() {
     global $DB;
 
+    $exercisenames = [];
+
     // get assignments for this course based on sorted course topic sections
-    $sql = 'SELECT cm.id AS exerciseid, a.name AS exercisename
-            FROM {' . DB_ASSIGN . '} a
-            INNER JOIN {' . DB_COURSE_MODULES . '} cm on a.id = cm.instance
-            WHERE module = 1
+    $sql = 'SELECT cm.id AS exerciseid, a.name AS assignname,
+            q.name AS exam, m.name AS modulename
+            FROM {' . DB_COURSE_MODULES . '} cm
+            INNER JOIN {' . DB_MODULES . '} m ON m.id = cm.module
+            LEFT JOIN {' . DB_ASSIGN . '} a ON a.id = cm.instance
+            LEFT JOIN {' . DB_QUIZ . '} q ON q.id = cm.instance
+            WHERE m.name = \'assign\' OR m.name = \'quiz\'
             ORDER BY cm.section;';
 
-    return $DB->get_records_sql($sql);
+    $exercises = $DB->get_records_sql($sql);
+    foreach ($exercises as $exercise) {
+        $exerciseitem = $exercise->modulename == 'assign' ? (object) [
+            'exerciseid'    => $exercise->exerciseid,
+            'exercisename'  => $exercise->assignname
+        ] : (object) [
+            'exerciseid'    => $exercise->exerciseid,
+            'exercisename'  => $exercise->exam
+        ];
+
+        $exercisenames[$exercise->exerciseid] = $exerciseitem;
+    }
+
+    return $exercisenames;
 }
 
 /**

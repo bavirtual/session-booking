@@ -36,9 +36,14 @@ defined('MOODLE_INTERNAL') || die();
 class grade implements grade_interface {
 
     /**
-     * @var int $exercise The course exercise id of this grade.
+     * @var int $exerciseid The course exercise id of this grade.
      */
     protected $exerciseid;
+
+    /**
+     * @var string $exercisetype The course exercise type of this grade.
+     */
+    protected $exercisetype;
 
     /**
      * @var int $graderid The grader user id of this grade.
@@ -82,6 +87,7 @@ class grade implements grade_interface {
      */
     public function __construct(
         $exerciseid     = 0,
+        $exercisetype   = 'assign',
         $graderid       = 0,
         $gradername     = '',
         $studentid      = 0,
@@ -90,6 +96,7 @@ class grade implements grade_interface {
         $finalgrade     = 0
         ) {
         $this->exerciseid   = $exerciseid;
+        $this->exercisetype = $exercisetype;
         $this->graderid     = $graderid;
         $this->gradername   = $gradername;
         $this->studentid    = $studentid;
@@ -102,6 +109,10 @@ class grade implements grade_interface {
 
     public function get_exerciseid() {
         return $this->exerciseid;
+    }
+
+    public function get_exercisetype() {
+        return $this->exercisetype;
     }
 
     public function get_graderid() {
@@ -132,6 +143,10 @@ class grade implements grade_interface {
 
     public function set_exerciseid(int $exerciseid) {
         $this->exerciseid = $exerciseid;
+    }
+
+    public function set_exercisetype(string $exercisetype) {
+        $this->exercisetype = $exercisetype;
     }
 
     public function set_graderid(int $graderid) {

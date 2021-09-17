@@ -68,6 +68,14 @@ interface participant_vault_interface {
     public function get_grades($studentid);
 
     /**
+     * Get grades for a specific student.
+     *
+     * @param int       $studentid  The student id.
+     * @return grade[]  A student quizes.
+     */
+    public function get_quizes($studentid);
+
+    /**
      * Returns whether the student complete
      * all sessons prior to the upcoming next
      * exercise.
