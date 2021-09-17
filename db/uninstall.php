@@ -30,7 +30,7 @@ require_once($CFG->dirroot . '/local/booking/lib.php');
 
 use \core_customfield\api;
 
-function xmldb_enrol_cohort_uninstall() {
+function xmldb_local_booking_uninstall() {
 
     delete_course_customfields();
 
