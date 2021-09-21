@@ -51,9 +51,16 @@ interface session_interface {
     /**
      * Get the status for this session.
      *
-     * @return status
+     * @return string
      */
     public function get_status();
+
+    /**
+     * Get the additional info for this session.
+     *
+     * @return string
+     */
+    public function get_info();
 
     /**
      * Get the date of this session.

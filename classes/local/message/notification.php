@@ -123,14 +123,14 @@ class notification extends \core\message\message {
      *
      * @return bool  The notification message id.
      */
-    public function send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid) {
+    public function send_instructor_notification($courseid, $studentid, $exerciseid, $sessiondatetime, $instructorid) {
         global $COURSE;
 
         // notification message data
         $data = (object) array(
             'coursename'        => $COURSE->shortname,
             'student'           => get_fullusername($studentid),
-            'sessiondate'       => $sessiondate->format('l M j \a\t H:i \z\u\l\u'),
+            'sessiondate'       => $sessiondatetime,
             'exercise'          => get_exercise_name($exerciseid),
             'bookingurl'        => (new \moodle_url('/local/booking/view.php', array('courseid'=>$COURSE->id)))->out(false),
         );

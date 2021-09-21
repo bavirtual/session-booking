@@ -30,92 +30,38 @@ defined('MOODLE_INTERNAL') || die();
 interface participant_interface {
 
     /**
-     * Get a student record from the database.
-     *
-     * @return {Object}[]   An array of student record.
-     */
-    public function get_student($studentid);
-
-    /**
-     * Get all active students from the database.
-     *
-     * @return {Object}[]          Array of database records.
-     */
-    public function get_active_students(int $courseid = 0);
-
-    /**
-     * Get all active instructors for the course.
-     *
-     * @return {Object}[]   Array of active instructors.
-     */
-    public function get_active_instructors(int $courseid = 0);
-
-    /**
-     * Get all active instructors for the course.
-     *
-     * @return {Object}[]   Array of active instructors.
-     */
-    public function get_active_participants(int $courseid = 0);
-
-    /**
-     * Get grades for a specific student.
-     *
-     * @param int       $studentid  The student id.
-     * @return grade[]              A student grades.
-     */
-    public function get_grades($studentid);
-
-    /**
-     * Returns whether the student complete
-     * all sessons prior to the upcoming next
-     * exercise.
-     *
-     * @param   int     The student id
-     * @param   int     The course id
-     * @param   int     The upcoming next exercise id
-     * @return  bool    Whether the lessones were completed or not.
-     */
-    function get_lessons_complete($studentid, $courseid, $nextexercisesection);
-
-    /**
-     * Returns the next upcoming exercise id
-     * for the student and its associated course section.
-     *
-     * @param   int     The student id
-     * @param   int     The course id
-     * @return  array   The next exercise id and associated course section
-     */
-    function get_next_exercise($studentid, $courseid);
-
-    /**
      * Get student's enrolment date.
      *
-     * @param int       $studentid  The student id in reference
      * @return DateTime $enroldate  The enrolment date of the student.
      */
-    public function get_enrol_date(int $studentid);
+    public function get_enrol_date();
 
     /**
      * Suspends the student's enrolment to a course.
      *
-     * @param int   $studentid  The student id in reference
-     * @param int   $courseid   The course the student is being unenrolled from.
      * @return bool             The result of the suspension action.
      */
-    public function set_suspend_status(int $studentid, int $courseid);
+    public function set_suspend_status();
 
     /**
      * Returns full username
      *
+     * @param bool $alternate The additional alternate name
      * @return string  The full username with optional alternate info
      */
-    public static function get_fullname(int $userid, bool $alternate = true);
+    public function get_fullname(bool $alternate = true);
+
+    /**
+     * Returns participant's simulator user field
+     *
+     * @return string   The participant callsign
+     */
+    public function get_simulator();
 
     /**
      * Returns pilot's callsign user field
      *
-     * @param int       The pilot user id
      * @return string   The participant callsign
      */
-    public static function get_callsign(int $pilotid);
+    public function get_callsign();
 }

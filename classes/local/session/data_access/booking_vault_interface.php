@@ -32,54 +32,29 @@ use local_booking\local\session\entities\booking;
 interface booking_vault_interface {
 
     /**
-     * Get all booked sessions for the instructor.
+     * get booked sessions for a user
      *
-     * @param bool                   $userid of the student in the booking.
-     * @return booking[]             Array of session_interfaces.
+     * @param int    $userid of the student in the booking.
+     * @param bool   $oldestfirst sort order of the returned records.
+     * @return array {Object}
      */
-    public function get_bookings(bool $oldestfirst = false);
+    public function get_bookings(int $userid, bool $oldestfirst = false);
 
     /**
-     * Get a specific booking.
+     * Get booking based on passed object.
      *
-     * @param int                   $bookingid of the student in the booking.
-     * @return booking              A student booking.
+     * @param booking $booking
+     * @return Object
      */
-    public function get_booking($bookingid);
-
-    /**
-     * Get all booked sessions for a user that fall on a specific student.
-     *
-     * @param int                   $userid of the student in the booking.
-     * @return booking              A student booking.
-     */
-    public function get_student_booking($studentid);
-
-    /**
-     * Delete all sessions for a specific student.
-     *
-     * @param   int                 $studentid  The student id associated with the booking.
-     * @param   int                 $exerciseid The exercise id associated with the booking.
-     * @return  bool                $result
-     */
-    public function set_booking_inactive($userid, $exerciseid);
-
-    /**
-     * Delete a student's booking.
-     *
-     * @param   int                 $studentid  The student id associated with the booking.
-     * @param   int                 $exerciseid The exercise id associated with the booking.
-     * @return  bool                $result
-     */
-    public function delete_student_booking($studentid, $exerciseid);
+    public function get_booking(booking $booking);
 
     /**
      * Delete a specific booking.
      *
-     * @param   int                 $bookingid  The bookingid id to be deleted.
-     * @return  bool                $result
+     * @param   booking $booking  The bookingid id to be deleted.
+     * @return  bool    $result
      */
-    public function delete_booking($bookingid);
+    public function delete_booking(booking $booking);
 
     /**
      * Saves the passed booked session
@@ -92,11 +67,20 @@ interface booking_vault_interface {
     /**
      * Confirm the passed book
      *
+     * @param   int                 $courseid
      * @param   int                 $studentid
      * @param   int                 $exerciseid
      * @return  bool                $result
      */
-    public function confirm_booking(int $studentid, int $exerciseid);
+    public function confirm_booking(int $courseid, int $studentid, int $exerciseid);
+
+    /**
+     * Get the date of the booked exercise
+     *
+     * @param int $studentid
+     * @param int $exerciseid
+     */
+    public function get_booked_exercise_date(int $studentid, int $exerciseid);
 
     /**
      * Get the date of the last booked session
@@ -106,10 +90,10 @@ interface booking_vault_interface {
     public function get_last_booked_session(int $userid, bool $isinstructor = false);
 
     /**
-     * Get the date of the booked exercise
+     * set active flag to false to deactive the booking.
      *
-     * @param int $studentid
-     * @param int $exerciseid
+     * @param booking $booking The booking in reference.
+     * @return bool
      */
-    public function get_exercise_date(int $studentid, int $exerciseid);
+    public function set_booking_inactive($booking);
 }

@@ -29,12 +29,14 @@ require_once(__DIR__ . '/lib.php');
 require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/calendar/lib.php');
 
+global $USER;
+
 // Set up the page.
 $categoryid = optional_param('category', null, PARAM_INT);
 $courseid = optional_param('course', SITEID, PARAM_INT);
 $action =  optional_param('action', null, PARAM_RAW);
 $view =  optional_param('view', 'user', PARAM_RAW);
-$studentid = optional_param('userid', 0, PARAM_INT);
+$studentid = optional_param('userid', $USER->id, PARAM_INT);
 $exerciseid = optional_param('exid', 0, PARAM_INT);
 $course = get_course($courseid);
 $pluginname = $course->shortname . ' ' . get_booking_config('ATO') . ' ' . get_string('pluginname', 'local_booking');

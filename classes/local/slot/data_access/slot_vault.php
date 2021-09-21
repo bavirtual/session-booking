@@ -38,7 +38,7 @@ class slot_vault implements slot_vault_interface {
      * @param int       $slot The id of the slot
      * @return slot     The slot object from the id
      */
-    public function get_slot($slotid) {
+    public function get_slot(int $slotid) {
         global $DB;
 
         return $DB->get_record(static::DB_SLOTS, ['id' => $slotid]);
@@ -47,22 +47,44 @@ class slot_vault implements slot_vault_interface {
     /**
      * Get a list of slots for the user
      *
-     * @param int $userid The student id
+     * @param int $studentid The student id
      * @param int $year The year of the slots
      * @param int $week The week of the slots
      * @return array
      */
-    public function get_slots($userid, $year = 0, $week = 0) {
+    public function get_slots($studentid, $week = 0, $year = 0) {
         global $DB;
 
 
         $condition = [
-            'userid' => $userid,
-            'year'   => $year,
+            'userid' => $studentid,
             'week'   => $week,
+            'year'   => $year
         ];
 
         return $DB->get_records(static::DB_SLOTS, $condition, 'slotstatus');
+    }
+
+    /**
+     * save a slot
+     *
+     * @param string $slot
+     * @return bool
+     */
+    public function save_slot(slot $slot) {
+        global $DB, $USER;
+
+        $slotrecord = new \stdClass();
+        $slotrecord->userid = $slot->get_userid() == 0 ? $USER->id : $slot->get_userid();
+        $slotrecord->courseid = $slot->get_courseid();
+        $slotrecord->starttime = $slot->get_starttime();
+        $slotrecord->endtime = $slot->get_endtime();
+        $slotrecord->year = $slot->get_year();
+        $slotrecord->week = $slot->get_week();
+        $slotrecord->slotstatus = $slot->get_slotstatus();
+        $slotrecord->bookinginfo = $slot->get_bookinginfo();
+
+        return $DB->insert_record(static::DB_SLOTS, $slotrecord);
     }
 
     /**
@@ -88,17 +110,17 @@ class slot_vault implements slot_vault_interface {
      * @param int $useredits    The associated course.
      * @return bool
      */
-    public function delete_slots($course = 0, $year = 0, $week = 0, $userid = 0, $useredits = true) {
-        global $DB, $USER;
+    public function delete_slots($course = 0, $userid = 0, $year = 0, $week = 0, $useredits = true) {
+        global $DB;
 
         $condition = [
+            'slotstatus'    => '',
             'courseid'      => $course,
-            'userid'        => $userid == 0 ? $USER->id : $userid,
+            'userid'        => $userid,
         ];
         // don't delete slots with status tentative/booked
         if ($useredits) {
             $condition += [
-                'slotstatus'    => '',
                 'year'          => $year,
                 'week'          => $week,
             ];
@@ -108,37 +130,16 @@ class slot_vault implements slot_vault_interface {
     }
 
     /**
-     * save a slot
+     * Update the specified slot status and bookinginfo
      *
-     * @param string $slot
-     * @return bool
+     * @param slot $slot The slot to be confirmed
+     * @return bool the result of the update
      */
-    public function save(slot $slot) {
-        global $DB, $USER;
-
-        $slotrecord = new \stdClass();
-        $slotrecord->userid = $slot->get_userid() == 0 ? $USER->id : $slot->get_userid();
-        $slotrecord->courseid = $slot->get_courseid();
-        $slotrecord->starttime = $slot->get_starttime();
-        $slotrecord->endtime = $slot->get_endtime();
-        $slotrecord->year = $slot->get_year();
-        $slotrecord->week = $slot->get_week();
-        $slotrecord->slotstatus = $slot->get_slotstatus();
-        $slotrecord->bookinginfo = $slot->get_bookinginfo();
-
-        return $DB->insert_record(static::DB_SLOTS, $slotrecord);
-    }
-
-    /**
-     * Update the specified slot
-     *
-     * @param int $slotid
-     */
-    public function confirm_slot(int $slotid, string $bookinginfo) {
+    public function confirm_slot(slot $slot, string $bookinginfo) {
         global $DB;
 
         $slotrecord = new \stdClass();
-        $slotrecord->id = $slotid;
+        $slotrecord->id = $slot->get_id();
         $slotrecord->slotstatus = 'booked';
         $slotrecord->bookinginfo = $bookinginfo;
 
@@ -166,31 +167,20 @@ class slot_vault implements slot_vault_interface {
     /**
      * Get the date of the last posted availability slot
      *
+     * @param int $courseid
      * @param int $studentid
      */
-    public function get_last_posted_slot(int $studentid) {
+    public function get_last_posted_slot(int $courseid, int $studentid) {
         global $DB;
 
         $sql = 'SELECT starttime
                 FROM {' . static::DB_SLOTS. '}
-                WHERE userid = ' . $studentid . '
+                WHERE courseid = ' . $courseid . '
+                AND userid = ' . $studentid . '
                 AND slotstatus != ""
                 ORDER BY starttime DESC
                 LIMIT 1';
 
         return $DB->get_record_sql($sql);
-    }
-
-    /**
-     * Returns the date of the slot session.
-     *
-     * @return DateTime
-     */
-    public function get_session_date(int $slotid) {
-        $slot = $this->get_slot($slotid);
-
-        $sessiondate = !empty($slot) ? new DateTime('@' . $slot->starttime) : null;
-
-        return $sessiondate;
     }
 }

@@ -30,25 +30,18 @@ defined('MOODLE_INTERNAL') || die();
 interface participant_vault_interface {
 
     /**
-     * Get a student record from the database.
-     *
-     * @return {Object}[]   An array of student record.
-     */
-    public function get_student($studentid);
-
-    /**
      * Get all active students from the database.
      *
      * @return {Object}[]          Array of database records.
      */
-    public function get_active_students(int $courseid = 0);
+    public function get_active_students(int $courseid);
 
     /**
      * Get all active instructors for the course from the database.
      *
      * @return {Object}[]          Array of database records.
      */
-    public function get_active_instructors(int $courseid = 0);
+    public function get_active_instructors(int $courseid);
 
     /**
      * Get students assigned to an instructor from the database.
@@ -65,7 +58,7 @@ interface participant_vault_interface {
      * @param int       $studentid  The student id.
      * @return grade[]              A student booking.
      */
-    public function get_grades($studentid);
+    public function get_student_assignment_grades($studentid);
 
     /**
      * Get grades for a specific student.
@@ -73,29 +66,24 @@ interface participant_vault_interface {
      * @param int       $studentid  The student id.
      * @return grade[]  A student quizes.
      */
-    public function get_quizes($studentid);
+    public function get_student_quizes_grades($studentid);
 
     /**
-     * Returns whether the student complete
-     * all sessons prior to the upcoming next
-     * exercise.
+     * Get student's enrolment date.
      *
-     * @param   int     The student id
-     * @param   int     The course id
-     * @param   int     The upcoming next exercise id
-     * @return  bool    Whether the lessones were completed or not.
+     * @param int       $studentid  The student id in reference
+     * @return DateTime $enroldate  The enrolment date of the student.
      */
-    function get_lessons_complete($studentid, $courseid, $nextexercisesection);
+    public function get_enrol_date(int $courseid, int $studentid);
 
     /**
-     * Returns the next upcoming exercise id
-     * for the student and its associated course section.
+     * Suspends the student's enrolment to a course.
      *
-     * @param   int     The student id
-     * @param   int     The course id
-     * @return  array   The next exercise id and associated course section
+     * @param int   $courseid   The course the student is being unenrolled from.
+     * @param int   $studentid  The student id in reference
+     * @return bool             The result of the suspension action.
      */
-    function get_next_exercise($studentid, $courseid);
+    public function set_suspend_status(int $courseid, int $studentid);
 
     /**
      * Returns full username

@@ -24,6 +24,8 @@
 
 namespace local_booking\local\slot\entities;
 
+use local_booking\local\slot\data_access\slot_vault;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -113,39 +115,146 @@ class slot implements slot_interface {
         $this->bookinginfo = $bookinginfo;
     }
 
+    /**
+     * Loads the slot from the database.
+     *
+     */
+    public function load() {
+        $vault = new slot_vault();
+
+        $slotrec = $vault->get_slot($this->id);
+        if (!empty($slotrec)) {
+            $this->id = $slotrec->id;
+            $this->userid = $slotrec->userid;
+            $this->courseid = $slotrec->courseid;
+            $this->starttime = $slotrec->starttime;
+            $this->endtime = $slotrec->endtime;
+            $this->year = $slotrec->year;
+            $this->week = $slotrec->week;
+            $this->slotstatus = $slotrec->slotstatus;
+            $this->bookinginfo = $slotrec->bookinginfo;
+        }
+    }
+
+    /**
+     * Saves this slot to the database.
+     *
+     */
+    public function save() {
+        $vault = new slot_vault();
+        $this->id = $vault->save_slot($this);
+        return $this->id != 0;
+    }
+
+    /**
+     * Deletes this slot from the database.
+     *
+     */
+    public function delete() {
+        $vault = new slot_vault();
+
+        return $vault->delete_slot($this->id);
+    }
+
+    /**
+     * Confirm this slot.
+     *
+     * @return bool
+     */
+    public function confirm(string $bookinginfo) {
+        $vault = new slot_vault();
+        return $vault->confirm_slot($this, $bookinginfo);
+    }
+
+    /**
+     * Get the slot id.
+     *
+     * @return int
+     */
     public function get_id() {
         return $this->id;
     }
 
+    /**
+     * Get the slot user id.
+     *
+     * @return int
+     */
     public function get_userid() {
         return $this->userid;
     }
 
+    /**
+     * Get the course id of this slot.
+     *
+     * @return int
+     */
     public function get_courseid() {
         return $this->courseid;
     }
 
+    /**
+     * Get the start timestamp of this slot.
+     *
+     * @return int
+     */
     public function get_starttime() {
         return $this->starttime;
     }
 
+    /**
+     * Get the end timestamp of this slot.
+     *
+     * @return int
+     */
     public function get_endtime() {
         return $this->endtime;
     }
 
+    /**
+     * Get the year of this slot.
+     *
+     * @return int
+     */
     public function get_year() {
         return $this->year;
     }
 
+    /**
+     * Get the week of year for this slot.
+     *
+     * @return int
+     */
     public function get_week() {
         return $this->week;
     }
 
+    /**
+     * Get the status of this slot.
+     *
+     * @return int
+     */
     public function get_slotstatus() {
         return $this->slotstatus;
     }
 
+    /**
+     * Get the associated booking info for this slot.
+     *
+     * @return int
+     */
     public function get_bookinginfo() {
         return $this->bookinginfo;
+    }
+
+    /**
+     * Get the date of the last posted availability slot
+     *
+     * @param int $courseid
+     * @param int $studentid
+     */
+    public static function get_last_posting(int $courseid, int $studentid) {
+        $vault = new slot_vault();
+        return $vault->get_last_posted_slot($courseid, $studentid);
     }
 }

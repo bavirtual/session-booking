@@ -82,10 +82,10 @@ class priority implements priority_interface {
      * @param int $studentid    The student id related to the priority score.
      * @param array $related Related objects.
      */
-    public function __construct(int $studentid) {
+    public function __construct(int $courseid, int $studentid) {
         $analytics = new analytics_vault();
 
-        $this->recencydays = $analytics->get_session_recency($studentid);
+        $this->recencydays = $analytics->get_session_recency($courseid, $studentid);
         $recencydaysweight = get_config('local_booking', 'recencydaysweight') ? get_config('local_booking', 'recencydaysweight') : LOCAL_BOOKING_RECENCYWEIGHT;
 
         $this->slotcount = $analytics->get_slot_count($studentid);

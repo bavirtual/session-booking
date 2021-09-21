@@ -30,6 +30,8 @@ defined('MOODLE_INTERNAL') || die();
 use local_booking\local\participant\entities\participant;
 use core\external\exporter;
 use DateTime;
+use local_booking\local\participant\entities\instructor;
+use local_booking\local\subscriber\subscriber;
 use renderer_base;
 use moodle_url;
 
@@ -93,25 +95,25 @@ class instructor_participation_exporter extends exporter {
      */
     protected function get_other_values(renderer_base $output) {
         $courseid = $this->data['courseid'];
-        $participants = new participant();
-        $instructors = $participants->get_active_instructors($courseid);
+        $course = new subscriber($courseid);
+        $instructors = $course->get_active_instructors();
         $today = new DateTime('@'.time());
         $context = $this->related['context'];
 
         $participation = [];
         foreach ($instructors as $instructor) {
-            $lastgradeddate = $participants->get_last_graded_date($instructor->userid, $courseid);
+            $lastgradeddate = $instructor->get_last_graded_date();
             $interval = !empty($lastgradeddate) ? date_diff($lastgradeddate, $today) : 0;
 
             $instructorroles = [];
-            if ($roles = get_user_roles($context, $instructor->userid)) {
+            if ($roles = get_user_roles($context, $instructor->get_id())) {
                 foreach ($roles as $role) {
                     $instructorroles[] = $role->name;
                 }
             }
 
             $participation[] = [
-                'instructorname' => get_fullusername($instructor->userid),
+                'instructorname' => $instructor->get_name(),
                 'lastsessionts' => !empty($lastgradeddate) ? $lastgradeddate->getTimestamp() : 0,
                 'lastsessiondate' => !empty($lastgradeddate) ? $lastgradeddate->format('l M d, Y') : get_string('unknown', 'local_booking'),
                 'elapseddays' => !empty($lastgradeddate) ? $interval->days : '--',
@@ -132,31 +134,5 @@ class instructor_participation_exporter extends exporter {
         return array(
             'context' => 'context',
         );
-    }
-
-    /**
-     * Get the list of all instructor assigned students
-     * of the week.
-     *
-     * @param   renderer_base $output
-     * @return  assigned_student_exporter[]
-     */
-    protected function get_assigned_students($output) {
-        global $COURSE;
-        $assignedstudents = [];
-
-        $participants = new participant();
-        $studentobjs = $participants->get_assigned_students();
-        foreach ($studentobjs as $studentobj) {
-            list($nextexercise, $exercisesection) = $participants->get_next_exercise($studentobj->userid, $COURSE->id);
-            $studentobj->nextlesson = get_exercise_name($nextexercise);
-            $data = [
-                'student' => $studentobj,
-            ];
-            $student = new assigned_student_exporter($data, $this->related);
-            $assignedstudents[] = $student->export($output);
-        }
-
-        return $assignedstudents;
     }
 }

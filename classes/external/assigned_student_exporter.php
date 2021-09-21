@@ -48,13 +48,12 @@ class assigned_student_exporter extends exporter {
      */
     public function __construct($data, $related) {
         $student = $data['student'];
-        $enroldate = new DateTime('@' . $student->enroldate);
 
         $data = [
-        'studentname'   => $student->fullname,
-        'simulator'     => $student->simulator,
-        'nextlesson'    => $student->nextlesson,
-        'enroldate'     => $enroldate->format('M j\, Y'),
+        'studentname'   => $student->get_name(),
+        'simulator'     => $student->get_simulator(),
+        'nextlesson'    => $student->get_next_lesson(),
+        'enroldate'     => $student->get_enrol_date()->format('M j\, Y'),
         ];
 
         parent::__construct($data, $related);

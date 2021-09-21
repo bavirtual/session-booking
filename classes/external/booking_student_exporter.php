@@ -34,7 +34,8 @@ use core\external\exporter;
 use local_booking\local\logbook\entities\logbook;
 use local_booking\local\session\entities\action;
 use local_booking\local\participant\entities\participant;
-use local_booking\local\session\data_access\booking_vault;
+use local_booking\local\participant\entities\student;
+use local_booking\local\session\entities\booking;
 
 /**
  * Class for displaying each student row in progression view.
@@ -67,19 +68,9 @@ class booking_student_exporter extends exporter {
     protected $studentgrades;
 
     /**
-     * @var array $studentquizes An array of the student's quizes.
+     * @var booking $booking A vault to access booking data.
      */
-    protected $studentquizes;
-
-    /**
-     * @var booking_vault $bookingvault A vault to access booking data.
-     */
-    protected $bookingvault;
-
-    /**
-     * @var participants $participants A vault to access student data.
-     */
-    protected $participants;
+    protected $booking;
 
     /**
      * Constructor.
@@ -91,8 +82,8 @@ class booking_student_exporter extends exporter {
         $this->courseid = $courseid;
         $this->studentid = $data['studentid'];
         $this->courseexercises = $related['courseexercises'];
-        $this->bookingvault = new booking_vault();
-        $this->participants = new participant();
+        $this->booking = new booking(0, $courseid, $data['studentid']);
+        $this->booking->load();
 
         parent::__construct($data, $related);
     }
@@ -173,7 +164,7 @@ class booking_student_exporter extends exporter {
 
         // check if the student to be book has incomplete lessons
         if ($action->get_type() == 'book') {
-            $hasincompletelessons = !has_completed_lessons($this->studentid);
+            $hasincompletelessons = !has_completed_lessons($this->courseid, $this->studentid);
             if ($hasincompletelessons) { $action->set_type('disabled'); }
         }
 
@@ -204,13 +195,18 @@ class booking_student_exporter extends exporter {
     /**
      * Get the list of sessions for the course.
      *
-     * @return  $submissions[]
+     * @return  $sessions[]
      */
     protected function get_sessions($output) {
-        $this->studentgrades = $this->participants->get_grades($this->studentid);
+        // get student grades
+        $student = new student($this->courseid, $this->studentid);
+        $this->studentgrades = $student->get_grades();
+
+        // get student log book
         $logbook = new logbook($this->courseid, $this->studentid);
         $logbook->load();
 
+        // export all exercise sessions, quizes, and exams
         foreach ($this->courseexercises as $exercise) {
             $studentinfo = [];
             $studentinfo = [
@@ -220,7 +216,7 @@ class booking_student_exporter extends exporter {
                 'exerciseid'  => $exercise->exerciseid,
                 'grades'      => $this->studentgrades,
                 'logentry'    => $logbook->get_logentry(0, $exercise->exerciseid, false),
-                'booking'     => $this->bookingvault->get_student_booking($this->studentid),
+                'booking'     => $this->booking,
             ];
             $exercisesession = new booking_session_exporter($studentinfo, $this->related);
             $sessions[] = $exercisesession->export($output);
@@ -239,20 +235,12 @@ class booking_student_exporter extends exporter {
      * @return {Object}
      */
     protected function get_next_action() {
-        $exercisevalues = array_values($this->courseexercises);
-
-        // find the next exercise for the student
-        if (count($this->studentgrades) > 0) {
-            $lastexercise = end($this->studentgrades)->exerciseid;
-            $exerciseid = $exercisevalues[array_search($lastexercise, array_column($exercisevalues, 'exerciseid'))+1]->exerciseid;
-        } else {
-            $exerciseid = array_shift($exercisevalues)->exerciseid;
-        }
+        $student = new student($this->courseid, $this->studentid);
+        list($nextexerciseid, $section) = $student->get_next_exercise();
 
         // next action depends if the student has any booking
-        $hasbooking = !empty($this->bookingvault->get_student_booking($this->studentid));
-        $actiontype = $hasbooking ? 'grade' : 'book';
-        $action = new action($actiontype, $this->studentid, $exerciseid);
+        $actiontype = !empty($this->booking->get_id()) ? 'grade' : 'book';
+        $action = new action($actiontype, $this->courseid, $this->studentid, $nextexerciseid);
 
         return $action;
     }

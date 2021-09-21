@@ -30,8 +30,6 @@ use local_booking\external\assigned_students_exporter;
 use local_booking\external\instructor_participation_exporter;
 use local_booking\external\logbook_exporter;
 use local_booking\external\logentry_exporter;
-use local_booking\local\slot\data_access\slot_vault;
-use local_booking\local\session\data_access\booking_vault;
 use local_booking\local\session\entities\booking;
 use local_booking\local\slot\entities\slot;
 use local_booking\local\message\notification;
@@ -41,7 +39,8 @@ use local_booking\local\logbook\forms\create as update_logentry_form;
 use local_booking\external\week_exporter;
 use local_booking\local\logbook\entities\logbook;
 use local_booking\local\logbook\entities\logentry;
-use local_booking\local\subscriber\subscriber_info;
+use local_booking\local\participant\entities\student;
+use local_booking\local\subscriber\subscriber;
 
 /**
  * LOCAL_BOOKING_RECENCYWEIGHT - constant value for session recency weight multipler
@@ -59,6 +58,10 @@ define('LOCAL_BOOKING_ACTIVITYWEIGHT', 1);
  * LOCAL_BOOKING_COMPLETIONWEIGHT - constant value for lesson completion weight multipler
  */
 define('LOCAL_BOOKING_COMPLETIONWEIGHT', 10);
+/**
+ * LOCAL_BOOKING_MINLANES - constant value for minimum number of lanes in a weekday in the availability view
+ */
+define('LOCAL_BOOKING_MINLANES', 4);
 /**
  * LOCAL_BOOKING_MAXLANES - constant value for maximum number of student slots shown in parallel a day
  */
@@ -107,6 +110,10 @@ define('LOCAL_BOOKING_SESSIONLATEMULTIPLIER', 3);
  * LOCAL_BOOKING_INSTRUCTORINACTIVEMULTIPLIER - constant for multiplying wait period (in days) for late sessions: 3x wait period
  */
 define('LOCAL_BOOKING_INSTRUCTORINACTIVEMULTIPLIER', 2);
+/**
+ * LOCAL_BOOKING_SLOTCOLOR - constant for standard slot color
+ */
+define('LOCAL_BOOKING_SLOTCOLOR', '#00e676');
 
 /**
  * Process user  table name.
@@ -149,7 +156,7 @@ function local_booking_extend_navigation(global_navigation $navigation) {
 
     $courseid = $COURSE->id;
     $context = context_course::instance($courseid);
-    $course = new subscriber_info($courseid);
+    $course = new subscriber($courseid);
 
     if (!empty($course->subscribed) && $course->subscribed) {
         // Add student availability navigation node
@@ -180,7 +187,7 @@ function local_booking_extend_navigation(global_navigation $navigation) {
                 if (has_capability('local/booking:view', $context)) {
                     $params['view'] = 'all';
                 } else {
-                    $weekday = get_next_allowed_session_date($USER->id);
+                    $weekday = get_next_allowed_session_date($courseid, $USER->id);
                     if ((getdate($weekday->getTimestamp()))['wday'] == 0) {
                         date_add($weekday, date_interval_create_from_date_string('1 days'));
                     }
@@ -200,11 +207,11 @@ function local_booking_extend_navigation(global_navigation $navigation) {
 
         // Add instructor booking navigation node
         if (has_capability('local/booking:view', $context)) {
-            $node = $navigation->find('booking', navigation_node::NODETYPE_LEAF);
+            $node = $navigation->find('bookings', navigation_node::NODETYPE_LEAF);
             if (!$node && $courseid!==SITEID) {
                 $parent = $navigation->find($courseid, navigation_node::TYPE_COURSE);
-                $node = navigation_node::create(get_string('booking', 'local_booking'), new moodle_url('/local/booking/view.php', array('courseid'=>$courseid)));
-                $node->key = 'booking';
+                $node = navigation_node::create(get_string('bookings', 'local_booking'), new moodle_url('/local/booking/view.php', array('courseid'=>$courseid)));
+                $node->key = 'bookings';
                 $node->type = navigation_node::NODETYPE_LEAF;
                 $node->forceopen = true;
                 $node->icon = new  pix_icon('booking', '', 'local_booking');
@@ -265,10 +272,10 @@ function local_booking_output_fragment_logentry_form($args) {
         $logentry->set_sicid($USER->id);
         $formoptions['logentry'] = $logentry;
         $mform = new create_logentry_form(null, $formoptions, 'post', '', null, true, $formdata);
-
+        // copy over additional data needed for setting the form
         $data['courseid'] = $courseid;
-        $data['exerciseid'] = $exerciseid;
         $data['studentid'] = $studentid;
+        $data['exerciseid'] = $exerciseid;
     }
 
     // Add to form data setup arguments
@@ -312,9 +319,10 @@ function get_weekly_view(\calendar_information $calendar, $actiondata, $view = '
 
     $related = [
         'type' => $type,
+        'calendar' => $calendar
     ];
 
-    $week = new week_exporter($calendar, $type, $actiondata, $view, $related);
+    $week = new week_exporter($actiondata, $view, $related);
     $data = $week->export($renderer);
     $data->viewingmonth = true;
     $template = 'local_booking/calendar_week';
@@ -454,64 +462,51 @@ function get_participation_view($courseid) {
  * @return  bool
  */
 function save_booking($params) {
-    global $DB, $USER;
+    global $USER;
 
+    $courseid = !empty($params['courseid']) ? $params['courseid'] : SITEID;
+    require_login($courseid, false);
+
+    $result = false;
     $slottobook = $params['bookedslot'];
     $courseid   = $params['courseid'];
     $exerciseid = $params['exerciseid'];
     $studentid  = $params['studentid'];
-
-    $result = false;
-    $bookingvault = new booking_vault();
-    $slotvault = new slot_vault();
-    $courseid = get_course_id($exerciseid);
-
-    require_login($courseid, false);
-
-    $transaction = $DB->start_delegated_transaction();
+    $instructorid = $USER->id;
 
     // add a new tentatively booked slot for the student.
     $sessiondata = [
         'exercise'  => get_exercise_name($exerciseid),
-        'instructor'=> get_fullusername($USER->id),
+        'instructor'=> get_fullusername($instructorid),
         'status'    => ucwords(get_string('statustentative', 'local_booking')),
     ];
 
-    // add new booked slot for the user
-    // remove all week's slots for the user to avoid having to update
-    if ($bookingvault->delete_student_booking($studentid, $exerciseid)) {
-        $slotobj = new slot(0,
-            $studentid,
-            $courseid,
-            $slottobook['starttime'],
-            $slottobook['endtime'],
-            $slottobook['year'],
-            $slottobook['week'],
-            get_string('statustentative', 'local_booking'),
-            get_string('bookinginfo', 'local_booking', $sessiondata)
-        );
-        $bookedslot = $slotvault->get_slot($slotvault->save($slotobj));
+    // add new booking and update slot
+    $studentslot = new slot(0,
+        $studentid,
+        $courseid,
+        $slottobook['starttime'],
+        $slottobook['endtime'],
+        $slottobook['year'],
+        $slottobook['week'],
+        get_string('statustentative', 'local_booking'),
+        get_string('bookinginfo', 'local_booking', $sessiondata)
+    );
 
-        // add new booking by the instructor.
-        if (!empty($bookedslot)) {
-            if ($bookingvault->save_booking(new booking($courseid, $exerciseid, $bookedslot, $studentid, $slottobook['starttime']))) {
-                // send emails to both student and instructor
-                $sessiondate = new DateTime('@' . $slottobook['starttime']);
-                $message = new notification();
-                if ($message->send_booking_notification($studentid, $exerciseid, $sessiondate)) {
-                    $result = $message->send_instructor_confirmation($studentid, $exerciseid, $sessiondate);
-                }
-            }
-        }
-    }
+    $newbooking = new booking(0, $courseid, $studentid, $exerciseid, $studentslot,'', $instructorid);
+    $result = $newbooking->save();
 
     if ($result) {
-        $transaction->allow_commit();
+        // send emails to both student and instructor
+        $sessiondate = new DateTime('@' . $slottobook['starttime']);
+        $message = new notification();
+        if ($message->send_booking_notification($studentid, $exerciseid, $sessiondate)) {
+            $message->send_instructor_confirmation($studentid, $exerciseid, $sessiondate);
+        }
         $sessiondata['sessiondate'] = $sessiondate->format('D M j\, H:i');
         $sessiondata['studentname'] = get_fullusername($studentid);
         \core\notification::success(get_string('bookingsavesuccess', 'local_booking', $sessiondata));
     } else {
-        $transaction->rollback(new moodle_exception(get_string('bookingsaveunable', 'local_booking')));
         \core\notification::warning(get_string('bookingsaveunable', 'local_booking'));
     }
 
@@ -521,43 +516,37 @@ function save_booking($params) {
 /**
  * Confirm a booking for of a tentative session
  *
- * @param   int   $exerciseid   The exercise id being confirmed.
+ * @param   int   $couseid      The course id for this booking.
  * @param   int   $instructorid The instructor id that booked the session.
  * @param   int   $studentid    The student id being of the confirmed session.
+ * @param   int   $exerciseid   The exercise id being confirmed.
  * @return  array An array containing the result and confirmation message string.
  */
-function confirm_booking($exerciseid, $instructorid, $studentid) {
+function confirm_booking($courseid, $instructorid, $studentid, $exerciseid) {
     global $DB;
+    $result = false;
 
     // Get the student slot
-    $bookingvault = new booking_vault();
-    $slotvault = new slot_vault();
-
-    $bookingobj = array_reverse((array) $bookingvault->get_student_booking($studentid));
-    $booking = array_pop($bookingobj);
+    $booking = new booking(0, $courseid, $studentid, $exerciseid);
+    $booking->load();
 
     // confirm the booking and redirect to the student's availability
     $transaction = $DB->start_delegated_transaction();
 
-    $result = false;
-    // update the booking by the instructor.
-    if ($bookingvault->confirm_booking($studentid, $exerciseid)) {
+    if (!empty($booking->get_id())) {
+        // update the booking by the instructor.
+        $sessiondatetime = (new DateTime('@' . ($booking->get_slot())->get_starttime()))->format('D M j\, H:i');
         $strdata = [
             'exercise'  => get_exercise_name($exerciseid),
             'instructor'=> get_fullusername($instructorid),
             'status'    => ucwords(get_string('statusbooked', 'local_booking')),
+            'sessiondate'=> $sessiondatetime
         ];
-        $bookinginfo = get_string('bookingconfirmmsg', 'local_booking', $strdata);
-        $result = $slotvault->confirm_slot($booking->slotid, $bookinginfo);
-
-        $slot = $slotvault->get_slot($booking->slotid);
-
-        // notify the instructor of the student's confirmation
-        $slotvault = new slot_vault;
-        $sessiondate = $slotvault->get_session_date($booking->slotid);
-        $strdata['sessiondate'] = $sessiondate->format('D M j\, H:i');
-        $message = new notification();
-        $result = $result && $message->send_instructor_notification($studentid, $exerciseid, $sessiondate, $instructorid);
+        if ($booking->confirm(get_string('bookingconfirmmsg', 'local_booking', $strdata))) {
+            // notify the instructor of the student's confirmation
+            $message = new notification();
+            $result = $message->send_instructor_notification($courseid, $studentid, $exerciseid, $sessiondatetime, $instructorid);
+        }
     }
 
     if ($result) {
@@ -568,7 +557,7 @@ function confirm_booking($exerciseid, $instructorid, $studentid) {
         \core\notification::ERROR(get_string('bookingconfirmunable', 'local_booking'));
     }
 
-    return [$result, $slot->starttime, $slot->week];
+    return [$result, ($booking->get_slot())->get_starttime(), ($booking->get_slot())->get_week()];
 }
 
 /**
@@ -579,31 +568,21 @@ function confirm_booking($exerciseid, $instructorid, $studentid) {
 function cancel_booking($bookingid, $comment) {
     global $DB, $COURSE;
 
-    $vault = new booking_vault();
-    $slotvault = new slot_vault();
-
     // get the booking to be deleted
-    $booking = ($vault->get_booking($bookingid))[$bookingid];
-    $courseid = !empty($booking->courseid) ? $booking->courseid : $COURSE->id;
+    $booking = new booking($bookingid);
+    $booking->load();
+    $courseid = !empty($booking->get_courseid()) ? $booking->get_courseid() : $COURSE->id;
+    $sessiondate = new DateTime('@' . ($booking->get_slot())->get_starttime());
 
     require_login($courseid, false);
-
-    // get the associated slot to delete
-    $slot = $slotvault->get_slot($booking->slotid);
 
     // start a transaction
     $transaction = $DB->start_delegated_transaction();
 
-    $result = false;
+    $result = $booking->delete();
 
-    if ($vault->delete_booking($bookingid)) {
-        // delete all slots
-        $result = $slotvault->delete_slots($courseid, 0, 0, $booking->studentid, false);
-    }
-
-    $sessiondate = new DateTime('@' . $slot->starttime);
     $cancellationmsg = [
-        'studentname' => get_fullusername($booking->studentid),
+        'studentname' => get_fullusername($booking->get_studentid()),
         'sessiondate' => $sessiondate->format('D M j\, H:i'),
     ];
 
@@ -611,7 +590,7 @@ function cancel_booking($bookingid, $comment) {
         $transaction->allow_commit();
         // send email notification to the student of the booking cancellation
         $message = new notification();
-        if ($message->send_session_cancellation($booking->studentid, $booking->exerciseid, $sessiondate, $comment)) {
+        if ($message->send_session_cancellation($booking->get_studentid(), $booking->get_exerciseid(), $sessiondate, $comment)) {
             \core\notification::success(get_string('bookingcanceledsuccess', 'local_booking', $cancellationmsg));
         }
     } else {
@@ -626,13 +605,11 @@ function cancel_booking($bookingid, $comment) {
  * Respond to submission graded events
  *
  */
-function booking_process_submission_graded($exerciseid, $studentid) {
-    $bookingvault = new booking_vault();
-    $slotvault = new slot_vault();
-
+function process_submission_graded($courseid, $studentid, $exerciseid) {
+    $booking = new booking(0, $courseid, $studentid, $exerciseid);
+    $booking->load();
     // update the booking status from active to inactive
-    $bookingvault->set_booking_inactive($studentid, $exerciseid);
-    $slotvault->delete_slots(get_course_id($exerciseid), 0, 0, $studentid, false);
+    $booking->deactivate();
 }
 
 /**
@@ -694,45 +671,6 @@ function get_exercise_names() {
  *
  * @return array array of days
  */
-function get_active_student_slots($weekno, $year, $studentid = 0) {
-    $slotvault = new slot_vault();
-    $participants = new participant();
-
-    $activestudents = [];
-    // get a single or all students records
-    if ($studentid != 0) {
-        $students = $participants->get_student($studentid);
-    } else {
-        $students = $participants->get_active_students();
-    }
-
-    $colors = (array) get_booking_config('colors', true);
-    $i = 0;
-    // get slots for each student
-    foreach ($students as $student) {
-        $color = "#00e676"; // standard green color
-        $slots = $slotvault->get_slots($student->userid, $year, $weekno);
-        // $color = '#' . random_color();
-        if (count($colors) > 0 ) {
-            $color = array_values($colors)[$i % LOCAL_BOOKING_MAXLANES];
-        }
-        // add random color to each student
-        foreach ($slots as $slot) {
-            $slot->slotcolor = $color;
-        }
-        $i++;
-
-        $activestudents[$student->userid] = $slots;
-    }
-
-    return $activestudents;
-}
-
-/**
- * Return the days of the week where $date falls in.
- *
- * @return array array of days
- */
 function get_week_days($date) {
 
     $days = [];
@@ -741,13 +679,10 @@ function get_week_days($date) {
     $daysinweek = count($type->get_weekdays());
     $week_start = get_week_start($date);
 
-    // add first day of the week
-    $days[] = $type->timestamp_to_date_array(date_timestamp_get($week_start));
-
     // add remaining days of the week
-    for ($i = 0; $i < $daysinweek-1; $i++) {
+    for ($i = 0; $i < $daysinweek; $i++) {
+        $days[] = $type->timestamp_to_date_array(date_timestamp_get($week_start), 0);
         date_add($week_start, date_interval_create_from_date_string("1 days"));
-        $days[] = $type->timestamp_to_date_array(date_timestamp_get($week_start));
     }
 
     return $days;
@@ -770,14 +705,14 @@ function get_week_start($date) {
  * all pending lessons before marking
  * availability for an instructor session.
  *
+ * @param   int     The course id
  * @param   int     The student id
  * @return  bool
  */
-function has_completed_lessons($studentid) {
-    global $COURSE;
-    $participants = new participant();
-    list($nextexercise, $exercisesection) = $participants->get_next_exercise($studentid, $COURSE->id);
-    $completedlessons = $participants->get_lessons_complete($studentid, $COURSE->id, $exercisesection);
+function has_completed_lessons($courseid, $studentid) {
+    $student = new student($courseid, $studentid);
+    list($nextexercise, $exercisesection) = $student->get_next_exercise();
+    $completedlessons = $student->get_lessons_complete($exercisesection);
 
     return $completedlessons;
 }
@@ -786,35 +721,17 @@ function has_completed_lessons($studentid) {
  * Returns the date of the last booked
  * session or today if unavailable.
  *
- * @param   int     The student id
+ * @param   int     The course id for subscribing course.
+ * @param   int     The student id related.
  * @return  DateTime
  */
-function get_next_allowed_session_date($studentid) {
+function get_next_allowed_session_date($courseid, $studentid) {
     $daysfromlast = (get_config('local_booking', 'nextsessionwaitdays')) ? get_config('local_booking', 'nextsessionwaitdays') : LOCAL_BOOKING_DAYSFROMLASTSESSION;
-    $vault = new slot_vault();
 
-    $lastsession = $vault->get_last_posted_slot($studentid);
+    $lastsession = slot::get_last_posting($courseid, $studentid);
     $sessiondatets = !empty($lastsession) ? $lastsession->starttime : time();
     $sessiondate = new DateTime('@' . $sessiondatets);
     date_add($sessiondate, date_interval_create_from_date_string($daysfromlast . ' days'));
-
-    return $sessiondate;
-}
-
-/**
- * Returns the timestamp of the first
- * nonbooked availability slot for
- * the student.
- *
- * @param   int     The student id
- * @return  DateTime
- */
-function get_first_posted_slot($studentid) {
-    $vault = new slot_vault();
-
-    $firstsession = $vault->get_first_posted_slot($studentid);
-    $sessiondatets = !empty($firstsession) ? $firstsession->starttime : time();
-    $sessiondate = new DateTime('@' . $sessiondatets);
 
     return $sessiondate;
 }

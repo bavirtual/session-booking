@@ -25,6 +25,8 @@
 
 namespace local_booking\local\session\entities;
 
+use local_booking\local\participant\entities\participant;
+use local_booking\local\participant\entities\student;
 use moodle_url;
 
 defined('MOODLE_INTERNAL') || die();
@@ -58,8 +60,8 @@ class action implements action_interface {
      * @param event_interface  $event  The event to delegate to.
      * @param action_interface $action The action associated with this event.
      */
-    public function __construct(string $actiontype, int $userid, int $refid) {
-        global $COURSE;
+    public function __construct(string $actiontype, $courseid, int $studentid, int $refid) {
+        $student = new student($courseid, $studentid);
 
         $actionurl = null;
         $name = '';
@@ -69,20 +71,20 @@ class action implements action_interface {
                 $actionurl = new moodle_url('/mod/assign/view.php', [
                     'id' => $refid,
                     'rownum' => 0,
-                    'userid' => $userid,
+                    'userid' => $studentid,
                     'action' => 'grader',
                 ]);
                 $name = get_string('grade', 'grades');
                 break;
             case 'book':
                 // Book action takes the instructor to the week of the firs slot or after waiting period
-                $nextslot = (get_first_posted_slot($userid))->getTimestamp();
-                $waitend = (get_next_allowed_session_date($userid))->getTimestamp();
-                $week = $nextslot > time() ? $nextslot : $waitend;
+                $nextslotdate = ($student->get_first_slot_date())->getTimestamp();
+                $waitenddate = (get_next_allowed_session_date($courseid, $studentid))->getTimestamp();
+                $week = $nextslotdate > time() ? $nextslotdate : $waitenddate;
                 $actionurl = new moodle_url('/local/booking/availability.php', [
-                    'course' => $COURSE->id,
+                    'course' => $courseid,
                     'exid'   => $refid,
-                    'userid' => $userid,
+                    'userid' => $studentid,
                     'action' => 'book',
                     'time'   => $week,
                     'view'   => 'user',
@@ -91,7 +93,7 @@ class action implements action_interface {
                 break;
             case 'cancel':
                 $actionurl = new moodle_url('/local/booking/view.php', [
-                    'course' => $COURSE->id,
+                    'course' => $courseid,
                 ]);
                 $name = get_string('bookingcancel', 'local_booking');
                 break;

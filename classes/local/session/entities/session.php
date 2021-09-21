@@ -51,6 +51,11 @@ class session implements session_interface {
     protected $status;
 
     /**
+     * @var string $info The session addtional information.
+     */
+    protected $info;
+
+    /**
      * @var array $sessiondate The date of this session.
      */
     protected $sessiondate;
@@ -61,44 +66,92 @@ class session implements session_interface {
      * @param grade             $grade          The session grade object.
      * @param booking           $booking        The session booking object.
      * @param string            $status         The session status.
+     * @param string            $info           The session additional information.
      * @param array             $sessiondate    The date of this session.
      */
     public function __construct(
         $grade = null,
         $booking = null,
         $status = '',
+        $info = '',
         $sessiondate = []
     ) {
         $this->grade = $grade;
         $this->booking = $booking;
         $this->status = $status;
+        $this->info = $info;
         $this->sessiondate = $sessiondate;
     }
 
+    /**
+     * Get the grade for this session.
+     *
+     * @return grade
+     */
     public function get_grade() {
         return $this->grade;
     }
 
+    /**
+     * Get the booking for this session.
+     *
+     * @return booking
+     */
     public function get_booking() {
         return $this->booking;
     }
 
+    /**
+     * Get the status for this session.
+     *
+     * @return string
+     */
     public function get_status() {
         return $this->status;
     }
 
+    /**
+     * Get the addional info for this session.
+     *
+     * @return string
+     */
+    public function get_info() {
+        return $this->info;
+    }
+
+    /**
+     * Get the date of this session.
+     *
+     * @return DateTime
+     */
     public function get_sessiondate() {
         return $this->sessiondate;
     }
 
+    /**
+     * Get whether this session has a grade.
+     *
+     * @return bool
+     */
     public function hasgrade() {
         return $this->grade !== null;
     }
 
+    /**
+     * Get whether this session has a booking.
+     *
+     * @return bool
+     */
     public function hasbooking() {
         return $this->booking !== null;
     }
 
+    /**
+     * Get whether this session has not been graded or booked
+     *  (i.e. future session).
+     *
+     * @return bool
+     */
     public function empty() {
         return (!$this->hasbooking() && !$this->hasgrade());
     }

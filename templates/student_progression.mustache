@@ -56,7 +56,12 @@
                     <span class="media-body" aria-hidden="true">{{#str}}sessionaction,local_booking{{/str}}</span>
                 </th>
                 {{#exercisenames}}
-                <th class="header booking-header text-xs-center" data-region="lesson-exercise" style="width: 100px;">
+                <th class="header booking-header text-xs-center"
+                    data-toggle="tooltip"
+                    title="{{{exercisename}}}"
+                    data-html="true"
+                    data-region="lesson-exercise"
+                    style="width: 100px;">
                     <span class="media-body small" aria-hidden="true">{{#shortentext}} 15, {{{exercisetitle}}} {{/shortentext}}</span>
                 </th>
                 {{/exercisenames}}
@@ -67,12 +72,12 @@
             <tr data-region="student">
                 <td class="text-sm-center"
                     data-toggle="tooltip"
-                    title="{{sequencetooltip}}"
+                    title="{{{sequencetooltip}}}"
                     data-html="true">
                     <span class="media-body small" aria-hidden="true">{{sequence}}</span>
                 </td>
                 <td class="booking-truncate">
-                    <span>{{studentname}}</span>
+                    <span>{{studentname}}</span><br/>
                 </td>
                 <td class="day text-sm-center">
                     <span class="media-body small{{#overduewarning}} session-overdue{{/overduewarning}}{{#latewarning}} session-late{{/latewarning}}"
@@ -91,7 +96,7 @@
                         <a href="{{actionurl}}"{{#lessonincomplete}} class="disabled-link"{{/lessonincomplete}}>
                         <button class="session-button session-button-{{actiontype}}"
                             data-region="action-button">
-                            <i class="fa fa-{{#actionbook}}plane{{/actionbook}}{{^actionbook}}pencil-square{{/actionbook}}" style="padding-right: 5px;"></i>
+                            <i class="fa fa-{{#actionbook}}plane{{/actionbook}}{{^actionbook}}pencil-square{{/actionbook}}" style="padding-right: 5px; padding-top: 5px;"></i>
                             {{actionname}}
                         </button>
                          </a>
@@ -101,18 +106,18 @@
                 <td class="text-sm-center"
                     data-action="view-logentry"
                     data-exercise-status="{{sessionstatus}}"
-                    {{#graded}}data-region="session-entry"
+                    {{#graded}}{{^isquiz}}data-region="session-entry"
                     data-student-id="{{studentid}}"
                     data-exercise-id="{{exerciseid}}"
                     data-session-date="{{sessionts}}"
                     data-logentry-id="{{logentryid}}"
-                    {{/graded}}
+                    {{/isquiz}}{{/graded}}
                     {{^sessionempty}}
                     data-toggle="tooltip"
                     data-html="true"
-                    title="{{sessionstatustooltip}}"
+                    title="{{{sessiontooltip}}}"
                     {{/sessionempty}}>
-                    <div class="d-md-block text-xs-center{{#haslogentry}} clickable{{/haslogentry}}">
+                    <div class="d-md-block text-xs-center{{#canlogentry}} clickable{{/canlogentry}}">
                         <span id="exercise-{{studentid}}-{{exerciseid}}" class="session-date media-body fa-inverse{{!
                             }}{{#graded}} session-graded{{/graded}}{{!
                             }}{{#booked}} session-booked{{/booked}}{{!

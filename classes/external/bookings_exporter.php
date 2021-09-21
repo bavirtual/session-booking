@@ -28,10 +28,9 @@ namespace local_booking\external;
 defined('MOODLE_INTERNAL') || die();
 
 use core\external\exporter;
-use local_booking\local\session\data_access\booking_vault;
-use local_booking\local\participant\entities\participant;
+use local_booking\local\participant\entities\instructor;
 use local_booking\local\session\entities\priority;
-use local_booking\local\subscriber\subscriber_info;
+use local_booking\local\subscriber\subscriber;
 use renderer_base;
 use moodle_url;
 
@@ -61,6 +60,11 @@ class bookings_exporter extends exporter {
     protected $exercisenames = [];
 
     /**
+     * @var array $activestudents An array of active student info for the course.
+     */
+    protected $activestudents = [];
+
+    /**
      * Constructor.
      *
      * @param mixed $data An array of student progress data.
@@ -75,7 +79,6 @@ class bookings_exporter extends exporter {
 
         $data['url'] = $url->out(false);
         $data['contextid'] = $related['context']->id;
-        $data['courseid'] = $data['courseid'];
 
         parent::__construct($data, $related);
     }
@@ -127,7 +130,7 @@ class bookings_exporter extends exporter {
 
         $return = [
             'exercisenames'  => $this->get_exercises($output),
-            'activestudents' => $this->get_active_students($output),
+            'activestudents' => $this->get_students($output),
             'activebookings' => $this->get_bookings($output),
         ];
 
@@ -154,8 +157,8 @@ class bookings_exporter extends exporter {
     protected function get_exercises($output) {
         $this->exercisenames = get_exercise_names();
         // get titles from the course custom fields exercise titles array
-        $subscribedcourse = new subscriber_info($this->data['courseid']);
-        $exerciseslabels = [];
+        $subscribedcourse = new subscriber($this->data['courseid']);
+        $exercisesexports = [];
 
         $titlevalue = array_values($subscribedcourse->exercisetitles);
         foreach($this->exercisenames as $name) {
@@ -169,10 +172,10 @@ class bookings_exporter extends exporter {
             ];
 
             $exercisename = new exercise_name_exporter($data);
-            $exerciseslabels[] = $exercisename->export($output);
+            $exercisesexports[] = $exercisename->export($output);
         }
 
-        return $exerciseslabels;
+        return $exercisesexports;
     }
 
     /**
@@ -182,14 +185,14 @@ class bookings_exporter extends exporter {
      * @param   renderer_base $output
      * @return  student_exporter[]
      */
-    protected function get_active_students($output) {
-        $activestudents = [];
+    protected function get_students($output) {
+        $activestudentsexports = [];
 
-        $participants = new participant();
-        $students = $this->prioritze($participants->get_active_students());
+        $course = new subscriber($this->data['courseid']);
+        $this->activestudents = $this->prioritze($course->get_active_students());
 
         $i = 0;
-        foreach ($students as $student) {
+        foreach ($this->activestudents as $student) {
             $i++;
             $sequencetooltip = [
                 'score'     => $student->priority->get_score(),
@@ -204,21 +207,21 @@ class bookings_exporter extends exporter {
             $data = [
                 'sequence'        => $i,
                 'sequencetooltip' => get_string('sequencetooltip', 'local_booking', $sequencetooltip),
-                'studentid'       => $student->userid,
-                'studentname'     => $student->fullname,
+                'studentid'       => $student->get_id(),
+                'studentname'     => $student->get_name(),
                 'dayssincelast'   => $student->dayssincelast,
                 'overduewarning'  => $waringflag == self::OVERDUEWARNING,
                 'latewarning'     => $waringflag == self::LATEWARNING,
-                'simulator'       => $student->simulator,
+                'simulator'       => $student->get_simulator(),
             ];
-            $student = new booking_student_exporter($data, $this->data['courseid'], [
+            $studentexporter = new booking_student_exporter($data, $this->data['courseid'], [
                 'context' => \context_system::instance(),
                 'courseexercises' => $this->exercisenames,
             ]);
-            $activestudents[] = $student->export($output);
+            $activestudentsexports[] = $studentexporter->export($output);
         }
 
-        return $activestudents;
+        return $activestudentsexports;
     }
 
     /**
@@ -230,7 +233,7 @@ class bookings_exporter extends exporter {
     protected function prioritze($activestudents) {
         // Get student booking priority
         foreach ($activestudents as $student) {
-            $priority = new priority($student->userid);
+            $priority = new priority($this->data['courseid'], $student->get_id());
             $student->priority = $priority;
             $student->dayssincelast = $priority->get_recency_days();
         }
@@ -250,19 +253,17 @@ class bookings_exporter extends exporter {
      * @return  mybooking_exporter[]
      */
     protected function get_bookings($output) {
-        $bookings = [];
+        global $USER;
+        $bookingexports = [];
 
-        $vault = new booking_vault();
-        $bookingobjs = $vault->get_bookings(true);
-        foreach ($bookingobjs as $bookingobj) {
-            $data = [
-                'booking' => $bookingobj,
-            ];
-            $booking = new booking_mybookings_exporter($data, $this->related);
-            $bookings[] = $booking->export($output);
+        $instructor = new instructor($this->data['courseid'], $USER->id);
+        $bookings = $instructor->get_bookings(0, true);
+        foreach ($bookings as $booking) {
+            $bookingexport = new booking_mybookings_exporter(['booking'=>$booking], $this->related);
+            $bookingexports[] = $bookingexport->export($output);
         }
 
-        return $bookings;
+        return $bookingexports;
     }
 
     /**
@@ -275,7 +276,6 @@ class bookings_exporter extends exporter {
      * @return  int $flag       The delay flag
      */
     protected function get_warning($dayssincelast) {
-        // $bookingvault = new booking_vault();
         $warning = 0;
         $today = getdate(time());
         $waitdays = get_config('local_booking', 'nextsessionwaitdays') ? get_config('local_booking', 'nextsessionwaitdays') : LOCAL_BOOKING_DAYSFROMLASTSESSION;

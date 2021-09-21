@@ -26,7 +26,9 @@
 namespace local_booking\local\session\entities;
 
 use local_booking\local\session\data_access\booking_vault;
+use local_booking\local\slot\data_access\slot_vault;
 use \local_booking\local\slot\entities\slot;
+use moodle_exception;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -40,14 +42,19 @@ defined('MOODLE_INTERNAL') || die();
 class booking implements booking_interface {
 
     /**
+     * @var int $id The booking id.
+     */
+    protected $id;
+
+    /**
      * @var int $courseid The course id of this bookng.
      */
     protected $courseid;
 
     /**
-     * @var int $exercise The course exercise id of this bookng.
+     * @var int $exerciseid The course exercise id of this bookng.
      */
-    protected $exercisid;
+    protected $exerciseid;
 
     /**
      * @var int $instructorid The instructor user id of this booking.
@@ -70,6 +77,11 @@ class booking implements booking_interface {
     protected $confirmed;
 
     /**
+     * @var bool $active The booking is active.
+     */
+    protected $active;
+
+    /**
      * @var int $bookingdate The date timestamp of this booking.
      */
     protected $bookingdate;
@@ -77,35 +89,159 @@ class booking implements booking_interface {
     /**
      * Constructor.
      *
-     * @param int       $exerciseid     The exercise id associated with the booking.
-     * @param stdClass  $slot           The slot associated with this booking.
+     * @param int       $id             The booking id.
+     * @param int       $courseid       The course id associated with the booking.
      * @param int       $studentid      The student id associated with this booking..
-     * @param string    studentname     The student name.
-     * @param int       $instructorid   The instructor id who made this booking.
-     * @param string    $instructorname The instructor name.
-     * @param bool      $confirmed      The confimration status of this booking.
-     * @param int       $bookingdate    The booking timestamp.
+     * @param int       $exerciseid     The exercise id associated with the booking.
      */
     public function __construct(
-        $courseid,
-        $exerciseid,
-        $slot,
-        $studentid,
-        $bookingdate,
-        $studentname    = '',
-        $instructorid   = 0,
-        $instructorname = '',
-        $confirmed      = false
+            int $id = 0,
+            $courseid = 0,
+            $studentid = 0,
+            $exerciseid = 0,
+            $slot = null,
+            $studentname = '',
+            $instructorid = 0,
+            $instructorname = '',
+            $confirmed = false,
+            $active = true,
+            $bookingdate = 0
         ) {
-        $this->courseid         = $courseid;
-        $this->exerciseid       = $exerciseid;
-        $this->slot             = $slot;
-        $this->studentid        = $studentid;
-        $this->bookingdate      = $bookingdate;
-        $this->studentname      = $studentname;
-        $this->instructorid     = $instructorid;
-        $this->instructorname   = $instructorname;
-        $this->confirmed        = $confirmed;
+        $this->id = $id;
+        $this->courseid = $courseid;
+        $this->studentid = $studentid;
+        $this->exerciseid = $exerciseid;
+        $this->slot = $slot;
+        $this->bookingdate = $bookingdate;
+        $this->confirmed = $confirmed;
+        $this->active = $active;
+        $this->studentname = $studentname;
+        $this->instructorid = $instructorid;
+        $this->instructorname = $instructorname;
+    }
+
+    /**
+     * Loads this booking from the database.
+     *
+     * @param object $bookingrec the database record.
+     * @return bool
+     */
+    public function load(object $bookingrec = null) {
+        if (empty($bookingrec)) {
+            $vault = new booking_vault();
+            $bookingrec = $vault->get_booking($this);
+        }
+
+        if (!empty($bookingrec)) {
+            $this->id = $bookingrec->id;
+            $this->courseid = $bookingrec->courseid;
+            $this->exerciseid = $bookingrec->exerciseid;
+            $this->instructorid = $bookingrec->userid;
+            $this->studentid = $bookingrec->studentid;
+            $this->slot = new slot($bookingrec->slotid);
+            $this->slot->load();
+            $this->confirmed = $bookingrec->confirmed;
+            $this->bookingdate = $bookingrec->timemodified;
+        }
+
+        return !empty($bookingrec);
+    }
+
+    /**
+     * Saves this booking to database.
+     *
+     * @return bool
+     */
+    public function save() {
+        global $DB;
+        $vault = new booking_vault();
+
+        // add a new tentatively booked slot for the student.
+        $sessiondata = [
+            'exercise'  => get_exercise_name($this->exerciseid),
+            'instructor'=> get_fullusername($this->instructorid),
+            'status'    => ucwords(get_string('statustentative', 'local_booking')),
+        ];
+
+        $transaction = $DB->start_delegated_transaction();
+
+        $result = $this->slot->save();
+        $result = $result && ($this->id = $vault->save_booking($this));
+
+        if ($result) {
+            $transaction->allow_commit();
+        } else {
+            $transaction->rollback(new moodle_exception(get_string('bookingsaveunable', 'local_booking')));
+        }
+
+        return $this->id != 0;
+    }
+
+    /**
+     * Deletes this booking from database.
+     *
+     * @return bool
+     */
+    public function delete() {
+        $vault = new booking_vault();
+        $result = false;
+        if (($this->slot)->delete()) {
+            $result = $vault->delete_booking($this);
+        }
+        return $result;
+    }
+
+    /**
+     * Persists booking confirmation to the database.
+     *
+     * @param string    Confirmation message
+     * @return bool
+     */
+    public function confirm(string $confirmationmsg) {
+        $vault = new booking_vault();
+        $result = false;
+
+        if ($vault->confirm_booking($this->courseid, $this->studentid, $this->exerciseid)) {
+            $result = ($this->slot)->confirm($confirmationmsg);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Deactivates a booking after the session
+     * has been conducted.
+     *
+     * @param string    Confirmation message
+     * @return bool
+     */
+    public function deactivate() {
+        $vault = new booking_vault();
+        $slotvault = new slot_vault();
+
+        if ($vault->set_booking_inactive($this)) {
+            $slotvault->delete_slots($this->courseid, 0, 0, $this->studentid, false);
+        }
+    }
+
+    /**
+     * Activates a booking after the session
+     * has been conducted.
+     *
+     * @param string    Confirmation message
+     * @return bool
+     */
+    public function activate() {
+        $this->active = true;
+    }
+
+    /**
+     * Get the booking id for the booking.
+     *
+     * @return int
+     */
+    public function get_id() {
+        return $this->id;
     }
 
     // Getter functions
@@ -182,6 +318,15 @@ class booking implements booking_interface {
     }
 
     /**
+     * Get the booking active status.
+     *
+     * @return bool
+     */
+    public function active() {
+        return $this->active;
+    }
+
+    /**
      * Get the booking date timestamp for the booking.
      *
      * @return int
@@ -196,12 +341,23 @@ class booking implements booking_interface {
      *
      * @return int
      */
-    public function get_booked_exercise_date() {
+    public function get_exercise_date() {
         $vault = new booking_vault();
 
-        $bookeddate = $vault->get_exercise_date($this->studentid, $this->exerciseid);
+        $bookeddate = $vault->get_booked_exercise_date($this->studentid, $this->exerciseid);
 
         return $bookeddate;
+    }
+
+    /**
+     * Get the date of the last booked session
+     *
+     * @param int $isinstructor
+     * @param int $userid
+     */
+    public static function get_last_session(int $userid, bool $isinstructor = false) {
+        $vault = new booking_vault();
+        return $vault->get_last_booked_session($userid, $isinstructor);
     }
 
     // Setter functions
@@ -228,7 +384,7 @@ class booking implements booking_interface {
      *
      * @return slot
      */
-    public function set_slot(slot $slot) {
+    public function set_slot(slot $slot = null) {
         $this->slot = $slot;
     }
 

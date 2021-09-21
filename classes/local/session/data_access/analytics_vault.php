@@ -26,7 +26,7 @@
 namespace local_booking\local\session\data_access;
 
 use DateTime;
-use local_booking\local\participant\entities\participant;
+use local_booking\local\participant\entities\student;
 
 class analytics_vault implements analytics_vault_interface {
 
@@ -45,10 +45,11 @@ class analytics_vault implements analytics_vault_interface {
     /**
      * Get Session Recency in days for a particular student
      *
+     * @param int   $courseid   The course id in reference
      * @param int   $studentid  The student id in reference
      * @return int  $days       The number of days since last session
      */
-    public function get_session_recency(int $studentid) {
+    public function get_session_recency(int $courseid, int $studentid) {
         global $DB;
 
         $sql = 'SELECT timemodified AS lastsessiondate
@@ -61,8 +62,8 @@ class analytics_vault implements analytics_vault_interface {
         if (!empty($rs)) {
             $lastsessiondate = new DateTime('@' . $rs->lastsessiondate);
         } else {
-            $participants = new participant();
-            $lastsessiondate = $participants->get_enrol_date($studentid);
+            $student = new student($courseid, $studentid);
+            $lastsessiondate = $student->get_enrol_date($studentid);
         }
 
         $today = new DateTime('@' . time());

@@ -36,18 +36,20 @@ class booking_vault implements booking_vault_interface {
     const DB_SLOTS = 'local_booking_slots';
 
     /**
-     * get booked sessions for the instructor
+     * get booked sessions for a user
      *
-     * @param bool                   $userid of the student in the booking.
+     * @param int    $userid of the student in the booking.
+     * @param bool   $oldestfirst sort order of the returned records.
      * @return array {Object}
      */
-    public function get_bookings(bool $oldestfirst = false) {
+    public function get_bookings(int $userid, bool $oldestfirst = false) {
         global $DB, $USER;
 
-        $sql = 'SELECT b.id, b.userid, b.studentid, b.exerciseid, b.slotid, b.confirmed, b.timemodified
+        $sql = 'SELECT b.id, b.userid, b.courseid, b.studentid, b.exerciseid,
+                       b.slotid, b.confirmed, b.active, b.timemodified
                 FROM {' . static::DB_BOOKINGS. '} b
                 INNER JOIN {' . static::DB_SLOTS . '} s on s.id = b.slotid
-                WHERE b.userid = ' . $USER->id . '
+                WHERE b.userid = ' . $userid . '
                 AND b.active = 1' .
                 ($oldestfirst ? ' ORDER BY s.starttime' : '');
 
@@ -55,59 +57,32 @@ class booking_vault implements booking_vault_interface {
     }
 
     /**
-     * get booked sessions for a specific student
+     * Get booking based on passed object.
      *
-     * @param int $userid
+     * @param booking $booking
      * @return Object
      */
-    public function get_booking($bookingid) {
+    public function get_booking($booking) {
         global $DB;
 
-        return $DB->get_records(static::DB_BOOKINGS, ['id' => $bookingid]);
-    }
+        $conditions = [];
+        if (!empty($booking->get_id())) {
+            $conditions['id'] = $booking->get_id();
+        }
+        if (!empty($booking->get_courseid())) {
+            $conditions['courseid'] = $booking->get_courseid();
+        }
+        if (!empty($booking->get_studentid())) {
+            $conditions['studentid'] = $booking->get_studentid();
+        }
+        if (!empty($booking->get_exerciseid())) {
+            $conditions['exerciseid'] = $booking->get_exerciseid();
+        }
+        if (!empty($booking->active())) {
+            $conditions['active'] = '1';
+        }
 
-    /**
-     * get booked sessions for a specific student
-     *
-     * @param int $userid
-     * @return Object
-     */
-    public function get_student_booking($userid) {
-        global $DB;
-
-        return $DB->get_records(static::DB_BOOKINGS, ['studentid' => $userid, 'active' => '1']);
-    }
-
-    /**
-     * remove all bookings for a user for a
-     *
-     * @param string $username The username.
-     * @return bool
-     */
-    public function set_booking_inactive($studentid, $exerciseid) {
-        global $DB;
-
-        $sql = 'UPDATE {' . static::DB_BOOKINGS . '}
-                SET active = 0
-                WHERE studentid = ' . $studentid . '
-                AND exerciseid = ' . $exerciseid;
-
-        return $DB->execute($sql);
-    }
-    /**
-     * remove all bookings for a user for a
-     *
-     * @param string $username The username.
-     * @return bool
-     */
-    public function delete_student_booking($studentid, $exerciseid) {
-        global $DB;
-
-        return $DB->delete_records(static::DB_BOOKINGS, [
-            'studentid' => $studentid,
-            'exerciseid'=> $exerciseid,
-            'active'    => '1',
-        ]);
+        return $DB->get_record(static::DB_BOOKINGS, $conditions);
     }
 
     /**
@@ -116,10 +91,18 @@ class booking_vault implements booking_vault_interface {
      * @param string $username The username.
      * @return bool
      */
-    public function delete_booking($bookingid) {
+    public function delete_booking(booking $booking) {
         global $DB;
 
-        return $DB->delete_records(static::DB_BOOKINGS, ['id' => $bookingid]);
+        $conditions = !empty($booking->get_id()) ? [
+            'id' => $booking->get_id()
+            ] : [
+            'courseid'  => $booking->get_courseid(),
+            'studentid' => $booking->get_studentid(),
+            'exerciseid'=> $booking->get_exerciseid()
+        ];
+
+        return $DB->delete_records(static::DB_BOOKINGS, $conditions);
     }
 
     /**
@@ -129,16 +112,14 @@ class booking_vault implements booking_vault_interface {
      * @return bool
      */
     public function save_booking(booking $booking) {
-        global $DB, $USER;
-
-        $slot = $booking->get_slot();
+        global $DB;
 
         $sessionrecord = new \stdClass();
-        $sessionrecord->userid       = $USER->id;
-        $sessionrecord->studentid    = $booking->get_studentid();
+        $sessionrecord->userid       = $booking->get_instructorid();
         $sessionrecord->courseid     = $booking->get_courseid();
+        $sessionrecord->studentid    = $booking->get_studentid();
         $sessionrecord->exerciseid   = $booking->get_exerciseid();
-        $sessionrecord->slotid       = $slot->id;
+        $sessionrecord->slotid       = ($booking->get_slot())->get_id();
         $sessionrecord->timemodified = time();
 
         return $DB->insert_record(static::DB_BOOKINGS, $sessionrecord);
@@ -147,19 +128,40 @@ class booking_vault implements booking_vault_interface {
     /**
      * Confirm the passed book
      *
+     * @param   int                 $courseid
      * @param   int                 $studentid
      * @param   int                 $exerciseid
      * @return  bool                $result
      */
-    public function confirm_booking(int $studentid, int $exerciseid) {
+    public function confirm_booking(int $courseid, int $studentid, int $exerciseid) {
         global $DB;
 
         $sql = 'UPDATE {' . static::DB_BOOKINGS . '}
                 SET confirmed = 1
-                WHERE studentid = ' . $studentid . '
+                WHERE courseid = ' . $courseid . '
+                AND studentid = ' . $studentid . '
                 AND exerciseid = ' . $exerciseid;
 
         return $DB->execute($sql);
+    }
+
+    /**
+     * Get the date of the booked exercise
+     *
+     * @param int $studentid
+     * @param int $exerciseid
+     * @return int $exercisedate
+     */
+    public function get_booked_exercise_date(int $studentid, int $exerciseid) {
+        global $DB;
+
+        $sql = 'SELECT timemodified as exercisedate
+                FROM {' . static::DB_BOOKINGS. '}
+                WHERE studentid = ' . $studentid . '
+                AND exerciseid = ' . $exerciseid;
+
+        $booking = $DB->get_record_sql($sql);
+        return $booking ? $booking->exercisedate : 0;
     }
 
     /**
@@ -181,21 +183,20 @@ class booking_vault implements booking_vault_interface {
     }
 
     /**
-     * Get the date of the booked exercise
+     * set active flag to false to deactive the booking.
      *
-     * @param int $studentid
-     * @param int $exerciseid
-     * @return int $exercisedate
+     * @param booking $booking The booking in reference.
+     * @return bool
      */
-    public function get_exercise_date(int $studentid, int $exerciseid) {
+    public function set_booking_inactive($booking) {
         global $DB;
 
-        $sql = 'SELECT timemodified as exercisedate
-                FROM {' . static::DB_BOOKINGS. '}
-                WHERE studentid = ' . $studentid . '
-                AND exerciseid = ' . $exerciseid;
+        $sql = 'UPDATE {' . static::DB_BOOKINGS . '}
+                SET active = 0
+                WHERE courseid = ' . $booking->get_courseid() . '
+                AND studentid = ' . $booking->get_studentid() . '
+                AND exerciseid = ' . $booking->get_exerciseid();
 
-        $booking = $DB->get_record_sql($sql);
-        return $booking ? $booking->exercisedate : 0;
+        return $DB->execute($sql);
     }
 }

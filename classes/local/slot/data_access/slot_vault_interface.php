@@ -37,6 +37,14 @@ use local_booking\local\slot\entities\slot;
 interface slot_vault_interface {
 
     /**
+     * Get a based on its id
+     *
+     * @param int       $slot The id of the slot
+     * @return slot     The slot object from the id
+     */
+    public function get_slot(int $slotid);
+
+    /**
      * Get all slots for a user that fall on a specific year and week.
      *
      * @param int|null              $userid     slots for this user
@@ -50,6 +58,13 @@ interface slot_vault_interface {
         $year = 0,
         $week = 0
     );
+
+    /**
+     * Saves the passed slot
+     *
+     * @param slot_interface $slot
+     */
+    public function save_slot(slot $slot);
 
     /**
      * Delete all slots for a user that fall on a specific year and week.
@@ -69,23 +84,17 @@ interface slot_vault_interface {
     );
 
     /**
-     * Saves the passed slot
+     * Update the specified slot status and bookinginfo
      *
-     * @param slot_interface $slot
+     * @param slot $slot The slot to be confirmed
      */
-    public function save(slot $slot);
-
-    /**
-     * Update the specified slot
-     *
-     * @param int $slotid
-     */
-    public function confirm_slot(int $slotid, string $bookinginfo);
+    public function confirm_slot(slot $slot, string $bookinginfo);
 
     /**
      * Get the date of the last posted availability slot
      *
+     * @param int $courseid
      * @param int $studentid
      */
-    public function get_last_posted_slot(int $studentid);
+    public function get_last_posted_slot(int $courseid, int $studentid);
 }

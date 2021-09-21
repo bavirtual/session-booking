@@ -116,7 +116,6 @@ export const refreshProgressionContent = (root, courseId, categoryId, target = n
         .fail(Notification.exception);
 };
 
-
 /**
  * Refresh my bookings content.
  *

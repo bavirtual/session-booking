@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Session Booking Plugin
+ * Class interface for data access of course participants
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
@@ -23,28 +23,30 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/../../config.php');
-require_once(__DIR__ . '/lib.php');
+namespace local_booking\local\subscriber;
 
-// Get URL parameters.
-$courseid     = optional_param('courseid', 0, PARAM_INT);
-$exerciseid   = optional_param('exeid', 0, PARAM_INT);
-$studentid    = optional_param('userid', 0, PARAM_INT);
-$instructorid = optional_param('insid', 0, PARAM_INT);
+defined('MOODLE_INTERNAL') || die();
 
-require_login($courseid, false);
+interface subscriber_interface {
 
-list($result, $time, $week) = confirm_booking($courseid, $instructorid, $studentid, $exerciseid);
+    /**
+     * Get all active students.
+     *
+     * @return {Object}[]   Array of active students.
+     */
+    public function get_active_students();
 
-if ($result) {
-    // redirect
-    $url = new moodle_url('/local/booking/availability.php', array(
-        'course'    => $courseid,
-        'userid'    => $studentid,
-        'time'      => $time,
-        'week'      => $week,
-    ));
+    /**
+     * Get all active instructors for the course.
+     *
+     * @return {Object}[]   Array of active instructors.
+     */
+    public function get_active_instructors();
 
-    $PAGE->set_url($url);
-    redirect($url);
+    /**
+     * Get all active instructors for the course.
+     *
+     * @return {Object}[]   Array of active instructors.
+     */
+    public function get_active_participants();
 }

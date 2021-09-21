@@ -25,6 +25,10 @@
 
 namespace local_booking\local\subscriber;
 
+use local_booking\local\participant\data_access\participant_vault;
+use local_booking\local\participant\entities\instructor;
+use local_booking\local\participant\entities\student;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/local/booking/lib.php');
@@ -35,18 +39,17 @@ require_once($CFG->dirroot . '/local/booking/lib.php');
  * @copyright  BAVirtual.co.uk © 2021
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class subscriber_info  {
+class subscriber implements subscriber_interface {
 
-    // $handler = \core_customfield\handler::get_handler('core_course', 'course');
-    // $datas = $handler->get_instance_data($courseid);
-    // $metadata = [];
-    // foreach ($datas as $data) {
-    //     if (empty($data->get_value())) {
-    //         continue;
-    //     }
-    //     $cat = $data->get_field()->get_category()->get('name');
-    //     $metadata[$data->get_field()->get('shortname')] = $cat . ': ' . $data->get_value();
-    // }
+    /**
+     * @var int $course The subscribed course.
+     */
+    protected $courseid;
+
+    /**
+     * @var participant_vault $vault The vault access to the database.
+     */
+    protected $vault;
 
     /**
      * Constructor.
@@ -54,6 +57,8 @@ class subscriber_info  {
      * @param string $courseid  The description's value.
      */
     public function __construct($courseid) {
+        $this->courseid = $courseid;
+        $this->vault = new participant_vault();
 
         // define course custom fields globally
         $handler = \core_customfield\handler::get_handler('core_course', 'course');
@@ -85,5 +90,56 @@ class subscriber_info  {
                 $this->{$customfield->get_field()->get('shortname')} = $value;
             }
         }
+    }
+
+    /**
+     * Get all active students.
+     *
+     * @return {Object}[]   Array of active students.
+     */
+    public function get_active_students() {
+        $activestudents = [];
+        $studentrecs = $this->vault->get_active_students($this->courseid);
+        $colors = (array) get_booking_config('colors', true);
+
+        // add a color for the student slots from the config.json file for each student
+        $i = 0;
+        foreach ($studentrecs as $studentrec) {
+            $student = new student($this->courseid, $studentrec->userid);
+            $student->populate($studentrec);
+            $student->set_slot_color(count($colors) > 0 ? array_values($colors)[$i % LOCAL_BOOKING_MAXLANES] : LOCAL_BOOKING_SLOTCOLOR);
+            $activestudents[] = $student;
+            $i++;
+        }
+
+        return $activestudents;
+    }
+
+    /**
+     * Get all active instructors for the course.
+     *
+     * @return {Object}[]   Array of active instructors.
+     */
+    public function get_active_instructors() {
+        $activeinstructors = [];
+        $instructorrecs = $this->vault->get_active_instructors($this->courseid);
+
+        foreach ($instructorrecs as $instructorrec) {
+            $instructor = new instructor($this->courseid, $instructorrec->userid);
+            $instructor->populate($instructorrec);
+            $activeinstructors[] = $instructor;
+        }
+
+        return $activeinstructors;
+    }
+
+    /**
+     * Get all active instructors for the course.
+     *
+     * @return {Object}[]   Array of active instructors.
+     */
+    public function get_active_participants() {
+        $participants = array_merge($this->vault->get_active_students($this->courseid), $this->vault->get_active_instructors($this->courseid));
+        return $participants;
     }
 }

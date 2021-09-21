@@ -47,14 +47,19 @@ class week_timeslot_exporter extends exporter {
     protected $calendar;
 
     /**
-     * @var array $timeslot - A timeslot for the work_exporter objects.
+     * @var int $courseid - The course id of in context.
      */
-    protected $timeslot;
+    protected $courseid;
 
     /**
      * @var int $studentid - The student id for the view.
      */
     protected $studentid;
+
+    /**
+     * @var array $timeslot - A timeslot for the work_exporter objects.
+     */
+    protected $timeslot;
 
     /**
      * @var array $usertimeslot - The user local time timeslot in the user timezone.
@@ -91,8 +96,9 @@ class week_timeslot_exporter extends exporter {
     public function __construct(\calendar_information $calendar, $data, $weeklanes, $related) {
         $this->calendar      = $calendar;
         $this->weeklanes     = $weeklanes;
-        $this->timeslot      = $data['timeslot'];
         $this->studentid     = $data['studentid'];
+        $this->courseid      = $data['courseid'];
+        $this->timeslot      = $data['timeslot'];
         $this->usertimeslot  = $data['usertimeslot'];
         $this->hour          = $data['hour'];
         $this->days          = $data['days'];
@@ -168,7 +174,7 @@ class week_timeslot_exporter extends exporter {
             $slotdaydata = $type->timestamp_to_date_array(gmmktime($this->hour, 0, 0, $daydata['mon'], $daydata['mday'], $daydata['year']));
             $daylanes = $this->weeklanes[$daydata['wday']];
 
-            // get slots in all lanes even if they're empty
+            // get slots in all lanes even if a slot is empty (not posted by a student, booked, nor tentative)
             for ($laneindex = 0; $laneindex < $this->maxlanes && $laneindex < LOCAL_BOOKING_MAXLANES; $laneindex++) {
                 // assign the lane slots to the corrsponding day lane
                 $laneslots = count($daylanes) > $laneindex ? $daylanes[$laneindex] : null;
@@ -179,9 +185,7 @@ class week_timeslot_exporter extends exporter {
                 $slotdata['slotavailable']  = !$this->slot_restricted($daydata);
                 $slotdata['slot']           = $this->getSlotinfo($laneslots, $slotdaydata);
 
-                $day = new week_day_exporter($this->calendar, $this->groupview, $slotdaydata, $slotdata, [
-                    'type' => $this->related['type'],
-                ]);
+                $day = new week_day_exporter($this->calendar, $this->groupview, $slotdaydata, $slotdata, $this->related);
 
                 $days[] = $day->export($output);
             }
@@ -227,7 +231,7 @@ class week_timeslot_exporter extends exporter {
         // can't mark before x days from last booked session (durnig wait days)
         $lastsessionwait = true;
         if (!$this->groupview) {
-            $nextsessiondt = get_next_allowed_session_date($this->studentid);
+            $nextsessiondt = get_next_allowed_session_date($this->courseid, $this->studentid);
             $nextsessiondate = $this->related['type']->timestamp_to_date_array($nextsessiondt->getTimestamp());
             $lastsessionwait = $lastsessionwait && $nextsessiondate['year'] >= $date['year'];
             $lastsessionwait = $lastsessionwait && $nextsessiondate['yday'] >= $date['yday'];

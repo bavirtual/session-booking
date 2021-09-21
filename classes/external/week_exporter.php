@@ -30,6 +30,8 @@ defined('MOODLE_INTERNAL') || die();
 use core\external\exporter;
 use core_calendar\external\date_exporter;
 use core_calendar\type_base;
+use local_booking\local\participant\entities\student;
+use local_booking\local\subscriber\subscriber;
 use renderer_base;
 use moodle_url;
 
@@ -59,11 +61,6 @@ class week_exporter extends exporter {
     protected $days = [];
 
     /**
-     * @var array $days An array of week_timeslot_exporter objects.
-     */
-    protected $studentsslots;
-
-    /**
      * @var array $maxlanes - The maximum amount of lanes required to fit in a day.
      */
     protected $maxlanes;
@@ -74,14 +71,29 @@ class week_exporter extends exporter {
     protected $showlocaltime;
 
     /**
-     * @var array $days An array of week_timeslot_exporter objects.
+     * @var int $weekofyear A number representing the week of the year.
      */
-    protected $weekno;
+    protected $weekofyear;
+
+    /**
+     * @var array $GMTdate An array of GMT date for the week.
+     */
+    protected $GMTdate;
 
     /**
      * @var int $firstdayofweek The first day of the week.
      */
     protected $firstdayofweek;
+
+    /**
+     * @var int $courseid The course id of the week slots being viewed.
+     */
+    protected $courseid;
+
+    /**
+     * @var int $studentid The student id of the week slots being viewed.
+     */
+    protected $studentid;
 
     /**
      * @var array $action The action data being peformed.
@@ -106,15 +118,16 @@ class week_exporter extends exporter {
     /**
      * Constructor.
      *
-     * @param \calendar_information $calendar The calendar information for the period being displayed
-     * @param mixed $timeslots An array of week_day_exporter objects.
      * @param array $actiondata associated with the booking action.
+     * @param string $view the type of view (single student or all)
      * @param array $related Related objects.
      */
-    public function __construct(\calendar_information $calendar, type_base $type, $actiondata, $view, $related) {
+    public function __construct($actiondata, $view, $related) {
         global $CFG, $USER;
 
         // Use core calendar and action
+        $calendar = $related['calendar'];
+        $type = $related['type'];
         $this->calendar = $calendar;
         $this->actiondata = $actiondata;
         $this->view = $view;
@@ -128,41 +141,34 @@ class week_exporter extends exporter {
         $this->showlocaltime = (bool)$showlocaltime;
 
         // Get current week of the year and GMT date
-        $this->weekno = strftime('%W', $this->calendar->time);
+        $this->weekofyear = strftime('%W', $this->calendar->time);
         $this->firstdayofweek = $type->get_starting_weekday();
         $calendarday = $type->timestamp_to_date_array($this->calendar->time);
-        $GMTdate = $type->timestamp_to_date_array(gmmktime(0, 0, 0, $calendarday['mon'], $calendarday['mday'], $calendarday['year']));
-        $this->days = get_week_days($GMTdate);
+        $this->GMTdate = $type->timestamp_to_date_array(gmmktime(0, 0, 0, $calendarday['mon'], $calendarday['mday'], $calendarday['year']));
+        $this->days = get_week_days($this->GMTdate);
 
-        // view the slots for a single student user or all students
-        switch ($view) {
-            case 'user':
-                $studentid = $USER->id;
-                break;
-            case 'all':
-                $studentid = 0;
-                break;
-        }
-
-        // view the slot for the student id passed in action data
-        if ($actiondata['action'] == 'book') {
-            $studentid = $actiondata['studentid'];
-        }
-
-        $this->studentsslots = get_active_student_slots($this->weekno, $GMTdate['year'], $studentid);
-
-        // Get exporter data
+        // Update the url with time, course, and category info
         $this->url = new moodle_url('/local/booking/availability.php', [
-                'time' => $calendar->time,
-            ]);
-
+            'time' => $calendar->time,
+        ]);
         if ($this->calendar->course && SITEID !== $this->calendar->course->id) {
             $this->url->param('course', $this->calendar->course->id);
+            $this->courseid = $this->calendar->course->id;
         } else if ($this->calendar->categoryid) {
             $this->url->param('category', $this->calendar->categoryid);
         }
 
-        $related['type'] = $type;
+        // identify the student to view the slots (single student view 'user' or 'all' students)
+        if ($view == 'user') {
+            if ($actiondata['action'] == 'book') {
+                // view the slot for the student id passed in action data
+                $this->studentid = $actiondata['studentid'];
+            } else {
+                $this->studentid = $USER->id;
+            }
+        } elseif ($view == 'all') {
+            $this->studentid = 0;
+        }
 
         $data = [
             'url'         => $this->url->out(false),
@@ -311,11 +317,10 @@ class week_exporter extends exporter {
      * @return array Keys are the property names, values are their values.
      */
     protected function get_other_values(renderer_base $output) {
-        global $USER;
 
         // notify student if wait period restriction since last session is not up yet
         if ($this->actiondata['action'] != 'book' & $this->view == 'user') {
-            if (!has_completed_lessons($USER->id)) {
+            if (!has_completed_lessons($this->courseid, $this->studentid)) {
                 \core\notification::WARNING(get_string('lessonsincomplete', 'local_booking'));
             }
         }
@@ -330,7 +335,7 @@ class week_exporter extends exporter {
             'courseid' => $this->calendar->courseid,
             // week data
             'daynames' => $this->get_day_names($output),
-            'weekofyear' => $this->weekno,
+            'weekofyear' => $this->weekofyear,
             'timeslots' => $this->get_time_slots($output),
             // day slots data
             'maxlanes' => $this->maxlanes <= LOCAL_BOOKING_MAXLANES ? $this->maxlanes : LOCAL_BOOKING_MAXLANES,
@@ -404,6 +409,7 @@ class week_exporter extends exporter {
         $usertime = new \DateTime("now", $usertz);
         $usertimezoneoffset = intval($usertz->getOffset($usertime)) / 3600;
 
+        // get the lanes containing student(s) slots
         $weeklanes = $this->get_week_slot_lanes();
 
         $slots = [];
@@ -412,6 +418,7 @@ class week_exporter extends exporter {
             $daydata['timeslot'] = substr('00' . $i, -2) . ':00';
             $daydata['usertimeslot'] = substr('00' . ($i + $usertimezoneoffset) % 24, -2) . ':00';
             $daydata['studentid'] = $this->actiondata['studentid'];
+            $daydata['courseid'] = $this->calendar->courseid;
             $daydata['hour'] = $i;
             $daydata['days'] = $this->days;
             $daydata['maxlanes'] = $this->maxlanes;
@@ -426,30 +433,45 @@ class week_exporter extends exporter {
 
     /**
      * Returns a list of week day lanes
-     * containing student slots.
+     * containing student(s) slots.
      *
      * @return array
      */
     protected function get_week_slot_lanes() {
-        $this->maxlanes = 1;
+        // show minimum lanes for all students view or 1 lane for user view
+        $this->maxlanes = $this->view == 'all' ? LOCAL_BOOKING_MINLANES : 1;
         $weeklanes = [];
+        $studentsslots = [];
+
+        // check students that have slot(s) on each day
+        if ($this->studentid != 0) {
+            $student = new student($this->courseid, $this->studentid);
+            $studentsslots[$this->studentid] = $student->get_slots($this->weekofyear, $this->GMTdate['year']);
+        } else {
+            $course = new subscriber($this->courseid);
+            // check students that have slot(s) on this day
+            $students = $course->get_active_students();
+            foreach ($students as $student) {
+                $studentsslots[$student->get_id()] = $student->get_slots($this->weekofyear, $this->GMTdate['year']);
+            }
+        }
 
         // go through the week stacking slots
         foreach ($this->days as $daydata) {
 
             $daylanes = [];
             $laneindex = 0;
-            // check students that have slot(s) on this day
-            foreach ($this->studentsslots as $studentslots) {
+            $lastslotuserid = 0;
 
-                $slots = $studentslots;
+            // go through all students slots to identify if a lane should be stacked or switched
+            foreach ($studentsslots as $studentslots) {
+
                 // check students that have slot(s) on this day
-                foreach ($slots as $slot) {
+                foreach ($studentslots as $slot) {
                     // skip if the student doesn't have a slot on this day
                     if (getdate($slot->starttime)['wday'] == $daydata['wday']) {
-
                         // lookup an empty lane that can take the slot w/o overlap
-                        $emptylaneidx = $this->find_empty_space($slot, $daylanes);
+                        $emptylaneidx = $this->find_empty_space($slot, $daylanes, $lastslotuserid);
                         if ($emptylaneidx == -1) {
                             // no empty space found
                             $laneindex++;
@@ -457,7 +479,7 @@ class week_exporter extends exporter {
                         } else {
                             $daylanes[$emptylaneidx][] = $slot;
                         }
-
+                        $lastslotuserid = $slot->userid == $lastslotuserid ? $lastslotuserid : $slot->userid;
                         // evaluate max number of lanes
                         $this->maxlanes = $laneindex + 1 > $this->maxlanes ? $laneindex + 1 : $this->maxlanes;
                     }
@@ -477,7 +499,7 @@ class week_exporter extends exporter {
      * @param array     An array of day lanes with previous slots
      * @return bool
      */
-    protected function find_empty_space($savedslot, $daylanes) {
+    protected function find_empty_space($savedslot, $daylanes, $lastslotuserid) {
         $emptylaneidx = -1;
         $laneidx = 0;
 
@@ -490,8 +512,8 @@ class week_exporter extends exporter {
                     // does the saved slot start-to-end time conflict with existing lane slots
                     if ((($savedslot->starttime >= $laneslot->starttime && $savedslot->starttime <= $laneslot->endtime) ||
                         ($laneslot->starttime >= $savedslot->starttime && $laneslot->starttime <= $savedslot->endtime)) &&
-                        // ok to overlap booked slots by instructors of student marked slots
-                        empty($savedslot->slotstatus)) {
+                        // ok to overlap slots if the previous slot student is the same as this booked slot's
+                        $savedslot->userid != $lastslotuserid) {
                             break 2;
                     }
                 }

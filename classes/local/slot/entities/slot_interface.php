@@ -33,6 +33,32 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 interface slot_interface {
+
+    /**
+     * Loads the slot from the database.
+     *
+     */
+    public function load();
+
+    /**
+     * Saves this slot to the database.
+     *
+     */
+    public function save();
+
+    /**
+     * Deletes this slot from the database.
+     *
+     */
+    public function delete();
+
+    /**
+     * Confirm this slot.
+     *
+     * @return bool
+     */
+    public function confirm(string $bookinginfo);
+
     /**
      * Get the slot's ID.
      *

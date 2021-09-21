@@ -33,193 +33,157 @@ require_once($CFG->dirroot . "/lib/completionlib.php");
 class participant implements participant_interface {
 
     /**
-     * Get all active students.
-     *
-     * @return {Object}[]   Array of active students.
+     * @var participant_vault $vault The vault access to the database.
      */
-    public function get_active_students(int $courseid = 0) {
-        global $COURSE;
+    protected $vault;
 
-        $vault = new participant_vault();
-        $studentcourseid = $courseid == 0 ? $COURSE->id : $courseid;
+    /**
+     * @var int $courseid The participant enrolment course id.
+     */
+    protected $courseid;
 
-        return $vault->get_active_students($studentcourseid);
+    /**
+     * @var int $userid The participant user id.
+     */
+    protected $userid;
+
+    /**
+     * @var string $fullname The participant user fullname.
+     */
+    protected $fullname;
+
+    /**
+     * @var int $enroldate The participant enrolment date timestamp.
+     */
+    protected $enroldate;
+
+    /**
+     * @var int $lastlogin The participant last login date timestamp.
+     */
+    protected $lastlogin;
+
+    /**
+     * @var string $callsign The participant callsign.
+     */
+    protected $callsign;
+
+    /**
+     * @var string $simulator The participant simulator.
+     */
+    protected $simulator;
+
+    /**
+     * Constructor.
+     *
+     * @param int $courseid The course id.
+     * @param int $userid The user id.
+     */
+    public function __construct(int $courseid, int $userid) {
+        $this->vault = new participant_vault();
+        $this->courseid = $courseid;
+        $this->userid = $userid;
     }
 
     /**
-     * Get all active instructors for the course.
+     * Get user id.
      *
-     * @return {Object}[]   Array of active instructors.
+     * @return int $userid
      */
-    public function get_active_instructors(int $courseid = 0) {
-        global $COURSE;
-
-        $vault = new participant_vault();
-        $instructorcourseid = $courseid == 0 ? $COURSE->id : $courseid;
-
-        return $vault->get_active_instructors($instructorcourseid);
+    public function get_id() {
+        return $this->userid;
     }
 
     /**
-     * Get all active instructors for the course.
+     * Get fullname.
      *
-     * @return {Object}[]   Array of active instructors.
+     * @return string $fullname;
      */
-    public function get_active_participants(int $courseid = 0) {
-
-        $vault = new participant_vault();
-        $participants = array_merge($vault->get_active_students($courseid), $vault->get_active_instructors($courseid));
-
-        return $participants;
+    public function get_name() {
+        return $this->fullname;
     }
 
     /**
-     * Get students assigned to an instructor.
+     * Set user name.
      *
-     * @return {Object}[]   Array of students.
+     * @param string $fullname;
      */
-    public function get_assigned_students() {
-        global $COURSE, $USER;
-
-        $vault = new participant_vault();
-        $courseid = $COURSE->id;
-        $userid = $USER->id;
-
-        return $vault->get_assigned_students($courseid, $userid);
+    public function set_name($fullname) {
+        $this->fullname = $fullname;
     }
 
     /**
-     * Get a student
+     * Get participant's enrolment date.
      *
-     * @return {Object} A student object.
+     * @return DateTime $enroldate  The enrolment date of the participant.
      */
-    public function get_student($studentid) {
-        $vault = new participant_vault();
-
-        return $vault->get_student($studentid);
+    public function get_enrol_date() {
+        $enrol = !empty($this->enroldate) ? $this->enroldate : ($this->vault->get_enrol_date($this->courseid, $this->userid))->timecreated;
+        $enrolmentdate = new DateTime('@' . $enrol);
+        return $enrolmentdate;
     }
 
     /**
-     * Get grades for a specific student from
-     * assignments and quizes.
+     * Get student's last login date.
      *
-     * @param int       $studentid  The student id.
-     * @return {object}[]  A student grades.
+     * @return DateTime $lastlogindate  The participant's last login date.
      */
-    public function get_grades($studentid) {
-        $vault = new participant_vault();
-        $assignments = $vault->get_grades($studentid);
-        $quizes = $vault->get_quizes($studentid);
-        $grades = $assignments + $quizes;
-
-        return $grades;
-    }
-
-    /**
-     * Returns the date of the last
-     * graded session.
-     *
-     * @param   int         The user id
-     * @param   int         The course id
-     * @return  DateTime    The timestamp of the last grading
-     */
-    function get_last_graded_date($instructorid, $courseid) {
-        $vault = new participant_vault();
-
-        $lastgraded = $vault->get_last_graded_date($instructorid, $courseid);
-
-        $lastgradeddate = !empty($lastgraded) ? new DateTime('@' . $lastgraded->timemodified) : null;
-
-        return $lastgradeddate;
-    }
-
-    /**
-     * Returns whether the student complete
-     * all sessons prior to the upcoming next
-     * exercise.
-     *
-     * @param   int     The student id
-     * @param   int     The course id
-     * @param   int     The upcoming next exercise id
-     * @return  bool    Whether the lessones were completed or not.
-     */
-    function get_lessons_complete($studentid, $courseid, $nextexercisesection) {
-        $vault = new participant_vault();
-
-        return $vault->get_lessons_complete($studentid, $courseid, $nextexercisesection);
-    }
-
-    /**
-     * Returns the next upcoming exercise id
-     * for the student and its associated course section.
-     *
-     * @param   int     The student id
-     * @param   int     The course id
-     * @return  array   The next exercise id and associated course section
-     */
-    function get_next_exercise($studentid, $courseid) {
-        $vault = new participant_vault();
-
-        return $vault->get_next_exercise($studentid, $courseid);
-    }
-
-    /**
-     * Get student's enrolment date.
-     *
-     * @param int       $studentid  The student id in reference
-     * @return DateTime $enroldate  The enrolment date of the student.
-     */
-    public function get_enrol_date(int $studentid) {
-        global $COURSE;
-
-        $vault = new participant_vault();
-
-        $enrol = $vault->get_enrol_date($COURSE->id, $studentid);
-        $enroldate = new DateTime('@' . $enrol->timecreated);
-
-        return $enroldate;
+    public function get_last_login_date() {
+        $lastlogindate = !empty($this->lastlogin) ? new DateTime('@' . $this->lastlogin) : null;
+        return $lastlogindate;
     }
 
     /**
      * Suspends the student's enrolment to a course.
      *
-     * @param int   $studentid  The student id in reference
-     * @param int   $courseid   The course the student is being unenrolled from.
      * @return bool             The result of the suspension action.
      */
-    public function set_suspend_status(int $studentid, int $courseid) {
-        $vault = new participant_vault();
-
-        return $vault->set_suspend_status($studentid, $courseid);
+    public function set_suspend_status() {
+        return $this->vault->set_suspend_status($this->courseid, $this->studentid);
     }
 
     /**
-     * Returns full username
+     * Returns full fullname
      *
-     * @return string  The full username with optional alternate info
+     * @param bool $alternate The additional alternate name
+     * @return string  The full fullname with optional alternate info
      */
-    public static function get_fullname(int $userid, bool $alternate = true) {
-        $vault = new participant_vault();
+    public function get_fullname(bool $alternate = true) {
+        $userinfo = $this->vault->get_participant_name($this->userid);
+        $this->fullname = $alternate ? $userinfo->fullname : $userinfo->fullname;
 
-        $fullusername = '';
-        if ($userid != 0) {
-            $userinfo = $vault->get_participant_name($userid);
-            $fullusername = $alternate ? $userinfo->fullname : $userinfo->username;
-        }
+        return $this->fullname;
+    }
 
-        return $fullusername;
+    /**
+     * Returns participant's simulator user field
+     *
+     * @return string   The participant callsign
+     */
+    public function get_simulator() {
+        return $this->simulator;
     }
 
     /**
      * Returns participant's callsign user field
      *
-     * @param int       The pilot user id
      * @return string   The participant callsign
      */
-    public static function get_callsign(int $pilotid) {
-        global $COURSE;
-        $vault = new participant_vault();
+    public function get_callsign() {
+        $this->callsign = empty($this->callsign) ? $this->vault->get_customfield_data($this->courseid, $this->userid, 'callsign') : $this->callsign;
+        return $this->callsign;
+    }
 
-        return $vault->get_customfield_data($COURSE->id, $pilotid, 'callsign');
+    /**
+     * Loads participant's date from a table record
+     *
+     * @param string   The participant callsign
+     */
+    public function populate($record) {
+        $this->courseid = $record->courseid;
+        $this->userid = $record->userid;
+        $this->fullname = $record->fullname;
+        $this->enroldate = $record->enroldate;
+        $this->lastlogin = $record->lastlogin;
+        $this->simulator = $record->simulator;
     }
 }

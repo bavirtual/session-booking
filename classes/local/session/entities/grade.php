@@ -71,9 +71,14 @@ class grade implements grade_interface {
     protected $gradedate;
 
     /**
-     * @var int $grade The final grade.
+     * @var int $finalgrade The final grade.
      */
     protected $finalgrade;
+
+    /**
+     * @var int $totalgrade The final grade.
+     */
+    protected $totalgrade;
 
     /**
      * Constructor.
@@ -93,7 +98,8 @@ class grade implements grade_interface {
         $studentid      = 0,
         $studentname    = '',
         $gradedate      = [],
-        $finalgrade     = 0
+        $finalgrade     = 0,
+        $totalgrade     = 0
         ) {
         $this->exerciseid   = $exerciseid;
         $this->exercisetype = $exercisetype;
@@ -103,6 +109,7 @@ class grade implements grade_interface {
         $this->studentname  = $studentname;
         $this->gradedate    = $gradedate;
         $this->finalgrade   = $finalgrade;
+        $this->totalgrade   = $totalgrade;
     }
 
     // Getter functions
@@ -137,6 +144,10 @@ class grade implements grade_interface {
 
     public function get_finalgrade() {
         return $this->finalgrade;
+    }
+
+    public function get_total_grade() {
+        return $this->totalgrade;
     }
 
     // setter functions

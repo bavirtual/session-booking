@@ -34,6 +34,8 @@ use local_booking\local\logbook\forms\create as create_logentry_form;
 use local_booking\local\logbook\forms\create as update_logentry_form;
 use local_booking\local\logbook\entities\logbook;
 use local_booking\local\logbook\entities\logentry;
+use local_booking\local\participant\entities\participant;
+use local_booking\local\participant\entities\student;
 
 /**
  * Session Booking Plugin
@@ -451,7 +453,7 @@ class local_booking_external extends external_api {
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
     public static function save_slots($slots, $courseid, $year, $week) {
-        global $DB;
+        global $USER;
 
         // Parameter validation.
         $params = self::validate_parameters(self::save_slots_parameters(), array(
@@ -461,33 +463,15 @@ class local_booking_external extends external_api {
                 'week'      => $week)
             );
 
-        $vault = new slot_vault();
+        $student = new student($courseid, $USER->id);
         $warnings = array();
 
-        // remove all week's slots for the user to avoid updates
-        $transaction = $DB->start_delegated_transaction();
-        $result = $vault->delete_slots($courseid, $year, $week);
+        // add new slots after removing previous ones for the week
+        $result = $student->save_slots($params);
 
         if ($result) {
-            foreach ($params['slots'] as $slot) {
-                $slotobj = new slot(0, 0,
-                    $courseid,
-                    $slot['starttime'],
-                    $slot['endtime'],
-                    $year,
-                    $week,
-                );
-
-                // add each slot.
-                $result = $result && $vault->save($slotobj);
-            }
-        }
-
-        if ($result) {
-            $transaction->allow_commit();
             \core\notification::success(get_string('slotssavesuccess', 'local_booking'));
         } else {
-            $transaction->rollback(new moodle_exception(get_string('slotssaveunable', 'local_booking')));
             \core\notification::warning(get_string('slotssaveunable', 'local_booking'));
         }
 
@@ -538,6 +522,7 @@ class local_booking_external extends external_api {
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
     public static function delete_slots($courseid, $year, $week) {
+        global $USER;
 
         // Parameter validation.
         $params = self::validate_parameters(self::delete_slots_parameters(), array(
@@ -546,11 +531,11 @@ class local_booking_external extends external_api {
                 'week' => $week)
             );
 
-        $vault = new slot_vault();
+        $student = new student($courseid, $USER->id);
         $warnings = array();
 
         // remove all week's slots for the user to avoid updates
-        $result = $vault->delete_slots($courseid, $year, $week);
+        $result = $student->delete_slots($params);
 
         if ($result) {
             \core\notification::success(get_string('slotsdeletesuccess', 'local_booking'));

@@ -111,14 +111,15 @@ define([
                 if (response.validationerror) {
                     // eslint-disable-next-line no-alert
                     alert('Errors encountered: Unable to save slot!');
+                } else {
+                    // Redirect to bookings view
+                    location.href = M.cfg.wwwroot + '/local/booking/view.php?courseid=' + course;
                 }
                 return;
             }
             .bind(this))
             .always(function() {
                 CalendarViewManager.stopLoading(root);
-                // Redirect to bookings view
-                location.href = M.cfg.wwwroot + '/local/booking/view.php?courseid=' + course;
                 return;
             }
             .bind(this))
@@ -132,13 +133,15 @@ define([
      * @method clearWeekSlots
      * @param {object} root The calendar root element
      */
-     function clearWeekSlots() {
+     function clearWeekSlots(root) {
         $('td').filter(function() {
             if ($(this).data('slot-booked') == 0) {
                 $(this).data('slot-marked', 0);
                 $(this).removeClass('slot-selected');
             }
         });
+        setSaveButtonState(root, 'post');
+
         return;
     }
 
@@ -259,6 +262,7 @@ define([
             $(slot).data('slot-marked', 1);
             $(slot).addClass('slot-selected', 1);
         });
+        setSaveButtonState(root, 'post');
 
         return;
      }

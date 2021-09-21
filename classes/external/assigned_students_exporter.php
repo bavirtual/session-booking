@@ -29,6 +29,8 @@ defined('MOODLE_INTERNAL') || die();
 
 use local_booking\local\participant\entities\participant;
 use core\external\exporter;
+use local_booking\local\participant\entities\instructor;
+use local_booking\local\subscriber\subscriber;
 use renderer_base;
 use moodle_url;
 
@@ -123,19 +125,19 @@ class assigned_students_exporter extends exporter {
      * @return  assigned_student_exporter[]
      */
     protected function get_assigned_students($output) {
-        global $COURSE;
+        global $USER;
         $assignedstudents = [];
 
-        $participants = new participant();
-        $studentobjs = $participants->get_assigned_students();
-        foreach ($studentobjs as $studentobj) {
-            list($nextexercise, $exercisesection) = $participants->get_next_exercise($studentobj->userid, $COURSE->id);
-            $studentobj->nextlesson = get_exercise_name($nextexercise);
+        $instructor = new instructor($this->data['courseid'], $USER->id);
+        $students = $instructor->get_assigned_students();
+        foreach ($students as $student) {
+            list($nextexercise, $exercisesection) = $student->get_next_exercise();
+            $student->set_next_lesson(get_exercise_name($nextexercise));
             $data = [
-                'student' => $studentobj,
+                'student' => $student,
             ];
-            $student = new assigned_student_exporter($data, $this->related);
-            $assignedstudents[] = $student->export($output);
+            $studentexport = new assigned_student_exporter($data, $this->related);
+            $assignedstudents[] = $studentexport->export($output);
         }
 
         return $assignedstudents;

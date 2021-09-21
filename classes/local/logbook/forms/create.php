@@ -28,7 +28,7 @@ namespace local_booking\local\logbook\forms;
 
 use local_booking\local\participant\entities\participant;
 use local_booking\local\session\entities\booking;
-use local_booking\local\subscriber\subscriber_info;
+use local_booking\local\subscriber\subscriber;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -47,28 +47,10 @@ require_once($CFG->dirroot.'/lib/formslib.php');
 class create extends \moodleform {
 
     /**
-     * Build the editor options using the given context.
-     *
-     * @param \context $context A Moodle context
-     * @return array
-     */
-    public static function build_editor_options(\context $context) {
-        global $CFG;
-
-        return [
-            'context' => $context,
-            'maxfiles' => EDITOR_UNLIMITED_FILES,
-            'maxbytes' => $CFG->maxbytes,
-            'noclean' => true,
-            'autosave' => false
-        ];
-    }
-
-    /**
      * The form definition
      */
     public function definition() {
-        global $PAGE;
+        global $PAGE, $COURSE;
 
         $mform = $this->_form;
         $logentry = isset($this->_customdata['logentry']) ? $this->_customdata['logentry'] : null;
@@ -80,7 +62,7 @@ class create extends \moodleform {
         $courseid = isset($this->_customdata['courseid']) ? $this->_customdata['courseid'] : null;
 
         // get subscribing course info
-        $subscriber = new subscriber_info($courseid);
+        $subscriber = new subscriber($courseid);
 
         $mform->setDisableShortforms();
         $mform->disable_form_change_checker();
@@ -116,7 +98,7 @@ class create extends \moodleform {
         $sicname = !empty($logentry) ? $logentry->get_sicname() : '';
 
         // PIC/SIC name selector
-        $pilots = $this->get_pilot_ids();
+        $pilots = $this->get_pilot_ids($COURSE->id);
 
         // PIC name select
         $select = $mform->addElement('select', 'picid', get_string('pic', 'local_booking'), $pilots);
@@ -136,7 +118,7 @@ class create extends \moodleform {
         $mform->setAdvanced('pirep');
 
         // Callsign advanced element
-        $instructorcallsign = $sicid != 0 ? $this->get_callsign($sicid) : '';
+        $instructorcallsign = $sicid != 0 ? $this->get_callsign($COURSE->id, $sicid) : '';
         $mform->addElement('text', 'callsign', get_string('callsign', 'local_booking'), 'style="text-transform:uppercase" ');
         $mform->setType('callsign', PARAM_TEXT);
         $mform->setDefault('callsign', $instructorcallsign);
@@ -166,12 +148,12 @@ class create extends \moodleform {
      * @return array
      */
     public function validation($data, $files) {
-        $booking = new booking($data['courseid'], $data['exerciseid'], 0, $data['studentid'], $data['sessiondate']);
+        $booking = new booking(0, $data['courseid'], $data['studentid'], $data['exerciseid']);
 
         $errors = parent::validation($data, $files);
 
         // validate the flight date is not before the booking date
-        $exercisedate = $booking->get_booked_exercise_date();
+        $exercisedate = $booking->get_exercise_date();
         if ($exercisedate != 0) {
             if ($data['sessiondate'] < $exercisedate) {
                 $errors['sessiondate'] = get_string('errorinvaliddate', 'local_booking');
@@ -225,14 +207,12 @@ class create extends \moodleform {
      *
      * @return array $activepilots List of user ids for PIC & SIC pilots
      */
-    protected function get_pilot_ids() {
-        global $COURSE;
-
-        $participants = new participant();
-        $pilots = $participants->get_active_participants($COURSE->id);
+    protected function get_pilot_ids($courseid) {
+        $course = new subscriber($courseid);
+        $pilots = $course->get_active_participants();
 
         foreach ($pilots as $pilot) {
-            $activepilots[$pilot->userid] = get_fullusername($pilot->userid);
+            $activepilots[$pilot->userid] = $pilot->fullname;
         }
 
         return $activepilots;
@@ -244,8 +224,8 @@ class create extends \moodleform {
      *
      * @return string $callsign The instructor's callsign
      */
-    protected function get_callsign($sicid) {
-        $participants = new participant();
-        return $participants->get_callsign($sicid);
+    protected function get_callsign($courseid, $sicid) {
+        $pilot = new participant($courseid, $sicid);
+        return $pilot->get_callsign();
     }
 }

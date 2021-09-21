@@ -38,42 +38,78 @@ defined('MOODLE_INTERNAL') || die();
 interface booking_interface {
 
     /**
-     * Set the course id for the booking.
+     * Loads this booking from the database.
+     *
+     * @return bool
+     */
+    public function load();
+
+    /**
+     * Saves this booking to database.
+     *
+     * @return bool
+     */
+    public function save();
+
+    /**
+     * Deletes this booking from database.
+     *
+     * @return bool
+     */
+    public function delete();
+
+    /**
+     * Persists booking confirmation to the database.
+     *
+     * @param string    Confirmation message
+     * @return bool
+     */
+    public function confirm(string $confirmationmsg);
+
+    /**
+     * Get the booking id for the booking.
+     *
+     * @return int
+     */
+    public function get_id();
+
+    /**
+     * Get the course id for the booking.
      *
      * @return int
      */
     public function get_courseid();
 
     /**
-     * Set the course exercise id for the booking.
+     * Get the course exercise id for the booking.
      *
      * @return int
      */
     public function get_exerciseid();
 
     /**
-     * Set the instructor user id of the booking.
+     * Get the instructor user id of the booking.
      *
      * @return int
      */
     public function get_instructorid();
 
     /**
-     * Set the instructor name of the booking.
+     * Get the instructor name of the booking.
      *
      * @return string
      */
     public function get_instructorname();
 
     /**
-     * Set the studnet user id of the booking.
+     * Get the studnet user id of the booking.
      *
      * @return int
      */
     public function get_studentid();
 
     /**
-     * Set the studnet name of the booking.
+     * Get the studnet name of the booking.
      *
      * @return string
      */
@@ -87,11 +123,18 @@ interface booking_interface {
     public function get_slot();
 
     /**
-     * Set the status of the booking Confirmed or Tentative.
+     * Get the status of the booking Confirmed or Tentative.
      *
      * @return string
      */
     public function confirmed();
+
+    /**
+     * Get the booking active status.
+     *
+     * @return bool
+     */
+    public function active();
 
     /**
      * Get the date timestamp of the booking.
@@ -101,60 +144,12 @@ interface booking_interface {
     public function get_bookingdate();
 
     /**
-     * Set the course  id for the booking.
+     * Get the date of the last booked session
      *
-     * @return int
+     * @param int $isinstructor
+     * @param int $userid
      */
-    public function set_courseid(int $courseid);
-
-    /**
-     * Set the course exercise id for the booking.
-     *
-     * @return int
-     */
-    public function set_exerciseid(int $exerciseid);
-
-    /**
-     * Set the instructor user id of the booking.
-     *
-     * @return int
-     */
-    public function set_instructorid(int $instructorid);
-
-    /**
-     * Set the instructor name of the booking.
-     *
-     * @return string
-     */
-    public function set_instructorname(string $instructorname);
-
-    /**
-     * Set the studnet user id of the booking.
-     *
-     * @return int
-     */
-    public function set_studentid(int $studentid);
-
-    /**
-     * Set the studnet name of the booking.
-     *
-     * @return string
-     */
-    public function set_studentname(string $studentname);
-
-    /**
-     * Set the slot object of booking.
-     *
-     * @return slot
-     */
-    public function set_slot(slot $slot);
-
-    /**
-     * Set the date timestamp of the booking.
-     *
-     * @return int
-     */
-    public function set_bookingdate(int $bookingdate);
+    public static function get_last_session(int $userid, bool $isinstructor = false);
 
     /**
      * Get the booking date associated
@@ -162,5 +157,61 @@ interface booking_interface {
      *
      * @return int
      */
-    public function get_booked_exercise_date();
+    public function get_exercise_date();
+
+    /**
+     * Set the course  id for the booking.
+     *
+     * @param int
+     */
+    public function set_courseid(int $courseid);
+
+    /**
+     * Set the course exercise id for the booking.
+     *
+     * @param int
+     */
+    public function set_exerciseid(int $exerciseid);
+
+    /**
+     * Set the instructor user id of the booking.
+     *
+     * @param int
+     */
+    public function set_instructorid(int $instructorid);
+
+    /**
+     * Set the instructor name of the booking.
+     *
+     * @param string
+     */
+    public function set_instructorname(string $instructorname);
+
+    /**
+     * Set the studnet user id of the booking.
+     *
+     * @param int
+     */
+    public function set_studentid(int $studentid);
+
+    /**
+     * Set the studnet name of the booking.
+     *
+     * @param string
+     */
+    public function set_studentname(string $studentname);
+
+    /**
+     * Set the slot object of booking.
+     *
+     * @param slot
+     */
+    public function set_slot(slot $slot);
+
+    /**
+     * Set the date timestamp of the booking.
+     *
+     * @param int
+     */
+    public function set_bookingdate(int $bookingdate);
 }

@@ -86,7 +86,7 @@ define([
 
         // Listen the click on the Clear button.
         root.on('click', SELECTORS.CLEAR_BUTTON, function() {
-            SlotActions.clearWeekSlots();
+            SlotActions.clearWeekSlots(root);
         });
 
         // Listen to click on the clickable slot areas/cells

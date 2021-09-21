@@ -34,10 +34,10 @@ require_once($CFG->dirroot . '/local/booking/lib.php');
 
 use DateTime;
 use local_booking\local\participant\entities\participant;
-use local_booking\local\slot\data_access\slot_vault;
-use local_booking\local\session\data_access\booking_vault;
+use local_booking\local\session\entities\booking;
+use local_booking\local\slot\entities\slot;
 use local_booking\local\message\notification;
-use local_booking\local\subscriber\subscriber_info;
+use local_booking\local\subscriber\subscriber;
 
 /**
  * A schedule task for student and instructor status cron.
@@ -62,9 +62,6 @@ class cron_task extends \core\task\scheduled_task {
      * Run session booking cron.
      */
     public function execute() {
-        $participants = new participant();
-        $bookingvault = new booking_vault();
-        $slotsvault = new slot_vault();
 
         // get course list
         $sitecourses = get_courses();
@@ -72,7 +69,7 @@ class cron_task extends \core\task\scheduled_task {
         foreach ($sitecourses as $sitecourse) {
             if ($sitecourse->id != SITEID) {
                 // check if the course is using Session Booking
-                $course = new subscriber_info($sitecourse->id);
+                $course = new subscriber($sitecourse->id);
                 if (!empty($course->subscribed) && $course->subscribed) {
                     mtrace('    Course id: ' . $sitecourse->id);
                     $message = new notification();
@@ -82,14 +79,14 @@ class cron_task extends \core\task\scheduled_task {
                     $waitdays = get_config('local_booking', 'nextsessionwaitdays') ? get_config('local_booking', 'nextsessionwaitdays') : LOCAL_BOOKING_DAYSFROMLASTSESSION;
 
                     // get active students
-                    $activestudents = $participants->get_active_students($sitecourse->id);
+                    $activestudents = $course->get_active_students($sitecourse->id);
 
                     // consider on-hold and suspension candidates
                     foreach ($activestudents as $student) {
                         $studentname = get_fullusername($student->userid);
 
                         // get on-hold date, otherwise use last login for on-hold comparison
-                        $lastsession = $slotsvault->get_last_posted_slot($student->userid);
+                        $lastsession = slot::get_last_posting($sitecourse->id, $student->userid);
                         $lastsessiondate = new DateTime('@' . (!empty($lastsession) ? $lastsession->starttime : $student->lastlogin));
                         $onholddate = new DateTime('@' . $lastsessiondate->getTimestamp());
                         // on-hold date is 3x wait period from last session
@@ -130,7 +127,8 @@ class cron_task extends \core\task\scheduled_task {
                             if ($message->send_suspension_notification($student->userid, $lastsessiondate, $sitecourse->id, $sitecourse->shortname)) {
                                 mtrace('        Suspended \'' . $studentname . '\' (notified)...');
                                 // unenrol the student from the course
-                                if ($participants->set_suspend_status($student->userid, $sitecourse->id)) {
+                                $participant = new participant($sitecourse->id, $student->userid);
+                                if ($participant->set_suspend_status()) {
                                     mtrace('        Notifying student of being suspended...');
                                 }
                             }
@@ -138,7 +136,7 @@ class cron_task extends \core\task\scheduled_task {
                     }
 
                     // get instructors
-                    $instructors = $participants->get_active_instructors($sitecourse->id);
+                    $instructors = $course->get_active_instructors($sitecourse->id);
                     $isoverdue = false;
 
                     // consider inactive instructors
@@ -147,7 +145,7 @@ class cron_task extends \core\task\scheduled_task {
                         mtrace('    Instructor: ' . $instructorname);
 
                         // get instructor last booked session, otherwise use the last login for date compare
-                        $lastsession = $bookingvault->get_last_booked_session($instructor->userid, true);
+                        $lastsession = booking::get_last_session($instructor->userid, true);
                         if (!empty($lastsession)) {
                             $lastsessiondate = new DateTime('@' . (!empty($lastsession) ? $lastsession->lastbookedsession : $instructor->lastlogin));
 

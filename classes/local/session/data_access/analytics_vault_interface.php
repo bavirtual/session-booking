@@ -32,10 +32,11 @@ interface analytics_vault_interface {
     /**
      * Get Session Recency in days for a particular student
      *
+     * @param int   $courseid   The course id in reference
      * @param int   $studentid  The student id in reference
      * @return int  $days       The number of days since last session
      */
-    public function get_session_recency(int $studentid);
+    public function get_session_recency(int $courseid, int $studentid);
 
     /**
      * Get the number of Availability slots marked by the student.
