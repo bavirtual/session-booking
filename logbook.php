@@ -81,9 +81,6 @@ echo $OUTPUT->header();
 echo $renderer->start_layout();
 echo html_writer::start_tag('div', array('class'=>'heightcontainer'));
 
-// list($data, $template) = get_progression_view($courseid, $categoryid);
-// echo $renderer->render_from_template($template, $data);
-
 list($data, $template) = get_logbook_view($courseid);
 echo $renderer->render_from_template($template, $data);
 

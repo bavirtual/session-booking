@@ -216,7 +216,7 @@ class participant_vault implements participant_vault_interface {
                     AND r.shortname = :role
                     AND uf.shortname = :customfield
                     AND ue.status = :status
-                    AND g.courseid = :courseid
+                    AND g.courseid = :gcourseid
                     AND g.name= :instructorname;';
 
         $params = [
@@ -225,6 +225,7 @@ class participant_vault implements participant_vault_interface {
             'role' => 'student',
             'customfield' => 'simulator',
             'status'    => 0,
+            'gcourseid'  => $courseid,
             'instructorname' => instructor::get_fullname($userid, false)
         ];
 

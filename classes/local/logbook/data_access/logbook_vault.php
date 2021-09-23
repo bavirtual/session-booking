@@ -137,14 +137,14 @@ class logbook_vault implements logbook_vault_interface {
 
         $sql = 'SELECT SUM(flighttimemins) as totalflighttime,
                     SUM(sessiontimemins) as totalsessiontime,
-                    UM(soloflighttimemins) as totalsolotime
+                    SUM(soloflighttimemins) as totalsolotime
                 FROM {' . self::DB_LOGBOOKS .'}
                 WHERE courseid = :courseid
                 AND userid = :studentid;';
 
         $params = [
             'courseid' => $courseid,
-            'studentid' => $studentid,
+            'studentid' => $studentid
         ];
         $summary = $DB->get_record_sql($sql, $params);
         $totalflighttime = $summary->totalflighttime;
