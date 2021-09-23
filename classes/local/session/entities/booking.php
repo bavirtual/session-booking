@@ -25,9 +25,12 @@
 
 namespace local_booking\local\session\entities;
 
+use local_booking\local\participant\entities\instructor;
+use local_booking\local\participant\entities\student;
 use local_booking\local\session\data_access\booking_vault;
 use local_booking\local\slot\data_access\slot_vault;
 use \local_booking\local\slot\entities\slot;
+use local_booking\local\subscriber\subscriber;
 use moodle_exception;
 use stdClass;
 
@@ -156,13 +159,6 @@ class booking implements booking_interface {
         global $DB;
         $vault = new booking_vault();
 
-        // add a new tentatively booked slot for the student.
-        $sessiondata = [
-            'exercise'  => get_exercise_name($this->exerciseid),
-            'instructor'=> get_fullusername($this->instructorid),
-            'status'    => ucwords(get_string('statustentative', 'local_booking')),
-        ];
-
         $transaction = $DB->start_delegated_transaction();
 
         $result = $this->slot->save();
@@ -287,7 +283,7 @@ class booking implements booking_interface {
      * @return string
      */
     public function get_instructorname() {
-        return get_fullusername($this->instructorid);
+        return instructor::get_fullname($this->instructorid);
     }
 
     /**
@@ -305,7 +301,7 @@ class booking implements booking_interface {
      * @return string
      */
     public function get_studentname() {
-        return get_fullusername($this->studentid);
+        return student::get_fullname($this->studentid);
     }
 
     /**

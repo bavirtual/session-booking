@@ -60,10 +60,13 @@ if ($iscourse && !empty($courseid)) {
     $PAGE->set_context(context_system::instance());
 }
 
+
+$context = context_course::instance($courseid);
+
 require_login($course, false);
+require_capability('local/booking:view', $context);
 
 $url->param('courseid', $courseid);
-$context = context_course::instance($courseid);
 
 // RobinHerbots-Inputmask library to mask flight times in the Log Book modal form
 $PAGE->requires->jquery();

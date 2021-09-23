@@ -32,16 +32,19 @@ interface participant_vault_interface {
     /**
      * Get all active students from the database.
      *
-     * @return {Object}[]          Array of database records.
+     * @param int $courseid The course id.
+     * @return {Object}[]   Array of database records.
      */
     public function get_active_students(int $courseid);
 
     /**
      * Get all active instructors for the course from the database.
      *
-     * @return {Object}[]          Array of database records.
+     * @param int $courseid The course id.
+     * @param bool $courseadmins Indicates whether the instructor is an admin or not.
+     * @return {Object}[]   Array of database records.
      */
-    public function get_active_instructors(int $courseid);
+    public function get_active_instructors(int $courseid, bool $courseadmins = false);
 
     /**
      * Get students assigned to an instructor from the database.
@@ -88,9 +91,11 @@ interface participant_vault_interface {
     /**
      * Returns full username
      *
-     * @return string  The full participatn username
+     * @param int       $userid The user id.
+     * @param bool      $includealternate Whether to include the user's alternate name.
+     * @return string   $fullusername The full participant username
      */
-    public static function get_participant_name(int $userid);
+    public static function get_participant_name(int $userid, bool $includealternate = true);
 
     /**
      * Returns custom field value from the user's profile

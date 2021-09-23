@@ -27,6 +27,7 @@ namespace local_booking\local\logbook\entities;
 
 use DateTime;
 use local_booking\local\logbook\data_access\logbook_vault;
+use local_booking\local\participant\entities\student;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -190,7 +191,7 @@ class logbook implements logbook_interface {
      * @return string
      */
     public function get_studentname() {
-        return get_fullusername($this->studentid);
+        return student::get_fullname($this->studentid);
     }
 
     /**

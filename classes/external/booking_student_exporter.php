@@ -235,11 +235,14 @@ class booking_student_exporter extends exporter {
      * @return {Object}
      */
     protected function get_next_action() {
-        $student = new student($this->courseid, $this->studentid);
-        list($nextexerciseid, $section) = $student->get_next_exercise();
-
         // next action depends if the student has any booking
         $actiontype = !empty($this->booking->get_id()) ? 'grade' : 'book';
+        if ($actiontype == 'book') {
+            $student = new student($this->courseid, $this->studentid);
+            list($nextexerciseid, $section) = $student->get_next_exercise();
+        } else {
+            $nextexerciseid = $this->booking->get_exerciseid();
+        }
         $action = new action($actiontype, $this->courseid, $this->studentid, $nextexerciseid);
 
         return $action;

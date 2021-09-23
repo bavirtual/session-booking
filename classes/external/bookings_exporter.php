@@ -55,14 +55,19 @@ class bookings_exporter extends exporter {
     const LATEWARNING = 2;
 
     /**
-     * @var array $exercisenames An array of excersice ids and names for the course.
+     * @var array $exercises An array of excersice ids and names for the course.
      */
-    protected $exercisenames = [];
+    protected $exercises = [];
 
     /**
      * @var array $activestudents An array of active student info for the course.
      */
     protected $activestudents = [];
+
+    /**
+     * @var subscriber $subscribedcourse The subscribing course.
+     */
+    protected $subscribedcourse;
 
     /**
      * Constructor.
@@ -79,6 +84,8 @@ class bookings_exporter extends exporter {
 
         $data['url'] = $url->out(false);
         $data['contextid'] = $related['context']->id;
+        $this->subscribedcourse = new subscriber($data['courseid']);
+        $this->exercises = $this->subscribedcourse->get_exercises();
 
         parent::__construct($data, $related);
     }
@@ -105,7 +112,7 @@ class bookings_exporter extends exporter {
      */
     protected static function define_other_properties() {
         return [
-            'exercisenames' => [
+            'exercises' => [
                 'type' => exercise_name_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
@@ -129,7 +136,7 @@ class bookings_exporter extends exporter {
     protected function get_other_values(renderer_base $output) {
 
         $return = [
-            'exercisenames'  => $this->get_exercises($output),
+            'exercises'  => $this->get_exercises($output),
             'activestudents' => $this->get_students($output),
             'activebookings' => $this->get_bookings($output),
         ];
@@ -155,20 +162,18 @@ class bookings_exporter extends exporter {
      * @return array
      */
     protected function get_exercises($output) {
-        $this->exercisenames = get_exercise_names();
         // get titles from the course custom fields exercise titles array
-        $subscribedcourse = new subscriber($this->data['courseid']);
         $exercisesexports = [];
 
-        $titlevalue = array_values($subscribedcourse->exercisetitles);
-        foreach($this->exercisenames as $name) {
+        $titlevalue = array_values($this->subscribedcourse->exercisetitles);
+        foreach($this->exercises as $exercise) {
             // break down each setting title by <br/> tag, until a better way is identified
             $customtitle = array_shift($titlevalue);
-            $name->title = !empty($customtitle) ? $customtitle : $name->exercisename;
+            $exercise->title = !empty($customtitle) ? $customtitle : $exercise->exercisename;
             $data = [
-                'exerciseid'    => $name->exerciseid,
-                'exercisename'  => $name->exercisename,
-                'exercisetitle' => $name->title,
+                'exerciseid'    => $exercise->exerciseid,
+                'exercisename'  => $exercise->exercisename,
+                'exercisetitle' => $exercise->title,
             ];
 
             $exercisename = new exercise_name_exporter($data);
@@ -188,8 +193,7 @@ class bookings_exporter extends exporter {
     protected function get_students($output) {
         $activestudentsexports = [];
 
-        $course = new subscriber($this->data['courseid']);
-        $this->activestudents = $this->prioritze($course->get_active_students());
+        $this->activestudents = $this->prioritze($this->subscribedcourse->get_active_students());
 
         $i = 0;
         foreach ($this->activestudents as $student) {
@@ -216,7 +220,7 @@ class bookings_exporter extends exporter {
             ];
             $studentexporter = new booking_student_exporter($data, $this->data['courseid'], [
                 'context' => \context_system::instance(),
-                'courseexercises' => $this->exercisenames,
+                'courseexercises' => $this->exercises,
             ]);
             $activestudentsexports[] = $studentexporter->export($output);
         }

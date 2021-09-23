@@ -142,16 +142,14 @@ class participant implements participant_interface {
     }
 
     /**
-     * Returns full fullname
+     * Returns full username
      *
-     * @param bool $alternate The additional alternate name
-     * @return string  The full fullname with optional alternate info
+     * @param int       $participantid The user id.
+     * @param bool      $includealternate Whether to include the user's alternate name.
+     * @return string   $fullusername The full participant username
      */
-    public function get_fullname(bool $alternate = true) {
-        $userinfo = $this->vault->get_participant_name($this->userid);
-        $this->fullname = $alternate ? $userinfo->fullname : $userinfo->fullname;
-
-        return $this->fullname;
+    public static function get_fullname(int $participantid, bool $alternate = true) {
+        return participant_vault::get_participant_name($participantid, $alternate);
     }
 
     /**

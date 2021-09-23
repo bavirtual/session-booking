@@ -29,7 +29,9 @@ defined('MOODLE_INTERNAL') || die();
 
 use DateTime;
 use core\external\exporter;
+use local_booking\local\participant\entities\student;
 use local_booking\local\session\entities\action;
+use local_booking\local\subscriber\subscriber;
 
 /**
  * Class for displaying instructor's booked sessions view.
@@ -55,9 +57,9 @@ class booking_mybookings_exporter extends exporter {
         $data = [
         'bookingid'   => $booking->get_id(),
         'studentid'   => $booking->get_studentid(),
-        'studentname' => get_fullusername($booking->get_studentid()),
+        'studentname' => student::get_fullname($booking->get_studentid()),
         'exerciseid'  => $booking->get_exerciseid(),
-        'exercise'    => get_exercise_name($booking->get_exerciseid()),
+        'exercise'    => subscriber::get_exercise_name($booking->get_exerciseid()),
         'sessiondate' => $sessiondate->format('D M j'),
         'sessiontime' => $sessiondate->format('H:i'),
         'actionname'  => $action->get_name(),

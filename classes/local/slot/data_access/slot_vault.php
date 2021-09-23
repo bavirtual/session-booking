@@ -156,12 +156,12 @@ class slot_vault implements slot_vault_interface {
 
         $sql = 'SELECT starttime
                 FROM {' . static::DB_SLOTS. '}
-                WHERE userid = ' . $studentid . '
+                WHERE userid = :studentid
                 AND slotstatus = ""
                 ORDER BY starttime
                 LIMIT 1';
 
-        return $DB->get_record_sql($sql);
+        return $DB->get_record_sql($sql, ['studentid'=>$studentid]);
     }
 
     /**
@@ -175,12 +175,17 @@ class slot_vault implements slot_vault_interface {
 
         $sql = 'SELECT starttime
                 FROM {' . static::DB_SLOTS. '}
-                WHERE courseid = ' . $courseid . '
-                AND userid = ' . $studentid . '
+                WHERE courseid = :courseid
+                AND userid = :studentid
                 AND slotstatus != ""
                 ORDER BY starttime DESC
                 LIMIT 1';
 
-        return $DB->get_record_sql($sql);
+        $params = [
+            'courseid' => $courseid,
+            'studentid'  => $studentid
+        ];
+
+        return $DB->get_record_sql($sql, $params);
     }
 }

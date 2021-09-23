@@ -30,6 +30,8 @@ defined('MOODLE_INTERNAL') || die();
 use renderer_base;
 use core\external\exporter;
 use DateTime;
+use local_booking\local\participant\entities\participant;
+use local_booking\local\subscriber\subscriber;
 use moodle_url;
 
 /**
@@ -190,13 +192,13 @@ class logentry_exporter extends exporter {
         $sectionname = !empty($this->logentry) ? '' : get_course_section_name($this->data['courseid'], $exerciseid);
 
         return [
-            'exercisename' => get_exercise_name($exerciseid),
+            'exercisename' => subscriber::get_exercise_name($exerciseid),
             'formattedtime' => $sessiondate,
             'flighttime' => $flighttimemins,
             'sessiontime' => $sessiontimemins,
             'soloflighttime' => $soloflighttimemins,
-            'picname' => get_fullusername($picid),
-            'sicname' => get_fullusername($sicid),
+            'picname' => participant::get_fullname($picid),
+            'sicname' => participant::get_fullname($sicid),
             'sectionname' => $sectionname,
         ];
     }

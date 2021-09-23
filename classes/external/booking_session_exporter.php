@@ -30,6 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 use renderer_base;
 use DateTime;
 use core\external\exporter;
+use local_booking\local\participant\entities\instructor;
 use local_booking\local\session\entities\session;
 use local_booking\local\session\entities\grade;
 
@@ -230,7 +231,7 @@ class booking_session_exporter extends exporter {
             $infostatus = $booking->confirmed() ? 'statusbooked' : 'statustentative';
             $sessiondate = new DateTime('@' . $booking->get_slot()->get_starttime());
             $bookinginfo = [
-                'instructor'    => get_fullusername($booking->get_instructorid()),
+                'instructor'    => instructor::get_fullname($booking->get_instructorid()),
                 'sessiondate'   => !empty($sessiondate) ? $sessiondate->format('j M \'y') : 'null',
                 'bookingstatus' => ucwords(get_string($infostatus, 'local_booking')),
             ];

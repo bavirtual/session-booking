@@ -60,6 +60,7 @@ $capabilities = array(
         'archetypes' => array(
             'coursecreator' => CAP_ALLOW,
             'manager' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
         )
     ),
 

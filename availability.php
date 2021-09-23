@@ -85,8 +85,10 @@ if ($iscoursecalendar && !empty($courseid)) {
 } else {
     $PAGE->set_context(context_system::instance());
 }
+$context = context_course::instance($courseid);
 
 require_login($course, false);
+require_capability('local/booking:availabilityview', $context);
 
 $url->param('course', $courseid);
 

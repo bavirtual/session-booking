@@ -26,6 +26,7 @@
 namespace local_booking\local\logbook\entities;
 
 use DateTime;
+use local_booking\local\participant\entities\participant;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -213,7 +214,7 @@ class logentry implements logentry_interface {
      * @return string
      */
     public function get_picname() {
-        return get_fullusername($this->picid);
+        return participant::get_fullname($this->picid);
     }
 
     /**
@@ -231,7 +232,7 @@ class logentry implements logentry_interface {
      * @return string
      */
     public function get_sicname() {
-        return get_fullusername($this->sicid);
+        return participant::get_fullname($this->sicid);
     }
 
     /**

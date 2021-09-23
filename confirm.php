@@ -31,8 +31,10 @@ $courseid     = optional_param('courseid', 0, PARAM_INT);
 $exerciseid   = optional_param('exeid', 0, PARAM_INT);
 $studentid    = optional_param('userid', 0, PARAM_INT);
 $instructorid = optional_param('insid', 0, PARAM_INT);
+$context = context_course::instance($courseid);
 
 require_login($courseid, false);
+require_capability('local/booking:availabilityview', $context);
 
 list($result, $time, $week) = confirm_booking($courseid, $instructorid, $studentid, $exerciseid);
 

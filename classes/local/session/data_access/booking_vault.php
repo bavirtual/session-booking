@@ -49,11 +49,11 @@ class booking_vault implements booking_vault_interface {
                        b.slotid, b.confirmed, b.active, b.timemodified
                 FROM {' . static::DB_BOOKINGS. '} b
                 INNER JOIN {' . static::DB_SLOTS . '} s on s.id = b.slotid
-                WHERE b.userid = ' . $userid . '
+                WHERE b.userid = :userid
                 AND b.active = 1' .
                 ($oldestfirst ? ' ORDER BY s.starttime' : '');
 
-        return $DB->get_records_sql($sql);
+        return $DB->get_records_sql($sql, ['userid'=>$userid]);
     }
 
     /**
@@ -138,11 +138,17 @@ class booking_vault implements booking_vault_interface {
 
         $sql = 'UPDATE {' . static::DB_BOOKINGS . '}
                 SET confirmed = 1
-                WHERE courseid = ' . $courseid . '
-                AND studentid = ' . $studentid . '
-                AND exerciseid = ' . $exerciseid;
+                WHERE courseid = :courseid
+                AND studentid = :studentid
+                AND exerciseid = :exerciseid;';
 
-        return $DB->execute($sql);
+        $params = [
+            'courseid' => $courseid,
+            'studentid'  => $studentid,
+            'exerciseid'  => $exerciseid
+        ];
+
+        return $DB->execute($sql, $params);
     }
 
     /**
@@ -157,10 +163,15 @@ class booking_vault implements booking_vault_interface {
 
         $sql = 'SELECT timemodified as exercisedate
                 FROM {' . static::DB_BOOKINGS. '}
-                WHERE studentid = ' . $studentid . '
-                AND exerciseid = ' . $exerciseid;
+                WHERE studentid = :studentid
+                AND exerciseid = :exerciseid;';
 
-        $booking = $DB->get_record_sql($sql);
+        $params = [
+            'studentid'  => $studentid,
+            'exerciseid'  => $exerciseid
+        ];
+
+        $booking = $DB->get_record_sql($sql, $params);
         return $booking ? $booking->exercisedate : 0;
     }
 
@@ -175,11 +186,11 @@ class booking_vault implements booking_vault_interface {
 
         $sql = 'SELECT timemodified as lastbookedsession
                 FROM {' . static::DB_BOOKINGS. '}
-                WHERE ' . ($isinstructor ? 'userid = ' : 'studentid = ') . $userid . '
+                WHERE ' . ($isinstructor ? 'userid = :userid' : 'studentid = :userid') . '
                 ORDER BY timemodified DESC
                 LIMIT 1';
 
-        return $DB->get_record_sql($sql);
+        return $DB->get_record_sql($sql, ['userid'=>$userid]);
     }
 
     /**
@@ -193,10 +204,16 @@ class booking_vault implements booking_vault_interface {
 
         $sql = 'UPDATE {' . static::DB_BOOKINGS . '}
                 SET active = 0
-                WHERE courseid = ' . $booking->get_courseid() . '
-                AND studentid = ' . $booking->get_studentid() . '
-                AND exerciseid = ' . $booking->get_exerciseid();
+                WHERE courseid = :courseid
+                AND studentid = :studentid
+                AND exerciseid = :exerciseid;';
 
-        return $DB->execute($sql);
+        $params = [
+            'courseid' => $booking->get_courseid(),
+            'studentid'  => $booking->get_studentid(),
+            'exerciseid'  => $booking->get_exerciseid()
+        ];
+
+        return $DB->execute($sql, $params);
     }
 }

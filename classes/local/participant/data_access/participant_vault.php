@@ -26,6 +26,7 @@
 namespace local_booking\local\participant\data_access;
 
 use DateTime;
+use local_booking\local\participant\entities\instructor;
 
 require_once($CFG->dirroot . "/lib/completionlib.php");
 
@@ -109,7 +110,8 @@ class participant_vault implements participant_vault_interface {
     /**
      * Get all active students from the database.
      *
-     * @return {Object}[]          Array of database records.
+     * @param int $courseid The course id.
+     * @return {Object}[]   Array of database records.
      */
     public function get_active_students(int $courseid) {
         global $DB;
@@ -125,10 +127,10 @@ class participant_vault implements participant_vault_interface {
                 INNER JOIN {' . self::DB_USER_FIELD . '} uf on uf.id = ud.fieldid
                 INNER JOIN {' . self::DB_USER_ENROL . '} ue on ud.userid = ue.userid
                 INNER JOIN {' . self::DB_ENROL . '} en on ue.enrolid = en.id
-                WHERE en.courseid = ' . $courseid . '
-                    AND ra.contextid = ' . \context_course::instance($courseid)->id .'
-                    AND r.shortname = "student"
-                    AND uf.shortname = "simulator"
+                WHERE en.courseid = :courseid
+                    AND ra.contextid = :contextid
+                    AND r.shortname = :role
+                    AND uf.shortname = :customfield
                     AND ue.status = 0
                     AND u.id NOT IN (
                         SELECT userid
@@ -138,16 +140,26 @@ class participant_vault implements participant_vault_interface {
                         OR g.name = "' . LOCAL_BOOKING_GRADUATESGROUP . '"
                         )';
 
-        return $DB->get_records_sql($sql);
+        $params = [
+            'courseid'  => $courseid,
+            'contextid' => \context_course::instance($courseid)->id,
+            'role'      => 'student',
+            'customfield' => 'simulator',
+        ];
+
+        return $DB->get_records_sql($sql, $params);
     }
 
     /**
      * Get all active instructors for the course from the database.
      *
-     * @return {Object}[]          Array of database records.
+     * @param int $courseid The course id.
+     * @param bool $courseadmins Indicates whether the instructor is an admin or not.
+     * @return {Object}[]   Array of database records.
      */
-    public function get_active_instructors(int $courseid) {
+    public function get_active_instructors(int $courseid, bool $courseadmins = false) {
         global $DB;
+        $roles = (!$courseadmins ? '"instructor", ' : '') . '"seniorinstructor", "flighttrainingmanager"';
 
         $sql = 'SELECT DISTINCT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
                     'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
@@ -160,13 +172,20 @@ class participant_vault implements participant_vault_interface {
                 INNER JOIN {' . self::DB_ENROL . '} en on ue.enrolid = en.id
                 INNER JOIN {' . self::DB_USER_DATA . '} ud on u.id = ud.userid
                 INNER JOIN {' . self::DB_USER_FIELD . '} uf on uf.id = ud.fieldid
-                WHERE en.courseid = ' . $courseid . '
-                    AND ra.contextid = ' . \context_course::instance($courseid)->id .'
-                    AND r.shortname IN ("instructor", "seniorinstructor", "flighttrainingmanager")
-                    AND uf.shortname = "simulator"
-                    AND ue.status = 0';
+                WHERE en.courseid = :courseid
+                    AND ra.contextid = :contextid
+                    AND r.shortname IN (' . $roles . ')
+                    AND uf.shortname = :customfield
+                    AND ue.status = :status';
 
-        return $DB->get_records_sql($sql);
+        $params = [
+            'courseid'  => $courseid,
+            'contextid' => \context_course::instance($courseid)->id,
+            'customfield' => 'simulator',
+            'status'    => 0
+        ];
+
+        return $DB->get_records_sql($sql, $params);
     }
 
     /**
@@ -192,15 +211,24 @@ class participant_vault implements participant_vault_interface {
                 INNER JOIN {' . self::DB_ENROL . '} en on ue.enrolid = en.id
                 INNER JOIN {' . self::DB_GROUPS_MEM . '} gm on ue.userid = gm.userid
                 INNER JOIN {' . self::DB_GROUPS . '} g on g.id = gm.groupid
-                WHERE en.courseid = ' . $courseid . '
-                    AND ra.contextid = ' . \context_course::instance($courseid)->id .'
-                    AND r.shortname = "student"
-                    AND uf.shortname = "simulator"
-                    AND ue.status = 0
-                    AND g.courseid = ' . $courseid . '
-                    AND g.name= "' . get_fullusername($userid, false) . '";';
+                WHERE en.courseid = :courseid
+                    AND ra.contextid = :contextid
+                    AND r.shortname = :role
+                    AND uf.shortname = :customfield
+                    AND ue.status = :status
+                    AND g.courseid = :courseid
+                    AND g.name= :instructorname;';
 
-        return $DB->get_records_sql($sql);
+        $params = [
+            'courseid'  => $courseid,
+            'contextid' => \context_course::instance($courseid)->id,
+            'role' => 'student',
+            'customfield' => 'simulator',
+            'status'    => 0,
+            'instructorname' => instructor::get_fullname($userid, false)
+        ];
+
+        return $DB->get_records_sql($sql, $params);
     }
 
     /**
@@ -222,10 +250,16 @@ class participant_vault implements participant_vault_interface {
                 INNER JOIN {' . self::DB_COURSE_MODS . '} cm ON ag.assignment = cm.instance
                 INNER JOIN {' . self::DB_MODULES . '} m ON m.id = cm.module
                 INNER JOIN {' . self::DB_USER . '} u ON ag.grader = u.id
-                WHERE m.name = "assign" AND ag.userid = ' . $studentid . '
+                WHERE m.name = :assign
+                    AND ag.userid = :studentid
                 ORDER BY cm.section';
 
-        return $DB->get_records_sql($sql);
+        $params = [
+            'assign' => 'assign',
+            'studentid'  => $studentid
+        ];
+
+        return $DB->get_records_sql($sql, $params);
     }
 
     /**
@@ -247,10 +281,16 @@ class participant_vault implements participant_vault_interface {
                 INNER JOIN {' . self::DB_QUIZ . '} q on q.id = qg.quiz
                 INNER JOIN {' . self::DB_COURSE_MODS . '} cm on qg.quiz = cm.instance
                 INNER JOIN {' . self::DB_MODULES . '} as m ON m.id = cm.module
-                WHERE m.name = \'quiz\' AND qg.userid = ' . $studentid . '
+                WHERE m.name = :quiz
+                    AND qg.userid = :studentid
                 ORDER BY cm.section;';
 
-        return $DB->get_records_sql($sql);
+        $params = [
+            'quiz' => 'quiz',
+            'studentid'  => $studentid
+        ];
+
+        return $DB->get_records_sql($sql, $params);
     }
 
     /**
@@ -265,10 +305,15 @@ class participant_vault implements participant_vault_interface {
         $sql = 'SELECT ue.timecreated
                 FROM {' . self::DB_USER_ENROL . '} ue
                 INNER JOIN {' . self::DB_ENROL . '} e ON e.id = ue.enrolid
-                WHERE ue.userid = ' . $studentid . '
-                AND e.courseid = ' . $courseid;
+                WHERE e.courseid = :courseid
+                    AND ue.userid = :studentid';
 
-        return $DB->get_record_sql($sql);
+        $params = [
+            'courseid' => $courseid,
+            'studentid'  => $studentid
+        ];
+
+        return $DB->get_record_sql($sql, $params);
     }
 
     /**
@@ -284,29 +329,43 @@ class participant_vault implements participant_vault_interface {
         $sql = 'UPDATE {' . static::DB_USER_ENROL . '} ue
                 INNER JOIN {' . static::DB_ENROL . '} e ON e.id = ue.enrolid
                 SET ue.status = 1
-                WHERE ue.userid = ' . $studentid . '
-                AND e.courseid = ' . $courseid;
+                WHERE e.courseid = :courseid
+                    AND ue.userid = :studentid';
 
-        return $DB->execute($sql);
+        $params = [
+            'courseid' => $courseid,
+            'studentid'  => $studentid
+        ];
+
+        return $DB->execute($sql, $params);
     }
 
     /**
      * Returns full username
      *
-     * @return object  The full participant username
+     * @param int       $userid The user id.
+     * @param bool      $includealternate Whether to include the user's alternate name.
+     * @return string   $fullusername The full participant username
      */
-    public static function get_participant_name(int $userid) {
+    public static function get_participant_name(int $userid, bool $includealternate = true) {
         global $DB;
 
-        // Get the full user name
-        $sql = 'SELECT ' . $DB->sql_concat('u.firstname', '" "',
-                    'u.lastname', '" "', 'u.alternatename') . ' AS fullname,
-                    ' . $DB->sql_concat('u.firstname', '" "',
-                    'u.lastname') . ' AS username
-                FROM {' . DB_USER . '} u
-                WHERE u.id = ' . $userid;
+        $fullusername = '';
+        if ($userid != 0) {
+            // Get the full user name
+            $sql = 'SELECT ' . $DB->sql_concat('u.firstname', '" "',
+                        'u.lastname', '" "', 'u.alternatename') . ' AS bavname, '
+                        . $DB->sql_concat('u.firstname', '" "',
+                        'u.lastname') . ' AS username
+                    FROM {' . self::DB_USER . '} u
+                    WHERE u.id = :userid';
 
-        return $DB->get_record_sql($sql);
+            $param = ['userid'=>$userid];
+            $userinfo = $DB->get_record_sql($sql ,$param);
+            $fullusername = $includealternate ? $userinfo->bavname : $userinfo->username;
+        }
+
+        return $fullusername;
     }
 
     /**
@@ -330,14 +389,20 @@ class participant_vault implements participant_vault_interface {
             $categoryid = $category->id;
         }
 
-        $sql = "SELECT uid.data
-                FROM {" . self::DB_USER_DATA . "} uid
-                INNER JOIN {" . self::DB_USER_FIELD . "} uif ON uif.id = uid.fieldid
-                WHERE uif.shortname = '" . $field . "'
-                AND uid.userid = " . $userid . "
-                AND uif.categoryid = " . $categoryid;
+        $sql = 'SELECT uid.data
+                FROM {' . self::DB_USER_DATA . '} uid
+                INNER JOIN {' . self::DB_USER_FIELD . '} uif ON uif.id = uid.fieldid
+                WHERE uif.shortname = :field
+                AND uid.userid = :userid
+                AND uif.categoryid = :categoryid';
 
-        $customfieldobj = $DB->get_record_sql($sql);
+        $params = [
+            'field' => $field,
+            'userid' => $userid,
+            '$categoryid' => $categoryid
+        ];
+
+        $customfieldobj = $DB->get_record_sql($sql, $params);
 
         return $customfieldobj->data;
     }
@@ -357,12 +422,17 @@ class participant_vault implements participant_vault_interface {
         $sql = 'SELECT timemodified
                 FROM {' . self::DB_GRADES . '} ag
                 INNER JOIN {' . self::DB_COURSE_MODS . '} cm ON cm.instance = ag.assignment
-                WHERE grader = ' . $userid . '
-                AND cm.course = ' . $courseid . '
+                WHERE cm.course = :courseid
+                AND grader = :userid
                 ORDER BY timemodified DESC
                 LIMIT 1';
 
-        return $DB->get_record_sql($sql);
+        $params = [
+            'courseid' => $courseid,
+            'studentid'  => $userid
+        ];
+
+        return $DB->get_record_sql($sql, $params);
     }
 
     /**
@@ -382,16 +452,23 @@ class participant_vault implements participant_vault_interface {
         $sql = 'SELECT cm.id, cm.course, cm.module, cm.instance, cm.section
                 FROM {' . self::DB_COURSE_MODS .'} cm
                 INNER JOIN {' . self::DB_MODULES . '} as m ON m.id = cm.module
-                WHERE cm.course = ' . $courseid . '
-                AND cm.section <= ' . $nextexercisesection . '
+                WHERE cm.course = :courseid
+                AND cm.section <= :nextexercisesection
                 AND m.name = "lesson"
                 AND cm.instance NOT IN (SELECT lt.lessonid
                                         FROM {' . self::DB_LESSON_TIMER . '} lt
-                                        WHERE lt.userid = ' . $studentid . '
-                                        AND lt.completed = ' . COMPLETION_COMPLETE . ')
+                                        WHERE lt.userid = :studentid
+                                        AND lt.completed = :completion)
                 ORDER BY cm.section asc';
 
-        $lessons_incomplete = $DB->get_records_sql($sql);
+        $params = [
+            'courseid' => $courseid,
+            'studentid'  => $studentid,
+            'nextexercisesection'  => $nextexercisesection,
+            'completion'  => COMPLETION_COMPLETE
+        ];
+
+        $lessons_incomplete = $DB->get_records_sql($sql, $params);
 
         return count($lessons_incomplete) == 0;
     }
@@ -411,15 +488,21 @@ class participant_vault implements participant_vault_interface {
         $sql = 'SELECT cm.id AS nextexerciseid, cm.section AS section
                 FROM {' . self::DB_COURSE_MODS .'} cm
                 INNER JOIN {' . self::DB_MODULES . '} m ON m.id = cm.module
-                WHERE cm.course = ' . $courseid . '
-                    AND m.name = "assign"
+                WHERE cm.course = :courseid
+                    AND m.name = :assign
                     AND cm.instance NOT IN (SELECT ag.assignment
                                             FROM {' . self::DB_GRADES . '} ag
-                                            WHERE ag.userid = ' . $studentid .')
+                                            WHERE ag.userid = :studentid)
                 ORDER BY cm.section asc
                 LIMIT 1';
 
-        $rs = $DB->get_records_sql($sql);
+        $params = [
+            'courseid' => $courseid,
+            'assign' => 'assign',
+            'studentid'  => $studentid
+        ];
+
+        $rs = $DB->get_records_sql($sql, $params);
 
         return [current($rs)->nextexerciseid, current($rs)->section];
     }

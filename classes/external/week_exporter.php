@@ -172,7 +172,7 @@ class week_exporter extends exporter {
 
         $data = [
             'url'         => $this->url->out(false),
-            'username'    => $this->actiondata['action'] == 'book' ? get_fullusername($this->actiondata['studentid']) : '',
+            'username'    => $this->actiondata['action'] == 'book' ? student::get_fullname($this->actiondata['studentid']) : '',
             'action'      => $this->actiondata['action'],
             'studentid'   => $this->actiondata['studentid'],
             'exerciseid'  => $this->actiondata['exerciseid'],
@@ -513,7 +513,7 @@ class week_exporter extends exporter {
                     if ((($savedslot->starttime >= $laneslot->starttime && $savedslot->starttime <= $laneslot->endtime) ||
                         ($laneslot->starttime >= $savedslot->starttime && $laneslot->starttime <= $savedslot->endtime)) &&
                         // ok to overlap slots if the previous slot student is the same as this booked slot's
-                        $savedslot->userid != $lastslotuserid) {
+                        ($savedslot->userid != $lastslotuserid)) {
                             break 2;
                     }
                 }

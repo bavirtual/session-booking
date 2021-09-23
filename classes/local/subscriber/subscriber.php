@@ -25,13 +25,13 @@
 
 namespace local_booking\local\subscriber;
 
+require_once($CFG->dirroot . '/local/booking/lib.php');
+
 use local_booking\local\participant\data_access\participant_vault;
 use local_booking\local\participant\entities\instructor;
 use local_booking\local\participant\entities\student;
 
 defined('MOODLE_INTERNAL') || die();
-
-require_once($CFG->dirroot . '/local/booking/lib.php');
 
 /**
  * Class representing subscribed courses
@@ -40,6 +40,26 @@ require_once($CFG->dirroot . '/local/booking/lib.php');
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class subscriber implements subscriber_interface {
+
+    /**
+     * Process assign table name.
+     */
+    const DB_ASSIGN = 'assign';
+
+    /**
+     * Process quiz table name.
+     */
+    const DB_QUIZ = 'quiz';
+
+    /**
+     * Process  modules table name.
+     */
+    const DB_MODULES = 'modules';
+
+    /**
+     * Process course modules table name.
+     */
+    const DB_COURSE_MODULES = 'course_modules';
 
     /**
      * @var int $course The subscribed course.
@@ -118,11 +138,12 @@ class subscriber implements subscriber_interface {
     /**
      * Get all active instructors for the course.
      *
+     * @param bool $courseadmins Indicates whether the instructors returned are part of course admins
      * @return {Object}[]   Array of active instructors.
      */
-    public function get_active_instructors() {
+    public function get_active_instructors(bool $courseadmins = false) {
         $activeinstructors = [];
-        $instructorrecs = $this->vault->get_active_instructors($this->courseid);
+        $instructorrecs = $this->vault->get_active_instructors($this->courseid, $courseadmins);
 
         foreach ($instructorrecs as $instructorrec) {
             $instructor = new instructor($this->courseid, $instructorrec->userid);
@@ -134,12 +155,87 @@ class subscriber implements subscriber_interface {
     }
 
     /**
-     * Get all active instructors for the course.
+     * Get subscribing course senior instructors list.
      *
      * @return {Object}[]   Array of active instructors.
+     */
+    public function get_senior_instructors() {
+        return $this->get_active_instructors(true);
+    }
+
+    /**
+     * Get all senior instructors for the course.
+     *
+     * @return {Object}[]   Array of course's senior instructors.
      */
     public function get_active_participants() {
         $participants = array_merge($this->vault->get_active_students($this->courseid), $this->vault->get_active_instructors($this->courseid));
         return $participants;
+    }
+
+    /**
+     * Retrieves exercises for the course
+     *
+     * @return array
+     */
+    public function get_exercises() {
+        global $DB;
+
+        $exercises = [];
+
+        // get assignments for this course based on sorted course topic sections
+        $sql = 'SELECT cm.id AS exerciseid, a.name AS assignname,
+                q.name AS exam, m.name AS modulename
+                FROM {' . self::DB_COURSE_MODULES . '} cm
+                INNER JOIN {' . self::DB_MODULES . '} m ON m.id = cm.module
+                LEFT JOIN {' . self::DB_ASSIGN . '} a ON a.id = cm.instance
+                LEFT JOIN {' . self::DB_QUIZ . '} q ON q.id = cm.instance
+                WHERE cm.course = :courseid
+                    AND (
+                        m.name = :assign
+                        OR m.name = :quiz)
+                ORDER BY cm.section;';
+
+        $params = [
+            'courseid'  => $this->courseid,
+            'assign'    => 'assign',
+            'quiz'      => 'quiz'
+        ];
+        $exerciserecs = $DB->get_records_sql($sql, $params);
+
+        foreach ($exerciserecs as $exerciserec) {
+            $exerciseitem = $exerciserec->modulename == 'assign' ? (object) [
+                'exerciseid'    => $exerciserec->exerciseid,
+                'exercisename'  => $exerciserec->assignname
+            ] : (object) [
+                'exerciseid'    => $exerciserec->exerciseid,
+                'exercisename'  => $exerciserec->exam
+            ];
+
+            $exercises[$exerciserec->exerciseid] = $exerciseitem;
+        }
+
+        return $exercises;
+    }
+
+    /**
+     * Retrieves the exercise name of a specific exercise
+     * based on its id statically.
+     *
+     * @param int $exerciseid The exercise id.
+     * @return string
+     */
+    public static function get_exercise_name($exerciseid) {
+        global $DB;
+
+        // Get the student's grades
+        $sql = 'SELECT a.name AS exercisename
+                FROM {' . self::DB_ASSIGN . '} a
+                INNER JOIN {' . self::DB_COURSE_MODULES . '} cm on a.id = cm.instance
+                WHERE cm.id = :exerciseid;';
+
+        $param = ['exerciseid'=>$exerciseid];
+
+        return $DB->get_record_sql($sql, $param)->exercisename;
     }
 }

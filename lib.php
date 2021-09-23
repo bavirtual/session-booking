@@ -33,7 +33,6 @@ use local_booking\external\logentry_exporter;
 use local_booking\local\session\entities\booking;
 use local_booking\local\slot\entities\slot;
 use local_booking\local\message\notification;
-use local_booking\local\participant\entities\participant;
 use local_booking\local\logbook\forms\create as create_logentry_form;
 use local_booking\local\logbook\forms\create as update_logentry_form;
 use local_booking\external\week_exporter;
@@ -77,7 +76,7 @@ define('LOCAL_BOOKING_LASTSLOT', 23);
 /**
  * LOCAL_BOOKING_WEEKSLOOKAHEAD - default value of the first slot of the day
  */
-define('LOCAL_BOOKING_WEEKSLOOKAHEAD', 4);
+define('LOCAL_BOOKING_WEEKSLOOKAHEAD', 5);
 /**
  * LOCAL_BOOKING_DAYSFROMLASTSESSION - default value of the days allowed to mark since last session
  */
@@ -114,36 +113,6 @@ define('LOCAL_BOOKING_INSTRUCTORINACTIVEMULTIPLIER', 2);
  * LOCAL_BOOKING_SLOTCOLOR - constant for standard slot color
  */
 define('LOCAL_BOOKING_SLOTCOLOR', '#00e676');
-
-/**
- * Process user  table name.
- */
-const DB_USER = 'user';
-
-/**
- * Process assign table name.
- */
-const DB_ASSIGN = 'assign';
-
-/**
- * Process quiz table name.
- */
-const DB_QUIZ = 'quiz';
-
-/**
- * Process  modules table name.
- */
-const DB_MODULES = 'modules';
-
-/**
- * Process course modules table name.
- */
-const DB_COURSE_MODULES = 'course_modules';
-
-/**
- * Process course sections table name.
- */
-const DB_SECTIONS = 'course_sections';
 
 /**
  * This function extends the navigation with the booking item
@@ -371,7 +340,7 @@ function get_logbook_view($courseid) {
     $data = [
         'courseid'  => $courseid,
         'studentid'  => $studentid,
-        'studentname'  => get_fullusername($studentid),
+        'studentname'  => student::get_fullname($studentid),
         'totalflighttime'  => $totalflighthours,
         'totalsessiontime'  => $totalsessionhours,
         'totalsolotime'  => $totalsolohours,
@@ -476,8 +445,8 @@ function save_booking($params) {
 
     // add a new tentatively booked slot for the student.
     $sessiondata = [
-        'exercise'  => get_exercise_name($exerciseid),
-        'instructor'=> get_fullusername($instructorid),
+        'exercise'  => subscriber::get_exercise_name($exerciseid),
+        'instructor'=> student::get_fullname($instructorid),
         'status'    => ucwords(get_string('statustentative', 'local_booking')),
     ];
 
@@ -504,7 +473,7 @@ function save_booking($params) {
             $message->send_instructor_confirmation($studentid, $exerciseid, $sessiondate);
         }
         $sessiondata['sessiondate'] = $sessiondate->format('D M j\, H:i');
-        $sessiondata['studentname'] = get_fullusername($studentid);
+        $sessiondata['studentname'] = student::get_fullname($studentid);
         \core\notification::success(get_string('bookingsavesuccess', 'local_booking', $sessiondata));
     } else {
         \core\notification::warning(get_string('bookingsaveunable', 'local_booking'));
@@ -537,8 +506,8 @@ function confirm_booking($courseid, $instructorid, $studentid, $exerciseid) {
         // update the booking by the instructor.
         $sessiondatetime = (new DateTime('@' . ($booking->get_slot())->get_starttime()))->format('D M j\, H:i');
         $strdata = [
-            'exercise'  => get_exercise_name($exerciseid),
-            'instructor'=> get_fullusername($instructorid),
+            'exercise'  => subscriber::get_exercise_name($exerciseid),
+            'instructor'=> student::get_fullname($instructorid),
             'status'    => ucwords(get_string('statusbooked', 'local_booking')),
             'sessiondate'=> $sessiondatetime
         ];
@@ -582,7 +551,7 @@ function cancel_booking($bookingid, $comment) {
     $result = $booking->delete();
 
     $cancellationmsg = [
-        'studentname' => get_fullusername($booking->get_studentid()),
+        'studentname' => student::get_fullname($booking->get_studentid()),
         'sessiondate' => $sessiondate->format('D M j\, H:i'),
     ];
 
@@ -610,60 +579,6 @@ function process_submission_graded($courseid, $studentid, $exerciseid) {
     $booking->load();
     // update the booking status from active to inactive
     $booking->deactivate();
-}
-
-/**
- * Returns exercise assignment name
- *
- * @return string  The course exercise name.
- */
-function get_exercise_name($exerciseid) {
-    global $DB;
-
-    // Get the student's grades
-    $sql = 'SELECT a.name AS exercisename
-            FROM {' . DB_ASSIGN . '} a
-            INNER JOIN {' . DB_COURSE_MODULES . '} cm on a.id = cm.instance
-            WHERE cm.id = ' . $exerciseid;
-
-    return $DB->get_record_sql($sql)->exercisename;
-}
-
-
-/**
- * Retrieves exercises for the course
- *
- * @return array
- */
-function get_exercise_names() {
-    global $DB;
-
-    $exercisenames = [];
-
-    // get assignments for this course based on sorted course topic sections
-    $sql = 'SELECT cm.id AS exerciseid, a.name AS assignname,
-            q.name AS exam, m.name AS modulename
-            FROM {' . DB_COURSE_MODULES . '} cm
-            INNER JOIN {' . DB_MODULES . '} m ON m.id = cm.module
-            LEFT JOIN {' . DB_ASSIGN . '} a ON a.id = cm.instance
-            LEFT JOIN {' . DB_QUIZ . '} q ON q.id = cm.instance
-            WHERE m.name = \'assign\' OR m.name = \'quiz\'
-            ORDER BY cm.section;';
-
-    $exercises = $DB->get_records_sql($sql);
-    foreach ($exercises as $exercise) {
-        $exerciseitem = $exercise->modulename == 'assign' ? (object) [
-            'exerciseid'    => $exercise->exerciseid,
-            'exercisename'  => $exercise->assignname
-        ] : (object) [
-            'exerciseid'    => $exercise->exerciseid,
-            'exercisename'  => $exercise->exam
-        ];
-
-        $exercisenames[$exercise->exerciseid] = $exerciseitem;
-    }
-
-    return $exercisenames;
 }
 
 /**
@@ -737,31 +652,6 @@ function get_next_allowed_session_date($courseid, $studentid) {
 }
 
 /**
- * Returns full username
- *
- * @return string  The full  username (first, last, and optional alternate name)
- */
-function get_fullusername(int $userid, bool $includealternate = true) {
-    global $DB;
-
-    $fullusername = '';
-    if ($userid != 0) {
-        // Get the full user name
-        $sql = 'SELECT ' . $DB->sql_concat('u.firstname', '" "',
-                    'u.lastname', '" "', 'u.alternatename') . ' AS bavname, '
-                    . $DB->sql_concat('u.firstname', '" "',
-                    'u.lastname') . ' AS username
-                FROM {' . DB_USER . '} u
-                WHERE u.id = ' . $userid;
-
-        $userinfo = $DB->get_record_sql($sql);
-        $fullusername = $includealternate ? $userinfo->bavname : $userinfo->username;
-    }
-
-    return $fullusername;
-}
-
-/**
  * Returns the course section name containing the exercise
  *
  * @param int $courseid The course id of the section
@@ -799,22 +689,6 @@ function random_color_part() {
  */
 function random_color() {
     return random_color_part() . random_color_part() . random_color_part();
-}
-
-/**
- * Returns course id of the passed course
- *
- * @return int  The course id.
- */
-function get_course_id($exerciseid) {
-    global $DB;
-
-    // Get the student's grades
-    $sql = 'SELECT cm.course AS courseid
-            FROM {' . DB_COURSE_MODULES . '} cm
-            WHERE cm.id = ' . $exerciseid;
-
-    return $DB->get_record_sql($sql)->courseid;
 }
 
 /**

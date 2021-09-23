@@ -46,10 +46,11 @@ interface participant_interface {
     /**
      * Returns full username
      *
-     * @param bool $alternate The additional alternate name
-     * @return string  The full username with optional alternate info
+     * @param int       $participantid The user id.
+     * @param bool      $includealternate Whether to include the user's alternate name.
+     * @return string   $fullusername The full participant username
      */
-    public function get_fullname(bool $alternate = true);
+    public static function get_fullname(int $participantid, bool $alternate = true);
 
     /**
      * Returns participant's simulator user field

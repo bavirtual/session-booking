@@ -27,6 +27,7 @@ namespace local_booking\external;
 
 defined('MOODLE_INTERNAL') || die();
 
+use local_booking\local\participant\entities\student;
 use renderer_base;
 
 /**
@@ -145,7 +146,7 @@ class week_day_exporter extends day_exporter {
             $slotstatus = !empty($this->slotdata['slot']->slotstatus) ? $this->slotdata['slot']->slotstatus : 'selected';
             // add student name tooltip in group view
             if ($this->groupview) {
-                $studentname = get_fullusername($this->slotdata['slot']->userid);
+                $studentname = student::get_fullname($this->slotdata['slot']->userid);
                 $slotstatustooltip = $studentname . '<br/>';
             }
             $slotstatustooltip .= !empty($this->slotdata['slot']->bookinginfo) ? $this->slotdata['slot']->bookinginfo : '';

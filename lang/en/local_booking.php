@@ -180,18 +180,23 @@ $string['emailonholdnotify'] = '{$a->coursename}: Student placed on-hold';
 $string['emailonholdnotifymsg'] = 'Due to inactivity since your last posting on \'{$a->lastsessiondate}\', you have been placed on-hold. Please contact your instructor if you are still interested in resuming \'{$a->coursename}\' course work.';
 $string['emailonholdnotifyhtml'] = '<font face="sans-serif">Due to inactivity since your last posting on <strong>\'{$a->lastsessiondate}\'</strong>, you have been placed on-hold. Please contact your instructor if you are still interested in resuming \'{$a->coursename}\' course work.
 <p>Please note, if you are no longer interested in continuing course work, you will be automatically unenrolled from the course on <strong>\'{$a->suspenddate}\'</strong>.</p></font><hr />';
+$string['emailonholdinstnotifymsg'] = 'Due to inactivity since last posting on \'{$a->lastsessiondate}\', {$a->studentname} has been placed on-hold.';
+$string['emailonholdinstnotifyhtml'] = '<font face="sans-serif">Due to inactivity since last posting on <strong>\'{$a->lastsessiondate}\'</strong>, {$a->studentname} has been placed on-hold.
+<p>Please note, {$a->studentname} will be automatically unenrolled from the course on <strong>\'{$a->suspenddate}\'</strong>.</p></font><hr />';
 
 // email to student: suspension notification
 $string['emailsuspendnotify'] = '{$a->coursename}: Suspension notification';
-$string['emailsuspendnotifymsg'] = 'Please note that you have been suspended from the \'{$a->coursename}\' course due to session booking inactivity since \'{$a->lastsessiondate}\'.  Please contact your instructor if you are still interested in being enrolled in this course';
+$string['emailsuspendnotifymsg'] = 'Please note that you have been suspended from the \'{$a->coursename}\' course due to session booking inactivity since \'{$a->lastsessiondate}\'.  Please contact your instructor if you are still interested in being enrolled in this course.';
 $string['emailsuspendnotifyhtml'] = '<font face="sans-serif">Please note you have been suspended from the \'{$a->coursename}\' course due to session booking inactivity since <strong>\'{$a->lastsessiondate}\'</strong>.<p>Please contact your instructor if you are still interested in being enrolled in this course.</p></font><hr />';
+$string['emailsuspendinstnotifymsg'] = 'Please note that {$a->studentname} has been suspended from the \'{$a->coursename}\' course due to session booking inactivity since \'{$a->lastsessiondate}\'.';
+$string['emailsuspendinstnotifyhtml'] = '<font face="sans-serif">Please note {$a->studentname} has been suspended from the \'{$a->coursename}\' course due to session booking inactivity since <strong>\'{$a->lastsessiondate}\'</strong>.</font><hr />';
 
 // email to instructor: session overdue notification
 $string['emailoverduenobooking'] = 'no booking on record';
 $string['emailoverduenotify'] = '{$a->coursename}: Session overdue notification';
 $string['emailoverduenotifymsg'] = 'Please note that you have {$a->status}.  Please book a session with your assigned student or any student from the booking view. Otherwise, please ask the course administrator to remove you from the list of active instructors for this course.
 You can book a session from the following view link: {$a->bookingurl}';
-$string['emailoverduenotifyhtml'] = '<font face="sans-serif">Please note that you have not booked a session since <strong>\'{$a->lastsessiondate}\'</strong>.<p>Please book a session with your assigned student or any student from the <a href="{$a->bookingurl}">booking view</a> as soon as possible. To stop receiving these messages, please ask the course administrator to remove you from the list of active instructors for this course.</p></font><hr />';
+$string['emailoverduenotifyhtml'] = '<font face="sans-serif">Please note that you have {$a->status}.<p>Please book a session with your assigned student or any student from the <a href="{$a->bookingurl}">booking view</a> as soon as possible. To stop receiving these messages, please ask the course administrator to remove you from the list of active instructors for this course.</p></font><hr />';
 $string['emailoverduestatus'] = 'not booked a session since \'{$a}\'';
 
 // settings

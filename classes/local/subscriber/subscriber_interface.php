@@ -39,9 +39,17 @@ interface subscriber_interface {
     /**
      * Get all active instructors for the course.
      *
+     * @param bool $courseadmins Indicates whether the instructors returned are part of course admins
      * @return {Object}[]   Array of active instructors.
      */
-    public function get_active_instructors();
+    public function get_active_instructors(bool $courseadmins = false);
+
+    /**
+     * Get subscribing course senior instructors list.
+     *
+     * @return {Object}[]   Array of course's senior instructors.
+     */
+    public function get_senior_instructors();
 
     /**
      * Get all active instructors for the course.
@@ -49,4 +57,20 @@ interface subscriber_interface {
      * @return {Object}[]   Array of active instructors.
      */
     public function get_active_participants();
+
+    /**
+     * Retrieves exercises for the course
+     *
+     * @return array
+     */
+    public function get_exercises();
+
+    /**
+     * Retrieves the exercise name of a specific exercise
+     * based on its id statically.
+     *
+     * @param int $exerciseid The exercise id.
+     * @return string
+     */
+    public static function get_exercise_name($exerciseid);
 }

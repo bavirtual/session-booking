@@ -58,10 +58,11 @@ class logbook_vault implements logbook_vault_interface {
                 FROM {' . self::DB_LOGBOOKS . '} lb
                 INNER JOIN {' . self::DB_COURSE_MODULES . '} cm ON cm.id = lb.exerciseid
                 INNER JOIN {' . self::DB_COURSE_SECTIONS . '} cs ON cs.id = cm.section
-                WHERE userid = ' . $studentid .'
+                WHERE userid = :studentid
                 ORDER BY cs.section';
 
-        $logentryrecs = $DB->get_records_sql($sql);
+        $param = ['studentid'=>$studentid];
+        $logentryrecs = $DB->get_records_sql($sql, $param);
         foreach ($logentryrecs as $logentryrec) {
             $logbook[] = $this->get_logentry_instance($logentryrec, $logbook);
         }
@@ -134,12 +135,18 @@ class logbook_vault implements logbook_vault_interface {
     public function get_logbook_summary(int $courseid, int $studentid){
         global $DB;
 
-        $sql = 'SELECT SUM(flighttimemins) as totalflighttime,  SUM(sessiontimemins) as totalsessiontime,  SUM(soloflighttimemins) as totalsolotime
+        $sql = 'SELECT SUM(flighttimemins) as totalflighttime,
+                    SUM(sessiontimemins) as totalsessiontime,
+                    UM(soloflighttimemins) as totalsolotime
                 FROM {' . self::DB_LOGBOOKS .'}
-                WHERE courseid = ' . $courseid . '
-                AND userid = ' . $studentid;
+                WHERE courseid = :courseid
+                AND userid = :studentid;';
 
-        $summary = $DB->get_record_sql($sql);
+        $params = [
+            'courseid' => $courseid,
+            'studentid' => $studentid,
+        ];
+        $summary = $DB->get_record_sql($sql, $params);
         $totalflighttime = $summary->totalflighttime;
         $totalsessiontime = $summary->totalsessiontime;
         $totalsolotime = $summary->totalsolotime;
