@@ -400,7 +400,7 @@ class participant_vault implements participant_vault_interface {
         $params = [
             'field' => $field,
             'userid' => $userid,
-            '$categoryid' => $categoryid
+            'categoryid' => $categoryid
         ];
 
         $customfieldobj = $DB->get_record_sql($sql, $params);
@@ -430,7 +430,7 @@ class participant_vault implements participant_vault_interface {
 
         $params = [
             'courseid' => $courseid,
-            'studentid'  => $userid
+            'userid'  => $userid
         ];
 
         return $DB->get_record_sql($sql, $params);

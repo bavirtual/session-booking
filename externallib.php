@@ -28,13 +28,10 @@ defined('MOODLE_INTERNAL') || die;
 require_once($CFG->dirroot . '/local/booking/lib.php');
 
 use local_booking\external\logentry_exporter;
-use local_booking\local\slot\data_access\slot_vault;
-use local_booking\local\slot\entities\slot;
 use local_booking\local\logbook\forms\create as create_logentry_form;
 use local_booking\local\logbook\forms\create as update_logentry_form;
 use local_booking\local\logbook\entities\logbook;
 use local_booking\local\logbook\entities\logentry;
-use local_booking\local\participant\entities\participant;
 use local_booking\local\participant\entities\student;
 
 /**

@@ -24,7 +24,6 @@
 
 namespace local_booking\local\slot\data_access;
 
-use DateTime;
 use local_booking\local\slot\entities\slot;
 
 class slot_vault implements slot_vault_interface {
