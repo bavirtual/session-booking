@@ -90,7 +90,7 @@ class subscriber implements subscriber_interface {
             if ($cat == get_booking_config('ATO')) {
                 // split textarea values into cleaned up array values
                 if ($customfield->get_field()->get('type') == 'textarea') {
-                    $fieldvalues = array_filter(explode(PHP_EOL, format_text($customfield->get_value(), FORMAT_MARKDOWN)));
+                    $fieldvalues = array_filter(preg_split('/\n|\r\n?/', format_text($customfield->get_value(), FORMAT_MARKDOWN)));
 
                     // array callback function to strip html
                     array_walk($fieldvalues,

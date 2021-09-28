@@ -140,7 +140,7 @@ class logbook_vault implements logbook_vault_interface {
                     SUM(soloflighttimemins) as totalsolotime
                 FROM {' . self::DB_LOGBOOKS .'}
                 WHERE courseid = :courseid
-                AND userid = :studentid;';
+                AND userid = :studentid';
 
         $params = [
             'courseid' => $courseid,

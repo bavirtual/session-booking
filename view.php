@@ -70,7 +70,7 @@ $url->param('courseid', $courseid);
 
 // RobinHerbots-Inputmask library to mask flight times in the Log Book modal form
 $PAGE->requires->jquery();
-$PAGE->requires->js( new moodle_url($CFG->wwwroot . '/node_modules/inputmask/dist/jquery.inputmask.min.js'), true);
+$PAGE->requires->js( new moodle_url($CFG->wwwroot . '/local/booking/js/inputmask-5/dist/jquery.inputmask.min.js'), true);
 
 $PAGE->navbar->add(userdate(time(), get_string('strftimedate')));
 $PAGE->set_pagelayout('standard');

@@ -29,8 +29,6 @@ require_once(__DIR__ . '/lib.php');
 
 global $USER, $DB;
 
-use html_writer;
-
 // Set up the page.
 $categoryid = optional_param('categoryid', null, PARAM_INT);
 $courseid = optional_param('course', SITEID, PARAM_INT);
@@ -79,12 +77,9 @@ $renderer = $PAGE->get_renderer('local_booking');
 
 echo $OUTPUT->header();
 echo $renderer->start_layout();
-echo html_writer::start_tag('div', array('class'=>'heightcontainer'));
 
 list($data, $template) = get_logbook_view($courseid);
 echo $renderer->render_from_template($template, $data);
 
-
-echo html_writer::end_tag('div');
 echo $renderer->complete_layout();
 echo $OUTPUT->footer();

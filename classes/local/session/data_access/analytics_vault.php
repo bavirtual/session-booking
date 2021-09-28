@@ -55,7 +55,7 @@ class analytics_vault implements analytics_vault_interface {
         $sql = 'SELECT timemodified AS lastsessiondate
                 FROM {' . self::DB_BOOKINGS . '}
                 WHERE studentid = :studentid
-                ORDER BY timemodified desc LIMIT 1;';
+                ORDER BY timemodified desc LIMIT 1';
 
         $rs = $DB->get_record_sql($sql, ['studentid'=>$studentid]);
 

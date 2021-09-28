@@ -217,7 +217,7 @@ class participant_vault implements participant_vault_interface {
                     AND uf.shortname = :customfield
                     AND ue.status = :status
                     AND g.courseid = :gcourseid
-                    AND g.name= :instructorname;';
+                    AND g.name= :instructorname';
 
         $params = [
             'courseid'  => $courseid,
@@ -284,7 +284,7 @@ class participant_vault implements participant_vault_interface {
                 INNER JOIN {' . self::DB_MODULES . '} as m ON m.id = cm.module
                 WHERE m.name = :quiz
                     AND qg.userid = :studentid
-                ORDER BY cm.section;';
+                ORDER BY cm.section';
 
         $params = [
             'quiz' => 'quiz',
@@ -460,7 +460,7 @@ class participant_vault implements participant_vault_interface {
                                         FROM {' . self::DB_LESSON_TIMER . '} lt
                                         WHERE lt.userid = :studentid
                                         AND lt.completed = :completion)
-                ORDER BY cm.section asc';
+                ORDER BY cm.section ASC';
 
         $params = [
             'courseid' => $courseid,

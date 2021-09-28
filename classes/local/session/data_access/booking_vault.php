@@ -140,7 +140,7 @@ class booking_vault implements booking_vault_interface {
                 SET confirmed = 1
                 WHERE courseid = :courseid
                 AND studentid = :studentid
-                AND exerciseid = :exerciseid;';
+                AND exerciseid = :exerciseid';
 
         $params = [
             'courseid' => $courseid,
@@ -164,7 +164,7 @@ class booking_vault implements booking_vault_interface {
         $sql = 'SELECT timemodified as exercisedate
                 FROM {' . static::DB_BOOKINGS. '}
                 WHERE studentid = :studentid
-                AND exerciseid = :exerciseid;';
+                AND exerciseid = :exerciseid';
 
         $params = [
             'studentid'  => $studentid,
@@ -206,7 +206,7 @@ class booking_vault implements booking_vault_interface {
                 SET active = 0
                 WHERE courseid = :courseid
                 AND studentid = :studentid
-                AND exerciseid = :exerciseid;';
+                AND exerciseid = :exerciseid';
 
         $params = [
             'courseid' => $booking->get_courseid(),

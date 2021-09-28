@@ -281,7 +281,6 @@ class bookings_exporter extends exporter {
      */
     protected function get_warning($dayssincelast) {
         $warning = 0;
-        $today = getdate(time());
         $waitdays = get_config('local_booking', 'nextsessionwaitdays') ? get_config('local_booking', 'nextsessionwaitdays') : LOCAL_BOOKING_DAYSFROMLASTSESSION;
 
         if ($dayssincelast >= ($waitdays * LOCAL_BOOKING_SESSIONOVERDUEMULTIPLIER) &&  $dayssincelast < ($waitdays * LOCAL_BOOKING_SESSIONLATEMULTIPLIER)) {
