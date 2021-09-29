@@ -113,6 +113,18 @@ define('LOCAL_BOOKING_INSTRUCTORINACTIVEMULTIPLIER', 2);
  * LOCAL_BOOKING_SLOTCOLOR - constant for standard slot color
  */
 define('LOCAL_BOOKING_SLOTCOLOR', '#00e676');
+/**
+ * LOCAL_BOOKING_INSTRUCTORROLE - constant for instructor role shortname
+ */
+define('LOCAL_BOOKING_INSTRUCTORROLE', 'instructor');
+/**
+ * LOCAL_BOOKING_SENIORINSTRUCTORROLE - constant for instructor role shortname
+ */
+define('LOCAL_BOOKING_SENIORINSTRUCTORROLE', 'seniorinstructor');
+/**
+ * LOCAL_BOOKING_FLIGHTTRAININGMANAGERROLE - constant for instructor role shortname
+ */
+define('LOCAL_BOOKING_FLIGHTTRAININGMANAGERROLE', 'flighttrainingmanager');
 
 /**
  * This function extends the navigation with the booking item

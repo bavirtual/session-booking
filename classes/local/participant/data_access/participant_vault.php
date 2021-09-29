@@ -159,7 +159,9 @@ class participant_vault implements participant_vault_interface {
      */
     public function get_active_instructors(int $courseid, bool $courseadmins = false) {
         global $DB;
-        $roles = (!$courseadmins ? '"instructor", ' : '') . '"seniorinstructor", "flighttrainingmanager"';
+        $roles = (!$courseadmins ? '"' . LOCAL_BOOKING_INSTRUCTORROLE . '", ' : '') . '"' .
+                LOCAL_BOOKING_SENIORINSTRUCTORROLE . '", "' .
+                LOCAL_BOOKING_FLIGHTTRAININGMANAGERROLE . '"';
 
         $sql = 'SELECT DISTINCT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "',
                     'u.lastname', '" "', 'u.alternatename') . ' AS fullname,

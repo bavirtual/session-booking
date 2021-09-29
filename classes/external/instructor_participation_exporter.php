@@ -98,7 +98,7 @@ class instructor_participation_exporter extends exporter {
         $course = new subscriber($courseid);
         $instructors = $course->get_active_instructors();
         $today = new DateTime('@'.time());
-        $context = $this->related['context'];
+        $context = \context_course::instance($courseid);
 
         $participation = [];
         foreach ($instructors as $instructor) {

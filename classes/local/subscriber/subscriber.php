@@ -186,6 +186,7 @@ class subscriber implements subscriber_interface {
         // get assignments for this course based on sorted course topic sections
         $sql = 'SELECT cm.id AS exerciseid, a.name AS assignname,
                 q.name AS exam, m.name AS modulename
+                RIGHT(CONCAT("000", section), 4) AS seq
                 FROM {' . self::DB_COURSE_MODULES . '} cm
                 INNER JOIN {' . self::DB_MODULES . '} m ON m.id = cm.module
                 LEFT JOIN {' . self::DB_ASSIGN . '} a ON a.id = cm.instance
@@ -194,7 +195,7 @@ class subscriber implements subscriber_interface {
                     AND (
                         m.name = :assign
                         OR m.name = :quiz)
-                ORDER BY cm.section;';
+                ORDER BY seq;';
 
         $params = [
             'courseid'  => $this->courseid,
