@@ -30,6 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 use local_booking\local\participant\entities\participant;
 use core\external\exporter;
 use DateTime;
+use enrol_flatfile\task\flatfile_sync_task;
 use local_booking\local\participant\entities\instructor;
 use local_booking\local\subscriber\subscriber;
 use renderer_base;
@@ -98,26 +99,20 @@ class instructor_participation_exporter extends exporter {
         $course = new subscriber($courseid);
         $instructors = $course->get_active_instructors();
         $today = new DateTime('@'.time());
-        $context = \context_course::instance($courseid);
 
         $participation = [];
         foreach ($instructors as $instructor) {
             $lastgradeddate = $instructor->get_last_graded_date();
             $interval = !empty($lastgradeddate) ? date_diff($lastgradeddate, $today) : 0;
 
-            $instructorroles = [];
-            if ($roles = get_user_roles($context, $instructor->get_id())) {
-                foreach ($roles as $role) {
-                    $instructorroles[] = $role->name;
-                }
-            }
+            $courserole = strip_tags(get_user_roles_in_course($instructor->get_id(), $courseid));
 
             $participation[] = [
                 'instructorname' => $instructor->get_name(),
                 'lastsessionts' => !empty($lastgradeddate) ? $lastgradeddate->getTimestamp() : 0,
                 'lastsessiondate' => !empty($lastgradeddate) ? $lastgradeddate->format('l M d, Y') : get_string('unknown', 'local_booking'),
                 'elapseddays' => !empty($lastgradeddate) ? $interval->days : '--',
-                'roles' => implode(', ', $instructorroles),
+                'roles' => $courserole,
             ];
         }
         array_multisort (array_column($participation, 'lastsessionts'), SORT_DESC, $participation);
