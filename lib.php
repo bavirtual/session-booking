@@ -160,6 +160,7 @@ function local_booking_extend_navigation(global_navigation $navigation) {
 
         // Add student availability navigation node
         if (has_capability('local/booking:availabilityview', $context)) {
+            $nodename = '';
             $node = $navigation->find('availability', navigation_node::NODETYPE_LEAF);
             if (!$node && $courseid!==SITEID) {
                 // form URL and parameters
@@ -167,17 +168,19 @@ function local_booking_extend_navigation(global_navigation $navigation) {
                 // view all capability for instructors
                 if (has_capability('local/booking:view', $context)) {
                     $params['view'] = 'all';
+                    $nodename = get_string('availabilityinst', 'local_booking');
                 } else {
                     $weekday = get_next_allowed_session_date($courseid, $USER->id);
                     if ((getdate($weekday->getTimestamp()))['wday'] == 0) {
                         date_add($weekday, date_interval_create_from_date_string('1 days'));
                     }
                     $params['time'] = $weekday->getTimestamp();
+                    $nodename = get_string('availability', 'local_booking');
                 }
                 $url = new moodle_url('/local/booking/availability.php', $params);
 
                 $parent = $navigation->find($courseid, navigation_node::TYPE_COURSE);
-                $node = navigation_node::create(get_string('availability', 'local_booking'), $url);
+                $node = navigation_node::create($nodename, $url);
                 $node->key = 'availability';
                 $node->type = navigation_node::NODETYPE_LEAF;
                 $node->forceopen = true;

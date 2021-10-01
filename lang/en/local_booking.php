@@ -56,6 +56,7 @@ $string['zulutime'] = 'Zulu';
 
 // Availability posting
 $string['availability'] = 'My availability';
+$string['availabilityinst'] = 'Student Availability';
 $string['availabilityallview'] = 'View everyone\'s availability';
 $string['buttonsave'] = 'Save';
 $string['buttoncopy'] = 'Copy';
