@@ -11,7 +11,7 @@
 // Booking
 $string['activestudents'] = 'Active Students Progression';
 $string['book'] = 'Book';
-$string['bookings'] = 'Bookings';
+$string['bookings'] = 'Session booking';
 $string['bookingactive'] = 'My Active Bookings';
 $string['bookingcancel'] = 'Cancel';
 $string['bookingcanceledsuccess'] = 'Booking with \'{$a->studentname}\' cancelled!';
@@ -55,7 +55,7 @@ $string['unknown'] = 'No grading record!';
 $string['zulutime'] = 'Zulu';
 
 // Availability posting
-$string['availability'] = 'Availability';
+$string['availability'] = 'Availability posting';
 $string['availabilityallview'] = 'View everyone\'s availability';
 $string['buttonsave'] = 'Save';
 $string['buttoncopy'] = 'Copy';
