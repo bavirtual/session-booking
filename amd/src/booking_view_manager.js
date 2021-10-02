@@ -69,7 +69,6 @@ import * as Selectors from 'local_booking/selectors';
 
         if (logentryId) {
             // A link was found. Show the modal.
-
             e.preventDefault();
             // We've handled the event so stop it from bubbling
             // and causing the day click handler to fire.
@@ -91,15 +90,14 @@ import * as Selectors from 'local_booking/selectors';
  * @param {number} courseId The id of the course associated with the progression view shown
  * @param {number} categoryId The id of the category associated with the progression view shown
  * @param {object} target The element being replaced. If not specified, the bookingwrapper is used.
- * @param {string} template The template to be rendered.
  * @return {promise}
  */
-export const refreshProgressionContent = (root, courseId, categoryId, target = null, template = '') => {
+export const refreshProgressionContent = (root, courseId, categoryId, target = null) => {
     startLoading(root);
 
+    const template = root.attr('data-template');
     target = target || root.find(Selectors.progressionwrapper);
     courseId = courseId || root.find(Selectors.progressionwrapper).data('courseid');
-    template = template || root.attr('data-template');
     M.util.js_pending([root.get('id'), courseId, categoryId].join('-'));
     return Repository.getBookingsData(courseId, categoryId)
         .then((context) => {

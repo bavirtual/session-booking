@@ -158,11 +158,23 @@ class booking implements booking_interface {
     public function save() {
         global $DB;
         $vault = new booking_vault();
+        $slotsvault = new slot_vault();
 
         $transaction = $DB->start_delegated_transaction();
 
-        $result = $this->slot->save();
-        $result = $result && ($this->id = $vault->save_booking($this));
+        // save the booking, its associate slot with update
+        // booking info, and purge student availability posts
+        $result = false;
+        if ($this->slot->save()) {
+            if ($this->id = $vault->save_booking($this)) {
+                $result = $slotsvault->delete_slots($this->courseid, $this->studentid, 0, 0, false);
+            }
+        }
+
+        // purge all slots not associated with bookings once the booking is saved
+        if ($result) {
+
+        }
 
         if ($result) {
             $transaction->allow_commit();
