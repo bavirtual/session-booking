@@ -422,7 +422,8 @@ class week_exporter extends exporter {
             $daydata['hour'] = $i;
             $daydata['days'] = $this->days;
             $daydata['maxlanes'] = $this->maxlanes;
-            $daydata['groupview'] = $this->view == 'all' && $this->actiondata['action'] != 'book';
+            $daydata['groupview'] = $this->view == 'all';
+            $daydata['bookview'] = $this->actiondata['action'] == 'book';
             $timeslot = new week_timeslot_exporter($this->calendar, $daydata, $weeklanes, $this->related);
 
             $slots[] = $timeslot->export($output);

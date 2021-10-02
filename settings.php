@@ -51,7 +51,7 @@ if ($hassiteconfig) {
         // availability recording weeks ahead
         $settingspage->add(new admin_setting_configtext('local_booking/weeksahead',
             new lang_string('weeksahead', 'local_booking'), new lang_string('weeksaheaddesc', 'local_booking'),
-            4, PARAM_INT)
+            5, PARAM_INT)
         );
 
         // availability posting restriction to prevent posting before x amount of wait days had passed after student's last session

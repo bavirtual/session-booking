@@ -232,7 +232,7 @@ class notification extends \core\message\message {
 
         $result = message_send($this) != 0;
 
-        // get senior instructor role users and send them notifications regardin
+        // get senior instructor role users and send them notifications regarding
         foreach ($seniorinstructors as $seniorinstructor) {
             $this->userto            = $seniorinstructor->id;
             $this->subject           = get_string('emailonholdnotify', 'local_booking', $data);

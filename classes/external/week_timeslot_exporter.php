@@ -103,11 +103,10 @@ class week_timeslot_exporter extends exporter {
         $this->hour          = $data['hour'];
         $this->days          = $data['days'];
         $this->groupview     = $data['groupview'];
+        $this->bookview      = $data['bookview'];
         $this->maxlanes      = $data['maxlanes'];
 
-
         parent::__construct([], $related);
-
     }
 
     /**
@@ -173,6 +172,7 @@ class week_timeslot_exporter extends exporter {
             // get this day's data basedon GMT time
             $slotdaydata = $type->timestamp_to_date_array(gmmktime($this->hour, 0, 0, $daydata['mon'], $daydata['mday'], $daydata['year']));
             $daylanes = $this->weeklanes[$daydata['wday']];
+            $resticted = $this->day_restricted($daydata);
 
             // get slots in all lanes even if a slot is empty (not posted by a student, booked, nor tentative)
             for ($laneindex = 0; $laneindex < $this->maxlanes && $laneindex < LOCAL_BOOKING_MAXLANES; $laneindex++) {
@@ -182,7 +182,7 @@ class week_timeslot_exporter extends exporter {
                 $slotdaydata['istoday']     = $this->is_today($daydata);
                 $slotdaydata['isweekend']   = $this->is_weekend($daydata);
                 $slotdaydata['daytitle']    = get_string('dayeventsnone', 'calendar', userdate($daydata[0], get_string('strftimedayshort')));
-                $slotdata['slotavailable']  = !$this->slot_restricted($daydata);
+                $slotdata['slotavailable']  = !$resticted;
                 $slotdata['slot']           = $this->getSlotinfo($laneslots, $slotdaydata);
 
                 $day = new week_day_exporter($this->calendar, $this->groupview, $slotdaydata, $slotdata, $this->related);
@@ -215,11 +215,12 @@ class week_timeslot_exporter extends exporter {
 
     /**
      * Checks if the slot date is out
-     * of week lookahead bounds
+     * of week lookahead bounds for students
      *
+     * @param  array $date array of the day to be evaluated
      * @return  bool
      */
-    protected function slot_restricted($date) {
+    protected function day_restricted($date) {
         $now = $this->related['type']->timestamp_to_date_array(time());
         $today = $this->related['type']->timestamp_to_date_array(gmmktime(0, 0, 0, $now['mon'], $now['mday'], $now['year']));
 
@@ -228,16 +229,15 @@ class week_timeslot_exporter extends exporter {
         $datepassed = $datepassed && $today['year'] >= $date['year'];
         $datepassed = $datepassed && $today['yday'] >= $date['yday'];
 
-        // can't mark before x days from last booked session (durnig wait days)
+        // can't mark before x days from last booked session (durnig wait days) for student view
         $lastsessionwait = true;
-        if (!$this->groupview) {
+        if ($this->groupview || $this->bookview) {
+            $lastsessionwait = false;
+        } else {
             $nextsessiondt = get_next_allowed_session_date($this->courseid, $this->studentid);
             $nextsessiondate = $this->related['type']->timestamp_to_date_array($nextsessiondt->getTimestamp());
             $lastsessionwait = $lastsessionwait && $nextsessiondate['year'] >= $date['year'];
             $lastsessionwait = $lastsessionwait && $nextsessiondate['yday'] >= $date['yday'];
-
-        } else {
-            $lastsessionwait = false;
         }
 
         // future week is not beyond the set lookahead number of weeks
