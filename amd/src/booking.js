@@ -78,9 +78,9 @@ define([
             ViewManager.refreshProgressionContent(root);
         });
 
-        if (logentryFormModalPromise !== 'undefined') {
+        // if (logentryFormModalPromise !== 'undefined') {
             BookingActions.registerEditListeners(root, logentryFormModalPromise);
-        }
+        // }
     };
 
     /**

@@ -205,8 +205,8 @@ function(
 
         return logentryFormModalPromise
         .then(function(modal) {
-            // When something within the progression booking tells us the user wants
-            // to edit an logentry then show the logentry form modal.
+            // Show the logentry form modal form when the user clicks
+            // on a session in the progression booking view to edit a logentry
             $('body').on(BookingEvents.editLogentry, function(e, logentryId, studentId, sessionDate) {
                 var bookingWrapper = root.find(BookingSelectors.progressionwrapper);
                 modal.setLogentryId(sessionDate);
