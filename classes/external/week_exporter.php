@@ -29,7 +29,6 @@ defined('MOODLE_INTERNAL') || die();
 
 use core\external\exporter;
 use core_calendar\external\date_exporter;
-use core_calendar\type_base;
 use local_booking\local\participant\entities\student;
 use local_booking\local\subscriber\subscriber;
 use renderer_base;
@@ -109,11 +108,6 @@ class week_exporter extends exporter {
      * @var moodle_url $url The URL for the week page.
      */
     protected $url;
-
-    /**
-     * @var bool $initialeventsloaded Whether the events have been loaded for this month.
-     */
-    protected $initialeventsloaded = true;
 
     /**
      * Constructor.
@@ -298,15 +292,6 @@ class week_exporter extends exporter {
                 // The right arrow defined by the theme.
                 'type' => PARAM_RAW,
             ],
-            // Tracks whether the first set of events have been loaded and provided to the exporter.
-            'initialeventsloaded' => [
-                'type' => PARAM_BOOL,
-                'default' => true,
-            ],
-            'defaulteventcontext' => [
-                'type' => PARAM_INT,
-                'default' => 0,
-            ],
         ];
     }
 
@@ -355,12 +340,7 @@ class week_exporter extends exporter {
             'nextperiodlink' => $nextperiodlink->out(false),
             'larrow' => $output->larrow(),
             'rarrow' => $output->rarrow(),
-            'initialeventsloaded' => $this->initialeventsloaded,
         ];
-
-        if ($context = $this->get_default_add_context()) {
-            $return['defaulteventcontext'] = $context->id;
-        }
 
         if ($this->calendar->categoryid) {
             $return['categoryid'] = $this->calendar->categoryid;
@@ -552,19 +532,6 @@ class week_exporter extends exporter {
         }
 
         return [$newperioddate, $periodlink];
-    }
-
-    /**
-     * Get the default context for use when adding a new event.
-     *
-     * @return null|\context
-     */
-    protected function get_default_add_context() {
-        if (calendar_user_can_add_event($this->calendar->course)) {
-            return \context_course::instance($this->calendar->course->id);
-        }
-
-        return null;
     }
 
     /**

@@ -495,9 +495,9 @@ define([
 
                     // Trigger the appropriate calendar event so that the view can be updated.
                     if (isExisting) {
-                        $('body').trigger(LogbookEvents.updated, [response.event]);
+                        $('body').trigger(LogbookEvents.updated, [response.logentry]);
                     } else {
-                        $('body').trigger(LogbookEvents.created, [response.event]);
+                        $('body').trigger(LogbookEvents.created, [response.logentry]);
                     }
                 }
 

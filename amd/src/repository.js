@@ -144,7 +144,7 @@ import Ajax from 'core/ajax';
         }
     };
 
-    return Ajax.call([request])[0];
+    return Ajax.call([request], true, true, false, 5000)[0];
 };
 
 /**
