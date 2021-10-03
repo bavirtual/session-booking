@@ -67,7 +67,7 @@ import * as Selectors from 'local_booking/selectors';
             studentId = target.querySelector(Selectors.actions.viewEvent).dataset.studentId;
         }
 
-        if (logentryId) {
+        if (logentryId != 0) {
             // A link was found. Show the modal.
             e.preventDefault();
             // We've handled the event so stop it from bubbling
