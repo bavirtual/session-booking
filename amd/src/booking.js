@@ -209,6 +209,7 @@ define([
     return {
         init: function(root) {
             root = $(root);
+            ViewManager.init(root);
             registerEventListeners(root);
             registerLogentryFormModal(root);
         }
