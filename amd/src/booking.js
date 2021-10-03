@@ -78,48 +78,7 @@ define([
             ViewManager.refreshProgressionContent(root);
         });
 
-        // if (logentryFormModalPromise !== 'undefined') {
-            BookingActions.registerEditListeners(root, logentryFormModalPromise);
-        // }
-    };
-
-    /**
-     * Create the logentry form modal for creating new logentries and
-     * editing existing logentries.
-     *
-     * @method registerLogentryFormModal
-     * @param {object} root The progression booking root element
-     * @return {object} The create modal promise
-     */
-     var registerLogentryFormModal = function(root) {
-        var logentryFormPromise = ModalFactory.create({
-            type: ModalLogentryForm.TYPE,
-            large: true
-        });
-
-        root.on('click', BookingSelectors.actions.edit, function(e) {
-            e.preventDefault();
-            var target = $(e.currentTarget),
-                bookingWrapper = target.closest(BookingSelectors.progressionwrapper),
-                logentryWrapper = target.closest(BookingSelectors.logentryItem);
-
-            logentryFormPromise.then(function(modal) {
-                // When something within the progression booking tells us the user wants
-                // to edit an logentry then show the logentry form modal.
-                modal.setSessionDate(logentryWrapper.data('sessionDate'));
-                modal.setLogentryId(logentryWrapper.data('logentryId'));
-                modal.setStudentId(logentryWrapper.data('studentId'));
-                modal.setCourseId(bookingWrapper.data('courseId'));
-                modal.setContextId(bookingWrapper.data('contextId'));
-                modal.show();
-
-                e.stopImmediatePropagation();
-                return;
-            }).fail(Notification.exception);
-        });
-
-
-        return logentryFormPromise;
+        BookingActions.registerEditListeners(root, logentryFormModalPromise);
     };
 
     /**
@@ -129,7 +88,7 @@ define([
      */
      var registerEventListeners = function(root) {
 
-        var logentryFormPromise = registerLogentryFormModal(root),
+        var logentryFormPromise = BookingActions.registerLogentryFormModal(root),
             contextId = $(SELECTORS.PROGRESSION_WRAPPER).data('context-id'),
             courseId = $(SELECTORS.PROGRESSION_WRAPPER).data('courseid');
         registerBookingEventListeners(root, logentryFormPromise);
@@ -211,7 +170,6 @@ define([
             root = $(root);
             ViewManager.init(root);
             registerEventListeners(root);
-            registerLogentryFormModal(root);
         }
     };
 });

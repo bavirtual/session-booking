@@ -194,6 +194,43 @@ function(
     }
 
     /**
+     * Create the logentry form modal for creating new logentries and
+     * editing existing logentries.
+     *
+     * @param {object} root The progression booking root element
+     * @return {promise} The create modal promise
+     */
+     function registerLogentryFormModal(root) {
+        var logentryFormPromise = ModalFactory.create({
+            type: ModalLogentryForm.TYPE,
+            large: true
+        });
+
+        root.on('click', BookingSelectors.actions.edit, function(e) {
+            e.preventDefault();
+            var target = $(e.currentTarget),
+                bookingWrapper = target.closest(BookingSelectors.progressionwrapper),
+                logentryWrapper = target.closest(BookingSelectors.logentryItem);
+
+            logentryFormPromise.then(function(modal) {
+                // When something within the progression booking tells us the user wants
+                // to edit an logentry then show the logentry form modal.
+                modal.setSessionDate(logentryWrapper.data('sessionDate'));
+                modal.setLogentryId(logentryWrapper.data('logentryId'));
+                modal.setStudentId(logentryWrapper.data('studentId'));
+                modal.setCourseId(bookingWrapper.data('courseId'));
+                modal.setContextId(bookingWrapper.data('contextId'));
+                modal.show();
+
+                e.stopImmediatePropagation();
+                return;
+            }).fail(Notification.exception);
+        });
+
+        return logentryFormPromise;
+    }
+
+    /**
      * Register the listeners required to edit the logentry.
      *
      * @param   {jQuery} root
@@ -231,7 +268,8 @@ function(
     return {
         registerRedirect: registerRedirect,
         registerDelete: registerDelete,
-        registerEditListeners: registerEditListeners,
-        cancelBooking: cancelBooking
+        cancelBooking: cancelBooking,
+        registerLogentryFormModal: registerLogentryFormModal,
+        registerEditListeners: registerEditListeners
     };
 });
