@@ -99,7 +99,7 @@ export const refreshProgressionContent = (root, courseId, categoryId, target = n
     target = target || root.find(Selectors.progressionwrapper);
     courseId = courseId || root.find(Selectors.progressionwrapper).data('courseid');
     M.util.js_pending([root.get('id'), courseId, categoryId].join('-'));
-    return Repository.getBookingsData(courseId, categoryId)
+    return Repository.getBookingsData(courseId)
         .then((context) => {
             context.viewingbooking = true;
             return Templates.render(template, context);
