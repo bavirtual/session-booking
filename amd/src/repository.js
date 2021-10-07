@@ -78,6 +78,32 @@ import Ajax from 'core/ajax';
 };
 
 /**
+ * Change the start day for the given event id. The day timestamp
+ * only has to be any time during the target day because only the
+ * date information is extracted, the time of the day is ignored.
+ *
+ * @param {array} bookedslot    The array of booked slots
+ * @param {int} courseId        The course id of the booking
+ * @param {int} exerciseId      The exercise id of the associated course
+ * @param {int} studentId       The id of the associated user
+ * @param {int} slotId          The id of the slot if exists != 0
+ * @return {promise}
+ */
+ export const saveBookedSlot = (bookedslot, courseId, exerciseId, studentId) => {
+    const request = {
+        methodname: 'local_booking_save_booking',
+        args: {
+            bookedslot: bookedslot,
+            courseid: courseId,
+            exerciseid: exerciseId,
+            studentid: studentId,
+        }
+    };
+
+    return Ajax.call([request])[0];
+};
+
+/**
  * Cancel a sepcific booking for a student.
  *
  * @param {int} bookingId   The booking id to cancel
@@ -115,32 +141,6 @@ import Ajax from 'core/ajax';
             courseid: course,
             year: year,
             week: week
-        }
-    };
-
-    return Ajax.call([request])[0];
-};
-
-/**
- * Change the start day for the given event id. The day timestamp
- * only has to be any time during the target day because only the
- * date information is extracted, the time of the day is ignored.
- *
- * @param {array} bookedslot    The array of booked slots
- * @param {int} courseId        The course id of the booking
- * @param {int} exerciseId      The exercise id of the associated course
- * @param {int} studentId       The id of the associated user
- * @param {int} slotId          The id of the slot if exists != 0
- * @return {promise}
- */
- export const saveBookedSlot = (bookedslot, courseId, exerciseId, studentId) => {
-    const request = {
-        methodname: 'local_booking_save',
-        args: {
-            bookedslot: bookedslot,
-            courseid: courseId,
-            exerciseid: exerciseId,
-            studentid: studentId,
         }
     };
 

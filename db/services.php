@@ -47,11 +47,11 @@ $functions = array(
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
     ),
 
-    'local_booking_save' => array(
+    'local_booking_save_booking' => array(
         'classname' => 'local_booking_external',
         'classpath' => '/local/booking/externallib.php',
         'methodname' => 'save_booking',
-        'description' => 'Save session booking',
+        'description' => 'Save a session booking',
         'type' => 'write',
         'ajax' => true,
         'capabilities' => '',
@@ -155,7 +155,7 @@ $services = array(
     ),
 
     'Session Booking save booked session web service'  => array(
-        'functions' => array('local_booking_save'), // Unused as we add the service in each function definition, third party services would use this.
+        'functions' => array('local_booking_save_booking'), // Unused as we add the service in each function definition, third party services would use this.
         'enabled' => 1,         // if 0, then token linked to this service won't work
         'restrictedusers' => 0,
         'shortname' => 'save_booking',
