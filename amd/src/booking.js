@@ -89,7 +89,7 @@ define([
      var registerEventListeners = function(root) {
 
         var logentryFormPromise = BookingActions.registerLogentryFormModal(root),
-            contextId = $(SELECTORS.PROGRESSION_WRAPPER).data('context-id'),
+            contextId = $(SELECTORS.PROGRESSION_WRAPPER).data('contextid'),
             courseId = $(SELECTORS.PROGRESSION_WRAPPER).data('courseid');
         registerBookingEventListeners(root, logentryFormPromise);
 

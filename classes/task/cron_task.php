@@ -36,7 +36,7 @@ use DateTime;
 use local_booking\local\participant\entities\participant;
 use local_booking\local\slot\entities\slot;
 use local_booking\local\message\notification;
-use local_booking\local\subscriber\subscriber;
+use local_booking\local\subscriber\entities\subscriber;
 
 /**
  * A schedule task for student and instructor status cron.

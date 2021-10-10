@@ -28,7 +28,7 @@ namespace local_booking\local\logbook\forms;
 
 use local_booking\local\participant\entities\participant;
 use local_booking\local\session\entities\booking;
-use local_booking\local\subscriber\subscriber;
+use local_booking\local\subscriber\entities\subscriber;
 
 defined('MOODLE_INTERNAL') || die();
 

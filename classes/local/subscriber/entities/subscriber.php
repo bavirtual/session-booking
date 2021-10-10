@@ -23,10 +23,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_booking\local\subscriber;
+namespace local_booking\local\subscriber\entities;
 
 require_once($CFG->dirroot . '/local/booking/lib.php');
 
+use local_booking\local\subscriber\data_access\subscriber_vault;
 use local_booking\local\participant\data_access\participant_vault;
 use local_booking\local\participant\entities\instructor;
 use local_booking\local\participant\entities\student;
@@ -40,31 +41,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class subscriber implements subscriber_interface {
-
-    /**
-     * Process assign table name.
-     */
-    const DB_ASSIGN = 'assign';
-
-    /**
-     * Process quiz table name.
-     */
-    const DB_QUIZ = 'quiz';
-
-    /**
-     * Process  modules table name.
-     */
-    const DB_MODULES = 'modules';
-
-    /**
-     * Process course modules table name.
-     */
-    const DB_COURSE_MODULES = 'course_modules';
-
-    /**
-     * Process course sections table name.
-     */
-    const DB_COURSE_SECTIONS = 'course_sections';
 
     /**
      * @var int $course The subscribed course.
@@ -179,35 +155,27 @@ class subscriber implements subscriber_interface {
     }
 
     /**
+     * Returns the subscribed course section name containing the exercise
+     *
+     * @param int $courseid The course id of the section
+     * @param int $exerciseid The exercise id in the course inside the section
+     * @return string  The section name of a course associated with the exercise
+     */
+    public static function get_section_name(int $courseid, int $exerciseid) {
+        return subscriber_vault::get_subscriber_section_name($courseid, $exerciseid);
+    }
+
+    /**
      * Retrieves exercises for the course
      *
      * @return array
      */
     public function get_exercises() {
-        global $DB;
+        $subscribervault = new subscriber_vault();
 
         $exercises = [];
 
-        // get assignments for this course based on sorted course topic sections
-        $sql = 'SELECT cm.id AS exerciseid, a.name AS assignname,
-                q.name AS exam, m.name AS modulename
-                FROM {' . self::DB_COURSE_MODULES . '} cm
-                INNER JOIN {' . self::DB_COURSE_SECTIONS . '} cs ON cs.id = cm.section
-                INNER JOIN {' . self::DB_MODULES . '} m ON m.id = cm.module
-                LEFT JOIN {' . self::DB_ASSIGN . '} a ON a.id = cm.instance
-                LEFT JOIN {' . self::DB_QUIZ . '} q ON q.id = cm.instance
-                WHERE cm.course = :courseid
-                    AND (
-                        m.name = :assign
-                        OR m.name = :quiz)
-                ORDER BY cs.section;';
-
-        $params = [
-            'courseid'  => $this->courseid,
-            'assign'    => 'assign',
-            'quiz'      => 'quiz'
-        ];
-        $exerciserecs = $DB->get_records_sql($sql, $params);
+        $exerciserecs = $subscribervault->get_subscriber_exercises($this->courseid);
 
         foreach ($exerciserecs as $exerciserec) {
             $exerciseitem = $exerciserec->modulename == 'assign' ? (object) [
@@ -232,16 +200,6 @@ class subscriber implements subscriber_interface {
      * @return string
      */
     public static function get_exercise_name($exerciseid) {
-        global $DB;
-
-        // Get the student's grades
-        $sql = 'SELECT a.name AS exercisename
-                FROM {' . self::DB_ASSIGN . '} a
-                INNER JOIN {' . self::DB_COURSE_MODULES . '} cm on a.id = cm.instance
-                WHERE cm.id = :exerciseid;';
-
-        $param = ['exerciseid'=>$exerciseid];
-
-        return $DB->get_record_sql($sql, $param)->exercisename;
+        return subscriber_vault::get_subscriber_exercise_name($exerciseid);
     }
 }

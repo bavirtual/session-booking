@@ -39,7 +39,7 @@ use local_booking\external\week_exporter;
 use local_booking\local\logbook\entities\logbook;
 use local_booking\local\logbook\entities\logentry;
 use local_booking\local\participant\entities\student;
-use local_booking\local\subscriber\subscriber;
+use local_booking\local\subscriber\entities\subscriber;
 
 /**
  * LOCAL_BOOKING_RECENCYWEIGHT - constant value for session recency weight multipler
@@ -664,28 +664,6 @@ function get_next_allowed_session_date($courseid, $studentid) {
     date_add($sessiondate, date_interval_create_from_date_string($daysfromlast . ' days'));
 
     return $sessiondate;
-}
-
-/**
- * Returns the course section name containing the exercise
- *
- * @param int $courseid The course id of the section
- * @param int $exerciseid The exercise id in the course inside the section
- * @return string  The section name of a course associated with the exercise
- */
-function get_course_section_name(int $courseid, int $exerciseid) {
-    global $DB;
-
-    $sectionname = '';
-    // Get the full user name
-    $sql = 'SELECT name as sectionname FROM mdl_course_sections cs
-            INNER JOIN mdl_course_modules cm ON cm.section = cs.id
-            WHERE cm.id = ' . $exerciseid . '
-            AND cm.course = ' . $courseid;
-
-    $section = $DB->get_record_sql($sql);
-
-    return $section->sectionname;
 }
 
 /**

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Class interface for data access of course participants
+ * Class interface for data access of subscribing course and module data
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
@@ -23,47 +23,27 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_booking\local\subscriber;
+namespace local_booking\local\subscriber\data_access;
 
 defined('MOODLE_INTERNAL') || die();
 
-interface subscriber_interface {
+interface subscriber_vault_interface {
 
     /**
-     * Get all active students.
+     * Returns the course section name containing the exercise
      *
-     * @return {Object}[]   Array of active students.
+     * @param int $courseid The course id of the section
+     * @param int $exerciseid The exercise id in the course inside the section
+     * @return string  The section name of a course associated with the exercise
      */
-    public function get_active_students();
-
-    /**
-     * Get all active instructors for the course.
-     *
-     * @param bool $courseadmins Indicates whether the instructors returned are part of course admins
-     * @return {Object}[]   Array of active instructors.
-     */
-    public function get_active_instructors(bool $courseadmins = false);
-
-    /**
-     * Get subscribing course senior instructors list.
-     *
-     * @return {Object}[]   Array of course's senior instructors.
-     */
-    public function get_senior_instructors();
-
-    /**
-     * Get all active instructors for the course.
-     *
-     * @return {Object}[]   Array of active instructors.
-     */
-    public function get_active_participants();
+    public static function get_subscriber_section_name(int $courseid, int $exerciseid);
 
     /**
      * Retrieves exercises for the course
      *
      * @return array
      */
-    public function get_exercises();
+    public function get_subscriber_exercises(int $courseid);
 
     /**
      * Retrieves the exercise name of a specific exercise
@@ -72,5 +52,5 @@ interface subscriber_interface {
      * @param int $exerciseid The exercise id.
      * @return string
      */
-    public static function get_exercise_name($exerciseid);
+    public static function get_subscriber_exercise_name(int $exerciseid);
 }

@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 use local_booking\local\participant\entities\participant;
 use core\external\exporter;
 use local_booking\local\participant\entities\instructor;
-use local_booking\local\subscriber\subscriber;
+use local_booking\local\subscriber\entities\subscriber;
 use renderer_base;
 use moodle_url;
 

@@ -28,11 +28,11 @@ namespace local_booking\external;
 defined('MOODLE_INTERNAL') || die();
 
 use renderer_base;
-use core\external\exporter;
 use DateTime;
-use local_booking\local\participant\entities\participant;
-use local_booking\local\subscriber\subscriber;
 use moodle_url;
+use core\external\exporter;
+use local_booking\local\participant\entities\participant;
+use local_booking\local\subscriber\entities\subscriber;
 
 /**
  * Class for displaying a logbook entry.
@@ -189,7 +189,7 @@ class logentry_exporter extends exporter {
         $soloflighttimemins = !empty($this->logentry) ? $this->logentry->get_soloflighttimemins(false) : $this->data['soloflighttimemins'];
         $picid = !empty($this->logentry) ? $this->logentry->get_picid() : $this->data['picid'];
         $sicid = !empty($this->logentry) ? $this->logentry->get_sicid() : $this->data['sicid'];
-        $sectionname = !empty($this->logentry) ? '' : get_course_section_name($this->data['courseid'], $exerciseid);
+        $sectionname = !empty($this->logentry) ? '' : subscriber::get_section_name($this->data['courseid'], $exerciseid);
 
         return [
             'exercisename' => subscriber::get_exercise_name($exerciseid),

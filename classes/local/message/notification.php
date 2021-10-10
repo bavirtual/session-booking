@@ -27,7 +27,7 @@ namespace local_booking\local\message;
 
 use local_booking\local\participant\entities\instructor;
 use local_booking\local\participant\entities\student;
-use local_booking\local\subscriber\subscriber;
+use local_booking\local\subscriber\entities\subscriber;
 
 defined('MOODLE_INTERNAL') || die();
 

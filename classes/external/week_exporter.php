@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 use core\external\exporter;
 use core_calendar\external\date_exporter;
 use local_booking\local\participant\entities\student;
-use local_booking\local\subscriber\subscriber;
+use local_booking\local\subscriber\entities\subscriber;
 use renderer_base;
 use moodle_url;
 
@@ -223,6 +223,10 @@ class week_exporter extends exporter {
      */
     protected static function define_other_properties() {
         return [
+            'contextid' => [
+                'type' => PARAM_INT,
+                'default' => 0,
+            ],
             'courseid' => [
                 'type' => PARAM_INT,
             ],
@@ -317,7 +321,8 @@ class week_exporter extends exporter {
         list($nextperiod, $nextperiodlink) = $this->get_period($date, '+');
 
         $return = [
-            'courseid' => $this->calendar->courseid,
+            'contextid' => \context_course::instance($this->courseid)->id,
+            'courseid' => $this->courseid,
             // week data
             'daynames' => $this->get_day_names($output),
             'weekofyear' => $this->weekofyear,

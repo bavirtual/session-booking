@@ -25,6 +25,8 @@
 
 namespace local_booking\local\logbook\data_access;
 
+defined('MOODLE_INTERNAL') || die();
+
 use local_booking\local\logbook\entities\logbook;
 use local_booking\local\logbook\entities\logentry;
 use stdClass;

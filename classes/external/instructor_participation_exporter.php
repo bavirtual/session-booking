@@ -32,7 +32,7 @@ use core\external\exporter;
 use DateTime;
 use enrol_flatfile\task\flatfile_sync_task;
 use local_booking\local\participant\entities\instructor;
-use local_booking\local\subscriber\subscriber;
+use local_booking\local\subscriber\entities\subscriber;
 use renderer_base;
 use moodle_url;
 

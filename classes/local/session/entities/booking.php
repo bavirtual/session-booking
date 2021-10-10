@@ -30,7 +30,6 @@ use local_booking\local\participant\entities\student;
 use local_booking\local\session\data_access\booking_vault;
 use local_booking\local\slot\data_access\slot_vault;
 use \local_booking\local\slot\entities\slot;
-use local_booking\local\subscriber\subscriber;
 use moodle_exception;
 use stdClass;
 

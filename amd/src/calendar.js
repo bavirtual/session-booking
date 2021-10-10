@@ -90,7 +90,7 @@ define([
         });
 
         // Listen to click on the clickable slot areas/cells
-        var contextId = $(SELECTORS.CALENDAR_WEEK_WRAPPER).data('context-id');
+        var contextId = $(SELECTORS.CALENDAR_WEEK_WRAPPER).data('contextid');
         if (contextId) {
             // Bind click events to week calendar days.
             root.on('click', SELECTORS.DAY, function(e) {
