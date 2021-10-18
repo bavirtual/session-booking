@@ -83,9 +83,14 @@ class participant_vault implements participant_vault_interface {
     const DB_GROUPS_MEM = 'groups_members';
 
     /**
-     * Process groups members table name for on-hold students.
+     * Process course modules table name.
      */
     const DB_COURSE_MODS = 'course_modules';
+
+    /**
+     * Process course sections table name.
+     */
+    const DB_COURSE_SECTIONS = 'course_sections';
 
     /**
      * Process user assignment grades table name.
@@ -245,17 +250,19 @@ class participant_vault implements participant_vault_interface {
 
         // Get the student's grades
         $sql = 'SELECT cm.id AS exerciseid, ag.assignment AS assignid,
-                    ag.userid, ag.grade, 0 AS totalgrade, ag.timemodified AS gradedate,
-                    u.id AS instructorid, ' . $DB->sql_concat('u.firstname', '" "',
-                    'u.lastname', '" "', 'u.alternatename') . ' AS instructorname,
-                    m.name AS exercisetype
+                    ag.userid, MAX(ag.grade) AS grade, 0 AS totalgrade,
+                    MAX(ag.timemodified) AS gradedate, m.name AS exercisetype,
+                    MAX(u.id) AS instructorid, ' . $DB->sql_concat('u.firstname', '" "',
+                    'u.lastname', '" "', 'u.alternatename') . ' AS instructorname
                 FROM {' . self::DB_GRADES . '} ag
                 INNER JOIN {' . self::DB_COURSE_MODS . '} cm ON ag.assignment = cm.instance
+                INNER JOIN {' . self::DB_COURSE_SECTIONS . '} cs ON cs.id = cm.section
                 INNER JOIN {' . self::DB_MODULES . '} m ON m.id = cm.module
                 INNER JOIN {' . self::DB_USER . '} u ON ag.grader = u.id
                 WHERE m.name = :assign
                     AND ag.userid = :studentid
-                ORDER BY cm.section';
+                GROUP BY exerciseid, assignid, exercisetype
+                ORDER BY cs.section';
 
         $params = [
             'assign' => 'assign',
@@ -283,10 +290,11 @@ class participant_vault implements participant_vault_interface {
                 FROM {' . self::DB_QUIZ_GRADES . '} qg
                 INNER JOIN {' . self::DB_QUIZ . '} q on q.id = qg.quiz
                 INNER JOIN {' . self::DB_COURSE_MODS . '} cm on qg.quiz = cm.instance
+                INNER JOIN {' . self::DB_COURSE_SECTIONS . '} cs ON cs.id = cm.section
                 INNER JOIN {' . self::DB_MODULES . '} as m ON m.id = cm.module
                 WHERE m.name = :quiz
                     AND qg.userid = :studentid
-                ORDER BY cm.section';
+                ORDER BY cs.section';
 
         $params = [
             'quiz' => 'quiz',
@@ -448,21 +456,22 @@ class participant_vault implements participant_vault_interface {
      * @param   int     The upcoming next exercise id
      * @return  bool    Whether the lessones were completed or not.
      */
-    function get_lessons_complete($studentid, $courseid, $nextexercisesection) {
+    function get_student_lessons_complete($studentid, $courseid, $nextexercisesection) {
         global $DB;
 
         // Get the student's grades
-        $sql = 'SELECT cm.id, cm.course, cm.module, cm.instance, cm.section
+        $sql = 'SELECT cm.id, cm.course, cm.module, cm.instance, cs.section
                 FROM {' . self::DB_COURSE_MODS .'} cm
+                INNER JOIN {' . self::DB_COURSE_SECTIONS . '} cs ON cs.id = cm.section
                 INNER JOIN {' . self::DB_MODULES . '} as m ON m.id = cm.module
                 WHERE cm.course = :courseid
-                AND cm.section <= :nextexercisesection
+                AND cs.section <= :nextexercisesection
                 AND m.name = "lesson"
                 AND cm.instance NOT IN (SELECT lt.lessonid
-                                        FROM {' . self::DB_LESSON_TIMER . '} lt
-                                        WHERE lt.userid = :studentid
-                                        AND lt.completed = :completion)
-                ORDER BY cm.section ASC';
+                    FROM {' . self::DB_LESSON_TIMER . '} lt
+                    WHERE lt.userid = :studentid
+                    AND lt.completed = :completion)
+                ORDER BY cs.section ASC';
 
         $params = [
             'courseid' => $courseid,
@@ -471,9 +480,9 @@ class participant_vault implements participant_vault_interface {
             'completion'  => COMPLETION_COMPLETE
         ];
 
-        $lessons_incomplete = $DB->get_records_sql($sql, $params);
+        $lessons_incompleted = $DB->get_records_sql($sql, $params);
 
-        return count($lessons_incomplete) == 0;
+        return count($lessons_incompleted) == 0;
     }
 
     /**
@@ -488,15 +497,17 @@ class participant_vault implements participant_vault_interface {
         global $DB;
 
         // Get first record of exercises not completed yet
-        $sql = 'SELECT cm.id AS nextexerciseid, cm.section AS section
+        $sql = 'SELECT cm.id AS nextexerciseid, cs.section AS section
                 FROM {' . self::DB_COURSE_MODS .'} cm
+                INNER JOIN {' . self::DB_COURSE_SECTIONS . '} cs ON cs.id = cm.section
                 INNER JOIN {' . self::DB_MODULES . '} m ON m.id = cm.module
                 WHERE cm.course = :courseid
                     AND m.name = :assign
                     AND cm.instance NOT IN (SELECT ag.assignment
                                             FROM {' . self::DB_GRADES . '} ag
-                                            WHERE ag.userid = :studentid)
-                ORDER BY cm.section asc
+                                            WHERE ag.userid = :studentid
+                                            AND ag.grader != -1)
+                ORDER BY cs.section asc
                 LIMIT 1';
 
         $params = [
