@@ -1,5 +1,18 @@
 # Change log
 
+## [0.20.89] BETA - RELEASED 2021-11-15
+
+### Changed
+
+- days since last session in Student Progression table to check for last graded first vs enrolled date where possible
+
+## [0.20.88] BETA - RELEASED 2021-11-12
+
+### Fixed
+
+- instructor permission to view availability posting for all students
+- student booking session next exercise sql
+
 ## [0.20.87] BETA - RELEASED 2021-11-11
 
 ### Fixed

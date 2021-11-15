@@ -429,15 +429,16 @@ class participant_vault implements participant_vault_interface {
      * @param   int The course id
      * @return  stdClass The record containing timestamp of the last grading
      */
-    public function get_last_graded_date($userid, $courseid) {
+    public function get_last_graded_date(int $userid, int $courseid, bool $is_student) {
         global $DB;
 
+        $usertypesql = $is_student ? 'userid' : 'grader';
         // Get the student's grades
         $sql = 'SELECT timemodified
                 FROM {' . self::DB_GRADES . '} ag
                 INNER JOIN {' . self::DB_COURSE_MODS . '} cm ON cm.instance = ag.assignment
                 WHERE cm.course = :courseid
-                AND grader = :userid
+                AND ' . $usertypesql . ' = :userid
                 ORDER BY timemodified DESC
                 LIMIT 1';
 
@@ -509,7 +510,7 @@ class participant_vault implements participant_vault_interface {
                     AND cm.instance NOT IN (SELECT ag.assignment
                                             FROM {' . self::DB_GRADES . '} ag
                                             WHERE ag.userid = :studentid
-                                            AND ag.grader != -1)
+                                            AND ag.grade != -1)
                 ORDER BY cs.section asc
                 LIMIT 1';
 
