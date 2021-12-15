@@ -1,6 +1,20 @@
 # Change log
 
-## [2021121101] - RELEASED 2021-12-11 - hotfix
+## [2021121500] - RELEASED 2021-12-15
+
+### Changed
+
+- Google branding reformatting in email notifications body.
+- Integrated calendar links excluded from calendar event body.
+- Removed 'Graduates' from get_active_instructors with $includeonhold setting.
+
+## [2021121102] - RELEASED 2021-12-11 - hotfix
+
+### Fixed
+
+- Distinct instructors in get_active_instructors
+
+## [2021121101] - UNRELEASED 2021-12-11 - hotfix
 
 ### Fixed
 
