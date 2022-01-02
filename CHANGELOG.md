@@ -1,5 +1,24 @@
 # Change log
 
+## [2022010201] - UNRELEASED 2022-01-02
+
+### Fixed
+
+- handling of last exercise in a course
+
+### Added
+
+- subscriber to auto create 'OnHold' and 'Inactive Instructors' groups
+- subscriber training type custom field ('Dual'/'Multicrew')
+
+### Changed
+
+- Calendar logo formatting in notification emails
+- EASA format logbook table structure
+- Model, controller, and view of logbook and logentry
+- Logbook entry quickform to reflect EASA log format for both Dual and Multicrew training
+- Refactored student and session exporters
+
 ## [2021121701] - RELEASED 2021-12-17 - hotfix
 
 ### Fixed
