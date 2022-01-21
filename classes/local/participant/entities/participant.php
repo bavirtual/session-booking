@@ -76,7 +76,7 @@ class participant implements participant_interface {
     protected $simulator;
 
     /**
-     * @var bool $is_student The participant is a student.
+     * @var bool $isstudent The participant is a student.
      */
     protected $is_student;
 
@@ -100,6 +100,8 @@ class participant implements participant_interface {
         $this->vault = new participant_vault();
         $this->courseid = $courseid;
         $this->userid = $userid;
+        $context = \context_course::instance($courseid);
+        $this->is_student = count(get_user_roles($context, $userid)) > 0 && current(get_user_roles($context, $userid))->shortname == 'student' ? true : false;
     }
 
     /**
@@ -249,8 +251,8 @@ class participant implements participant_interface {
      *
      * @return bool The result of the suspension action.
      */
-    public function set_suspend_status() {
-        return $this->vault->set_suspend_status($this->courseid, $this->userid);
+    public function suspend() {
+        return $this->vault->suspend($this->courseid, $this->userid);
     }
 
     /**
@@ -276,5 +278,14 @@ class participant implements participant_interface {
     public function is_member_of(string $groupname) {
         $groupid = groups_get_group_by_name($this->courseid, $groupname);
         return groups_is_member($groupid, $this->userid);
+    }
+
+    /**
+     * check if the participant is a student
+     *
+     * @return bool $is_student.
+     */
+    public function is_student() {
+        return $this->is_student;
     }
 }

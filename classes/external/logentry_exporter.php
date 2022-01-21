@@ -90,7 +90,7 @@ class logentry_exporter extends exporter {
             'flightdate' => [
                 'type' => PARAM_RAW
             ],
-            'sessiontime' => [
+            'groundtime' => [
                 'type' => PARAM_TEXT,
                 'optional' => true,
             ],
@@ -139,8 +139,9 @@ class logentry_exporter extends exporter {
                 'optional' => true,
             ],
             'linkedpirep' => [
-                'type' => PARAM_RAW,
+                'type' => PARAM_TEXT,
                 'optional' => true,
+                'default' => '',
             ],
             'callsign' => [
                 'type' => PARAM_RAW,
@@ -155,11 +156,11 @@ class logentry_exporter extends exporter {
                 'optional' => true,
             ],
             'deptime' => [
-                'type' => PARAM_TEXT,
+                'type' => PARAM_RAW,
                 'optional' => true,
             ],
             'arrtime' => [
-                'type' => PARAM_TEXT,
+                'type' => PARAM_RAW,
                 'optional' => true,
             ],
             'landingsday' => [
@@ -186,13 +187,13 @@ class logentry_exporter extends exporter {
                 'type' => PARAM_RAW,
                 'optional' => true,
             ],
+            'flighttype' => [
+                'type' => PARAM_RAW,
+                'optional' => true,
+            ],
             'trainingtype' => [
                 'type' => PARAM_TEXT,
                 'optional' => true,
-            ],
-            'soloflight' => [
-                'type' => PARAM_BOOL,
-                'default' => false,
             ],
             'se' => [
                 'type' => PARAM_TEXT,
@@ -235,9 +236,24 @@ class logentry_exporter extends exporter {
                 'type' => PARAM_TEXT,
                 'optional' => true,
             ],
+            'trainingflight' => [
+                'type' => PARAM_TEXT,
+                'optional' => true,
+            ],
             'dualops' => [
                 'type' => PARAM_BOOL,
+                'optional' => true,
                 'default' => true,
+            ],
+            'soloflight' => [
+                'type' => PARAM_BOOL,
+                'optional' => true,
+                'default' => false,
+            ],
+            'haspictime' => [
+                'type' => PARAM_BOOL,
+                'optional' => true,
+                'default' => false,
             ],
         ];
     }
@@ -252,17 +268,37 @@ class logentry_exporter extends exporter {
         $exerciseid = !empty($this->logentry) ? $this->logentry->get_exerciseid() : $this->data['exerciseid'];
         $flightdate = !empty($this->logentry) ? $this->logentry->get_flightdate($this->data['view'] == 'summary') : $this->data['flightdate'];
         $p1id = !empty($this->logentry) ? $this->logentry->get_p1id() : $this->data['p1id'];
-        $userid = !empty($this->logentry) ? $this->logentry->get_userid() : $this->data['userid'];
+        $p2id = !empty($this->logentry) ? $this->logentry->get_p2id() : $this->data['p2id'];
         $sectionname = !empty($this->logentry) ? '' : subscriber::get_section_name($this->data['courseid'], $exerciseid);
         $dualops = $this->data['trainingtype'] == 'Dual';
+        $soloflight = !empty($this->logentry) ? $this->logentry->get_flighttype() == 'solo' : false;
+        $haspictime = !empty($this->logentry) ? $this->logentry->get_pictime() != 0 : false;
+        // get training flight text
+        $trainingflight = '';
+        if (!empty($this->logentry)) {
+            switch ($this->logentry->get_flighttype()) {
+                case 'training':
+                    $trainingflight = get_string('flighttraining', 'local_booking');
+                    break;
+                case 'solo':
+                    $trainingflight = get_string('flightsolo', 'local_booking');
+                    break;
+                case 'check':
+                    $trainingflight = $dualops ? get_string('flightcheckride', 'local_booking') : get_string('flightlinecheck', 'local_booking');
+                    break;
+            }
+        }
 
         return [
             'exercisename' => subscriber::get_exercise_name($exerciseid),
             'formattedtime' => $flightdate,
             'p1name' => !empty($p1id) ? participant::get_fullname($p1id) : '',
-            'p2name' => !empty($userid) ? participant::get_fullname($userid) : '',
+            'p2name' => !empty($p2id) ? participant::get_fullname($p2id) : '',
             'sectionname' => $sectionname,
+            'trainingflight' => $trainingflight,
             'dualops' => $dualops,
+            'soloflight' => $soloflight,
+            'haspictime' => $haspictime,
         ];
     }
 

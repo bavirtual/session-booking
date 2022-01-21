@@ -54,10 +54,10 @@ class logbook_vault implements logbook_vault_interface {
         global $DB;
 
         $logbookentries = [];
-        $sql = 'SELECT lb.id, lb.courseid, lb.exerciseid, lb.userid, lb.pirep,
-                    lb.callsign, lb.flightdate, lb.depicao, lb.deptime, lb.arricao, lb.arrtime,
+        $sql = 'SELECT lb.id, lb.courseid, lb.exerciseid, lb.userid, lb.pirep, lb.callsign,
+                    lb.flighttype, lb.flightdate, lb.depicao, lb.deptime, lb.arricao, lb.arrtime,
                     lb.aircraft, lb.aircraftreg, lb.enginetype, lb.multipilottime, lb.p1id, lb.p2id,
-                    lb.landingsday, lb.landingsnight, lb.sessiontime, lb.nighttime, lb.ifrtime,
+                    lb.landingsday, lb.landingsnight, lb.groundtime, lb.nighttime, lb.ifrtime,
                     lb.pictime, lb.copilottime, lb.dualtime, lb.instructortime, lb.picustime, lb.checkpilottime,
                     lb.fstd, lb.remarks, lb.linkedlogentryid, lb.createdby, lb.timecreated, lb.timemodified
                 FROM {' . self::DB_LOGBOOKS . '} lb
@@ -213,12 +213,12 @@ class logbook_vault implements logbook_vault_interface {
      *
      * @param int       $courseid   The course id associated with the logbook.
      * @param int       $userid     The user id associated with the logbook.
-     * @return array    $totaldualtime, $totalsessiontime, $totalpictime
+     * @return array    $totaldualtime, $totalgroundtime, $totalpictime
      */
     public static function get_logbook_summary(int $courseid, int $userid) {
         global $DB;
 
-        $sql = 'SELECT SUM(sessiontime) as totalsessiontime,
+        $sql = 'SELECT SUM(groundtime) as totalgroundtime,
                     SUM(pictime) as totalpictime,
                     SUM(dualtime) as totaldualtime,
                     SUM(instructortime) as totalinstructortime,
@@ -261,7 +261,7 @@ class logbook_vault implements logbook_vault_interface {
         $logentryobj->exerciseid = $logentry->get_exerciseid();
         $logentryobj->userid = $userid;
         $logentryobj->flightdate = $logentry->get_flightdate();
-        $logentryobj->sessiontime = $logentry->get_sessiontime();
+        $logentryobj->groundtime = $logentry->get_groundtime();
         $logentryobj->p1id = $logentry->get_p1id();
         $logentryobj->p2id = $logentry->get_p2id();
         $logentryobj->pictime = $logentry->get_pictime();
@@ -272,6 +272,7 @@ class logbook_vault implements logbook_vault_interface {
         $logentryobj->copilottime = $logentry->get_copilottime();
         $logentryobj->pirep = $logentry->get_pirep();
         $logentryobj->callsign = $logentry->get_callsign();
+        $logentryobj->flighttype = $logentry->get_flighttype();
         $logentryobj->fstd = $logentry->get_fstd();
         $logentryobj->depicao = $logentry->get_depicao();
         $logentryobj->deptime = $logentry->get_deptime();
@@ -309,7 +310,7 @@ class logbook_vault implements logbook_vault_interface {
             $logentry->set_id($dataobj->id);
             $logentry->set_exerciseid($dataobj->exerciseid);
             $logentry->set_flightdate($dataobj->flightdate);
-            $logentry->set_sessiontime($dataobj->sessiontime);
+            $logentry->set_groundtime($dataobj->groundtime);
             $logentry->set_p1id($dataobj->p1id);
             $logentry->set_p2id($dataobj->p2id);
             $logentry->set_pictime($dataobj->pictime);
@@ -321,6 +322,7 @@ class logbook_vault implements logbook_vault_interface {
             $logentry->set_checkpilottime($dataobj->checkpilottime);
             $logentry->set_pirep($dataobj->pirep);
             $logentry->set_callsign($dataobj->callsign);
+            $logentry->set_flighttype($dataobj->flighttype);
             $logentry->set_fstd($dataobj->fstd);
             $logentry->set_depicao($dataobj->depicao);
             $logentry->set_deptime($dataobj->deptime);

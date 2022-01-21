@@ -198,7 +198,7 @@ interface logentry_interface {
      * @param bool $numeric whether the request value in number or text format
      * @return mixed
      */
-    public function get_sessiontime(bool $numeric = true);
+    public function get_groundtime(bool $numeric = true);
 
     /**
      * Get the flying at night time in minutes.
@@ -287,6 +287,19 @@ interface logentry_interface {
     public function get_remarks();
 
     /**
+     * Get the associated logentry.
+     *
+     * @return int
+     */
+    public function get_linkedlogentryid();
+
+    /**
+     * Get the flight type.
+     *
+     */
+    public function get_flighttype();
+
+    /**
      * Set the parent logbook.
      *
      * @param logbook
@@ -327,6 +340,13 @@ interface logentry_interface {
      * @param string $callsign
      */
     public function set_callsign(string $callsign);
+
+    /**
+     * Set the flight type.
+     *
+     * @param string $flighttype
+     */
+    public function set_flighttype(string $flighttype);
 
     /**
      * Set the flight date timestamp.
@@ -422,10 +442,10 @@ interface logentry_interface {
     /**
      * Set the training session duration in minutes.
      *
-     * @param mixed $sessiontime The session time total minutes duration
+     * @param mixed $groundtime The session time total minutes duration
      * @param bool $isnumeric whether the passed duration is numberic or string format
      */
-    public function set_sessiontime($sessiontime, bool $isnumeric = true);
+    public function set_groundtime($groundtime, bool $isnumeric = true);
 
     /**
      * Set the flying at night duration in minutes.
@@ -510,8 +530,9 @@ interface logentry_interface {
      *
      * @param object $formdata
      * @param bool $isinstructor
+     * @param bool $edit
      */
-    public function populate(object $formdata, bool $isinstructor = true);
+    public function populate(object $formdata, bool $isinstructor = false, bool $edit = false);
 
     /**
      * Converts the object to array.
