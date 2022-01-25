@@ -1,5 +1,23 @@
 # Change log
 
+## [2022012503] - RELEASED 2022-01-25 - hotfix3
+
+### Fixed
+
+- is_active always returning false
+
+## [2022012502] - RELEASED 2022-01-25 - hotfix2
+
+### Fixed
+
+- Hiding navigation from course suspended participants
+
+## [2022012501] - RELEASED 2022-01-25 - hotfix
+
+### Fixed
+
+- Handling of null student in get_next_allowed_session_date() navigation
+
 ## [2022012500] - RELEASED 2022-01-25 - hotfix
 
 ### Fixed
