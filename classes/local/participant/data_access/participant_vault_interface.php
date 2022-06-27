@@ -46,17 +46,17 @@ interface participant_vault_interface {
      * @param bool $studentid   A specific student for booking confirmation
      * @return {Object}         Array of database records.
      */
-    public static function get_active_student(int $courseid, int $studentid = 0);
+    public static function get_student(int $courseid, int $studentid = 0);
 
     /**
      * Get all active students from the database.
      *
      * @param int $courseid         The course id.
+     * @param string $filter        The filter to show students, inactive (including graduates), suspended, and default to active.
      * @param bool $includeonhold   Whether to include on-hold students as well
-     * @param bool $includeoall     Whether to include on-hold students as well
      * @return {Object}[]           Array of database records.
      */
-    public static function get_students(int $courseid, bool $includeonhold = false, bool $includeall = false);
+    public static function get_students(int $courseid, string $filter = 'active', bool $includeonhold = false);
 
     /**
      * Get all active instructors for the course from the database.
@@ -65,7 +65,7 @@ interface participant_vault_interface {
      * @param bool $courseadmins Indicates whether the instructor is an admin or not.
      * @return {Object}[]        Array of database records.
      */
-    public static function get_active_instructors(int $courseid, bool $courseadmins = false);
+    public static function get_instructors(int $courseid, bool $courseadmins = false);
 
     /**
      * Get students assigned to an instructor from the database.
@@ -83,7 +83,7 @@ interface participant_vault_interface {
      * @param int       $studentid The student id.
      * @return grade[]  A student grades.
      */
-    public function get_student_assignment_grades(int $courseid, int $studentid);
+    public function get_student_exercises_grades(int $courseid, int $studentid);
 
     /**
      * Get quiz grades for a specific student.
@@ -173,4 +173,34 @@ interface participant_vault_interface {
      * @return  array   The next exercise id and associated course section
      */
     public function get_student_exercise($courseid, $studentid, $next = true);
+
+    /**
+     * Returns the number of attempts for a specific exercise.
+     *
+     * @param   int     The course id
+     * @param   int     The student user id
+     * @param   int     The exercise id to get the number of attempts for
+     * @return  int     The number of attempts for an exercise
+     */
+    public function get_student_exercise_attempts(int $courseid, int $studentid, int $exerciseid);
+
+    /**
+     * Returns the the skill test assessment, which includes all
+     * skill test sections and thier exercises.
+     *
+     * @param   int     The course id
+     * @param   int     The student user id
+     * @param   string  The skill test main section name for looking up exercises
+     * @return  array   The skill test sections
+     */
+    public function get_student_skilltest_assessment(int $courseid, int $studentid, string $skilltestsecname);
+
+    /**
+     * Returns the the skill test assessment subsections (rubrics).
+     *
+     * @param   int     The student user id
+     * @param   int     The skill test section exercise id (assignment)
+     * @return  array   The skill test subsections
+     */
+    public function get_student_skilltest_subsections(int $studentid, int $assignid);
 }

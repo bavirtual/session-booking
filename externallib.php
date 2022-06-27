@@ -50,13 +50,14 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      * @since Moodle 2.5
      */
     public static function get_bookings_view_parameters() {
         return new external_function_parameters(
             array(
                 'courseid'  => new external_value(PARAM_INT, 'The course id', VALUE_DEFAULT),
+                'filter'  => new external_value(PARAM_RAW, 'The results filter', VALUE_DEFAULT),
             )
         );
     }
@@ -65,16 +66,17 @@ class local_booking_external extends external_api {
      * Retrieve instructor's booking.
      *
      * @param int $courseid The course id for context.
-     * @param int $categoryid The category id for context.
+     * @param string $filter The filter to show students, inactive (including graduates), suspended, and default to active.
      * @return array array of slots created.
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
-    public static function get_bookings_view($courseid) {
+    public static function get_bookings_view(int $courseid, string $filter) {
         global $PAGE, $COURSE;
 
         // Parameter validation.
         $params = self::validate_parameters(self::get_bookings_view_parameters(), array(
                 'courseid' => $courseid,
+                'filter' => $filter,
                 )
             );
 
@@ -86,7 +88,7 @@ class local_booking_external extends external_api {
         if (empty($COURSE->subscriber))
             $COURSE->subscriber = new subscriber($courseid);
 
-        list($data, $template) = get_bookings_view($courseid);
+        list($data, $template) = get_bookings_view($courseid, '', $filter);
 
         return $data;
     }
@@ -104,7 +106,7 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      * @since Moodle 2.5
      */
     public static function get_pilot_logbook_parameters() {
@@ -174,7 +176,7 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      * @since Moodle 2.5
      */
     public static function get_logentry_by_id_parameters() {
@@ -242,7 +244,7 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      * @since Moodle 2.5
      */
     public static function get_pirep_parameters() {
@@ -297,7 +299,7 @@ class local_booking_external extends external_api {
                 if (core_user::get_user($userid, 'alternatename')->alternatename == $alternatename) {
                     // get engine type integrated data
                     if (subscriber::has_integration('aircraft')) {
-                        $enginetyperec = subscriber::get_integrated_data('aircraft', 'enginetype', $logentry->get_aircraft());
+                        $enginetyperec = subscriber::get_integrated_data('aircraft', 'aircraftinfo', $logentry->get_aircraft());
                         if (!empty($enginetyperec))
                             $logentry->set_enginetype($enginetyperec['engine_type'] == 'single' ? 'SE' : 'ME');
                     }
@@ -355,7 +357,7 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      * @since Moodle 2.5
      */
     public static function delete_logentry_parameters() {
@@ -497,7 +499,7 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      */
     public static function save_booking_parameters() {
         return new external_function_parameters(
@@ -564,7 +566,7 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      */
     public static function cancel_booking_parameters() {
         return new external_function_parameters(array(
@@ -618,7 +620,7 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      */
     public static function update_user_preferences_parameters() {
         return new external_function_parameters(array(
@@ -678,7 +680,7 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      */
     public static function update_enrolement_status_parameters() {
         return new external_function_parameters(array(
@@ -746,7 +748,7 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      */
     public static function update_user_group_parameters() {
         return new external_function_parameters(array(
@@ -813,7 +815,7 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      */
     public static function save_slots_parameters() {
         // Userid is always current user, so no need to get it from client.
@@ -862,7 +864,7 @@ class local_booking_external extends external_api {
         if (empty($COURSE->subscriber))
             $COURSE->subscriber = new subscriber($courseid);
 
-        $student = $COURSE->subscriber->get_active_student($USER->id);
+        $student = $COURSE->subscriber->get_student($USER->id);
         $warnings = array();
 
         // add new slots after removing previous ones for the week
@@ -898,7 +900,7 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      * @since Moodle 2.5
      */
     public static function delete_slots_parameters() {
@@ -938,7 +940,7 @@ class local_booking_external extends external_api {
         if (empty($COURSE->subscriber))
             $COURSE->subscriber = new subscriber($courseid);
 
-        $student = $COURSE->subscriber->get_active_student($USER->id);
+        $student = $COURSE->subscriber->get_student($USER->id);
         $warnings = array();
 
         // remove all week's slots for the user to avoid updates
@@ -974,7 +976,7 @@ class local_booking_external extends external_api {
     /**
      * Returns description of method parameters.
      *
-     * @return external_function_parameters.
+     * @return external_function_parameters
      */
     public static function submit_create_update_form_parameters() {
         return new external_function_parameters(

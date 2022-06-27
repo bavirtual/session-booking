@@ -68,7 +68,7 @@ class booking_student_exporter extends exporter {
         $data['studentid'] = $this->student->get_id();
         $data['studentname'] = $this->student->get_name();
         $data['dayssincelast'] = $this->student->get_priority()->get_recency_days();
-        $data['recencytooltip'] = $this->student->get_priority()->get_recency_info();
+        $data['recencytooltip'] = $data['filter'] != 'suspended' ? $this->student->get_priority()->get_recency_info() : 'N/A';
         $data['simulator'] = $this->student->get_simulator();
         $data['profileurl'] = $CFG->wwwroot . '/local/booking/profile.php?courseid=' . $data['courseid'] . '&userid=' . $this->student->get_id();
 
@@ -273,15 +273,26 @@ class booking_student_exporter extends exporter {
      * @return {object} $sessionoptions
      */
     protected function get_session_options($action) {
+        global $COURSE;
+
         $sessionoptions = [];
+        $grades = $this->student->get_grades();
 
         if ($this->data['view'] == 'confirm') {
+
             foreach ($this->courseexercises as $exercise) {
-                $sessionoptions[] = [
-                    'nextsession' => ($action->get_exerciseid() == $exercise->exerciseid ? "checked" : ""),
-                    'bordered' => $action->get_exerciseid() == $exercise->exerciseid,
-                    'exerciseid'  => $exercise->exerciseid
-                ];
+
+                // show the graduation exercise booking option for examiners only
+                if (($exercise->exerciseid == $COURSE->subscriber->get_graduation_exercise() && ($this->data['instructor'])->is_examiner()) ||
+                    $exercise->exerciseid != $COURSE->subscriber->get_graduation_exercise()) {
+                    $sessionoptions[] = [
+                        'nextsession' => ($action->get_exerciseid() == $exercise->exerciseid ? "checked" : ""),
+                        'bordered' => $action->get_exerciseid() == $exercise->exerciseid,
+                        'graded'  => array_key_exists($exercise->exerciseid, $grades),
+                        'exerciseid'  => $exercise->exerciseid
+                    ];
+                }
+
             }
         }
 

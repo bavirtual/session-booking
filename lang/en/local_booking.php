@@ -31,9 +31,6 @@ $string['bookingdashboard'] = 'Instructor dashboard';
 $string['bookingfooter'] = '<p style="font-family:sans-serif"><a href=\'{$a->courseurl}\'>{$a->coursename}</a> -> <a href="{$a->bookingurl}">Session Booking</a></p>';
 $string['bookinginfo'] = '{$a->status} session on \'{$a->exercise}\' with instructor {$a->instructor}';
 $string['bookingnoposts'] = 'No posts';
-$string['bookingoverride'] = 'Override';
-$string['bookingoverridelabel'] = 'Restriction wait period';
-$string['bookingoverridetooltip'] = 'Allows the student to post availability and override the restriction period';
 $string['bookingkeepactivetrue'] = 'Keep active ON';
 $string['bookingkeepactivefalse'] = 'Keep active OFF';
 $string['bookingkeepactivelabel'] = 'On-hold list';
@@ -79,6 +76,10 @@ $string['sessiongradedby'] = '{$a->sessiondate}Graded by:<br/>{$a->instructor}<b
 $string['sessiongradeexampass'] = 'Exam Results<br/>Grade: {$a->grade}<br/>Date: {$a->gradedate}';
 $string['sessionprogressing'] = 'Objective Not Met<br/>(click for feedback)<br/>{$a->sessiondate}{$a->instructor}';
 $string['sessionvenue'] = 'Discord';
+$string['showactive'] = 'Active students';
+$string['showonhold'] = 'On-hold students';
+$string['showgraduates'] = 'Graduated students';
+$string['showsuspended'] = 'Suspended students';
 $string['simulator'] = 'Sim';
 $string['slots'] = 'slots';
 $string['statusbooked'] = 'confirmed';
@@ -190,7 +191,8 @@ $string['logbookdep'] = 'Departure';
 $string['logbookdual'] = 'Dual';
 $string['logbookformat'] = 'format';
 $string['logbookformateasa'] = 'EASA';
-$string['logbookformatcourse'] = 'Course';
+$string['logbookformateasatip'] = 'European Aviation Safety Agency format';
+$string['logbookformatcourse'] = 'Course format';
 $string['logbookfunc'] = 'Function';
 $string['logbookfstd'] = 'FSTD';
 $string['logbookifr'] = 'IFR';
@@ -270,8 +272,8 @@ $string['auditreports'] = 'Audit';
 $string['completereport'] = 'Complete report';
 $string['courseactivity'] = 'Course Activity';
 $string['daysback'] = 'days back';
-$string['endorsement'] = 'Skill Test Endorsement';
-$string['endorsementmgs'] = 'Endorsed by {$a->endorser} on {$a->endorsedate}';
+$string['endorsement'] = 'Skill Test Recommendation';
+$string['endorsementmgs'] = 'Recommended by {$a->endorser} on {$a->endorsedate}';
 $string['graduation'] = 'Graduation';
 $string['feedbackreport'] = 'Feedback report';
 $string['keepactive'] = 'Keep active';
@@ -283,6 +285,7 @@ $string['mentorreport']='Mentored sessions report';
 $string['modulescompleted'] = 'Modules completed';
 $string['moodleprofile'] = 'Moodle profile';
 $string['modscompletemsg'] = '{$a->usermods} out of {$a->coursemods} ({$a->percent}% complete)';
+$string['notfound'] = 'Not found';
 $string['notqualified'] = 'Not qualified';
 $string['onhold'] = 'On-hold';
 $string['outlinereport'] = 'Outline report';
@@ -290,58 +293,102 @@ $string['pageviews'] = 'page views';
 $string['practicalexamreport']='Practical examination report';
 $string['qualified'] = 'Qualified';
 $string['recency'] = 'Recency';
+$string['recommendationletterlink'] = 'Recommendation letter';
 $string['reportdate'] = 'Report date';
 $string['restrictionoverride'] = 'Restriction override';
 $string['score'] = 'Score';
 $string['sim1'] = 'Primary simulator';
 $string['sim2'] = 'Secondary simulator';
 $string['skilltest']='Skill Test';
-$string['skilltestendorse']='Recommended for test by';
-$string['skilltestform']='Fill form';
+$string['skilltestendorse']='Recommend for skill test';
 $string['slots'] = 'Slots';
 $string['slotsactive'] = 'Slots active';
 $string['theoryexamreport']='Theory examination report';
 
 // reports
+$string['aircrafttypelabel'] = 'Aircraft type/class course conducted in';
+$string['appeals'] = 'Appeals';
+$string['appealstext'] = 'Any candidate who has failed a test or examination may within 14 days of being notified of his or her failure request that the
+    Training Department determine whether the test or examination was properly conducted. In order to succeed you will have to satisfy the Training Department
+    that the examination or test was not properly conducted. Mere dissatisfaction with the result is not sufficient reason for appeal.';
+$string['blocktimes'] = 'Block times';
+$string['candidatedetails'] = 'Candidate Details';
+$string['candidateflyinghours'] = 'Candidate\'s flying hours';
+$string['candidatename'] = 'Candidate name';
+$string['checklistuse'] = 'Use of checklists, airmanship, control of aeroplane by external visual references, anti-icing procedures etc. apply in all sections.';
 $string['comments'] = 'Comments';
+$string['copyright'] = 'Copyright © {$a->ato} {$a->year}. All rights reserved.';
 $string['cumulative'] = 'Cumulative';
+$string['datecommenced'] = 'Date training commenced';
+$string['datecompleted'] = 'Date training completed';
+$string['declarationtlabel'] = 'Declaration';
+$string['declarationtext'] = 'I certify that the candidate has successfully completed all the required exercises to a satisfactory standard, meets the pre-requisite
+    requirements in accordance with {$a->ato} Flight Crew Standards and VATSIM PTD requirements, and I consider the candidate fully ready to undertake the Skill Test.';
+$string['dualflight'] = 'Dual fligt instruction';
 $string['duration'] = 'Duration';
 $string['examiner'] = 'Examiner';
-$string['examinerreport'] = 'Examiner Report';
-$string['examinerreportsubject'] = 'This is {$a->ato} ATO Examiner report for the skills test of the {$a->coursename} course.';
+$string['examinerdetails'] = 'Examiner\'s Details';
+$string['examinerreport'] = 'Examiner\'s Skill Test Form';
+$string['examinerreportfor'] = 'Examiner Form for';
+$string['examinerreportsubject'] = 'This is {$a->ato} ATO Examiner form for the skills test of the {$a->coursename} course.';
+$string['examreportcopies'] = 'Copies of the report shall be submitted to (1) The candidate (2) BAVirtual Flight Training (3) The Examiner.';
+$string['recommendationreport'] = 'Recommendation For Skill Test';
+$string['recommendationreportsubject'] = 'This is {$a->ato} ATO Recommendation for Skill Test letter compiled by the instructor recommending a student for a Skill Test.';
 $string['examend'] = 'Exam end';
 $string['examstart'] = 'Exam start';
 $string['flighttraining'] = 'Flight Training';
+$string['flightttest'] = 'Flight Test';
+$string['footnote'] = '*These items may be combined at the discretion of the Examiner.';
+$string['instructor'] = 'Instructor';
 $string['mentorreport'] = 'Mentored Sessions Report';
 $string['mentorreportdesc'] = 'The theory examination is a multi-choice, randomly selected question paper that is time-limited. It is self-contained within the Moodle program for the {$a->ato}
     {$a->coursename} course. {$a->studentname} has completed the test successfully with {$a->attempts} attempt(s) achieving the pass mark of {$a->score} out of {$a->total} ({$a->percent}%) exactly.';
 $string['mentorreportsubject'] = 'This is {$a->ato} ATO Mentored Sessions report detailing student feedback for mentored sessions of the {$a->coursename} course.';
+$string['otherflyingtime'] = 'Other flying time';
 $string['practicalexamreport'] = 'Practical Examination Report';
 $string['practicalexamreportsubject'] = 'This is {$a->ato} ATO Practical Examination report detailing the examiner\'s feedback of the {$a->coursename} course.';
+$string['ratinglabel'] = 'Rating applied for';
+$string['recommendationletterver'] = 'Rev 2 09 Jun 22';
+$string['recommendedby'] = 'Recommended for skill test by';
+$string['results'] = 'Results';
+$string['skilltestformver'] = 'Rev 3 09 Jun 22';
+$string['testdate'] = 'Date of test';
 $string['theoryexamreport'] = 'Theory Examination Report';
 $string['theoryexamreportsubject'] = 'This is {$a->ato} ATO Theory Examination report summarizing the student\'s score in the {$a->coursename} course.';
+$string['tobecompletedbyexaminer'] = 'to be completed by the examiner';
 $string['trainingaudit'] = 'Flight Training Audit';
+$string['trainingcontent'] = 'Training Content';
 $string['vatsimid'] = 'VATSIM PID';
 $string['vatsimidmissing'] = 'VATSIM PID missing!';
 
 // Skill test form
 $string['aircrafttype'] = "Aircraft Type";
+$string['approvedato'] = "Approved Training Organisation";
 $string['arrivez'] = "Arrive (Z)";
 $string['ato'] = "ATO";
 $string['attempt'] = "Attempt";
 $string['blocktimes'] = "Block times";
 $string['completionconfirmation'] = "I confirm that all required manoeuvres and exercises have been completed";
 $string['departz'] = "Depart (Z)";
+$string['examinerfailsection'] = "Examiner Report: Failure of ";
 $string['fail'] = "Fail";
-$string['furthertraining'] = "Further Training";
+$string['failurereasons'] = "Reasons for Failure";
+$string['furthertraining'] = "Further training";
 $string['itemsnotcompleted'] = "Items not completed";
-$string['pass'] = "Pass";
+$string['mandatory'] = "Mandatory";
+$string['notcompleted'] = "Not Completed";
+$string['notrequired'] = "Not required";
 $string['overallresult'] = "Overall Result";
+$string['pass'] = "Pass";
+$string['recommended'] = "Recommended";
 $string['registration'] = "Registration";
 $string['retestsections'] = "Re-test Sections";
+$string['retestsections'] = "Re-test Sections";
 $string['route'] = "Route";
+$string['section'] = "Section";
 $string['sectionstotake'] = "Sections To Be Taken";
 $string['specifictraining'] = "Specific Training Required";
+$string['subsection'] = "Sub Section";
 $string['testdate'] = "Date of Test";
 $string['testsections'] = "Test Sections";
 $string['testsectionsincomplete'] = "Test sections incomplete due";
@@ -429,11 +476,11 @@ $string['emailinstconfirmhtml'] = '<font face="sans-serif"><p><a href=\'{$a->cou
 $string['emailcancel'] = '{$a->coursename} session booking cancellation: \'{$a->exercise}\'';
 $string['emailcancelmsg'] = '{$a->instructor} has cancelled your booked session scheduled for {$a->sessiondate} on \'{$a->exercise}\'.
 Instructor\'s comment: {$a->comment}.
-Please note you will have to post new availability as current availability posts were purged.';
+Please note that you will have to post new availability slots as previous slots were purged.';
 $string['emailcancelhtml'] = '<font face="sans-serif"><p><a href=\'{$a->courseurl}\'>{$a->coursename}</a> -> <a href=\'{$a->assignurl}\'>Assignment</a> ->
     <a href=\'{$a->exerciseurl}\'>{$a->exercise}</a></p><hr /><p>{$a->instructor} has cancelled your booked session scheduled for
     <strong>{$a->sessiondate}</strong> on \'<i>{$a->exercise}</i>\'.</p><p><strong>Instructor\'s comment:</strong><br />{$a->comment}</p><p>
-    <span style=\'color: red\'>Please note you will have to post new availability as current availability posts were purged.</span></p></p><hr />';
+    <span style=\'color: red\'>Please note that you will have to post new availability slots as previous slots were purged.</span></p></p><hr />';
 
 // email to student: inactive warning
 $string['emailinactivewarning'] = '{$a->coursename}: Inactivity notification';
@@ -503,8 +550,9 @@ $string['slotcountweightdesc'] = 'weight multiplier to calculate prioritization 
 
 // install
 $string['useplugin'] = 'Use Session Booking';
+$string['trainingtype'] = 'Training type';
 $string['homeicao'] = 'Home airport ICAO';
-$string['exercisetitles'] = 'Course exercise titles:';
+$string['exercisetitles'] = 'Course exercise titles';
 $string['exercisetitlesdesc'] = 'Use to improve the display of long exercise titles on the instructors dashboard page (one title per line, use &lt;br/&gt; tag to break a title)';
 $string['overdueperiod'] = 'Instructor session overdue notification';
 $string['overdueperioddesc'] = 'A period in days after which inactive instructors will be automatically sent a notification (0 = disable restriction)';
@@ -514,8 +562,17 @@ $string['postingwait'] = 'Posting wait restriction';
 $string['postingwaitdesc'] = 'A restriction period in days between the last conducted session and the next time a student can post availability (0 = disable restriction)';
 $string['trainingaircraft'] = 'Training Aircraft ICAO';
 $string['trainingaircraftdesc'] = '(one per line)';
+$string['skilltestexercise']='Skill Test exercise name';
+$string['skilltestexercisedesc']='Exercise name as it appears in the main course page (i.e. Initial Flying Training Skill Test), required for graduation purposes';
 $string['suspensionperiod'] = 'Suspension restriction';
 $string['suspensionperioddesc'] = 'A restriction period in days after which inactive students will be automatically suspended from the course (0 = disable restriction)';
+
+// Groups
+$string['grouponholddesc'] = 'Group to track students put on hold.';
+$string['groupinactivedesc'] = 'Group to track inactive instructors.';
+$string['groupgraduatesdesc'] = 'Group to track graduated students.';
+$string['groupkeepactivedesc'] = 'Group to track students from being placed on hold.';
+$string['groupexaminersdesc'] = 'Group to identify examiner instructors.';
 
 // APIs
 $string['googleaccesstokenerror'] = 'Error: Failed to receieve Google access token';

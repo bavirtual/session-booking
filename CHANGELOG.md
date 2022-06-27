@@ -1,11 +1,84 @@
 # Change log
 
+## [2022062700] - RELEASED 2022-06-27
+
+### Changed
+
+- student profile get_exercise call
+
+### Fixed
+
+- Examiner name in Mentored Sessions and Practical exam reports
+
+## [2022061600] - UNRELEASED 2022-06-16
+
+### Added
+
+- EASA and course tooltip
+
+### Changed
+
+- Logbook course button to show course shortname
+
+## [2022061400] - UNRELEASED 2022-06-14
+
+### Added
+
+- Skill test PDF including exercise sections and 'Further training' section in PDF form
+
+### Changed
+
+- Subscriber exercises to execlude skill test assignments other than the main one
+
+## [2022060900] - UNRELEASED 2002-06-09
+
+### Added
+
+- recommendation letter PDF
+- link to show after endorsement
+- only endorser can change toggle
+- lock endorsement option once graded
+
+## [2022060600] - UNRELEASED 2002-06-06
+
+### Added
+
+- filter to show active, on-hold, and suspended students in the progression table
+- modal_actions amd to register listenersa and handle additional logentry modal form actions
+
+### Changed
+
+- reorganized listeners in booking and booking_actions
+- took out _active_ from student, instructor, and participant methods made into a filter parameter
+
+## [2022060600] - UNRELEASED 2002-06-06
+
+### Added
+
+- Skill test exercise course custom field for graduation qualification (install.php)
+- Examiners group to subscriber object to implement skill exam and assessment restrictions
+- is_examiner() method to check if an instructor has the examiner role for the skill test
+- shading to completed sessions in the interim page
+- Skill test report restriction requiring the skill test to be graded
+
+### Changed
+
+- removed Override button from the booking interim page
+- Interim page to show exercise Skill test for examiners only
+- Gray out graded sessions in interim page
+- Disabled grading in progression list for exercises requiring file submissions but no submission exists
+
+### Fixed
+
+- Participant is_active to lookup active enrolled courses from enrollib
+- install.php shortname for trainingtype
+
 ## [2022052700] - UNRELEASED 2022-05-27
 
 ### Added
 
 - require_capability to all base php accessible through base URLs
-- allow manager role access to availabilityview, logbookview, and studentnotification.
+- allow manager role access to availabilityview, logbookview, and studentnotification
 - view student logbook
 - theory exam report
 - practical exam report if the student is qualified (finished last lesson)
