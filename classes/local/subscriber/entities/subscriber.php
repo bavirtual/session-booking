@@ -117,7 +117,6 @@ class subscriber implements subscriber_interface {
         $this->courseid = $courseid;
         $this->fullname = $this->course->fullname;
         $this->shortname = $this->course->shortname;
-        $this->ato = get_booking_config('ato');
 
         // filter exercise and quiz modules only
         $cms = $this->coursemodinfo->get_cms();
@@ -142,7 +141,7 @@ class subscriber implements subscriber_interface {
         foreach ($customfields as $customfield) {
             $cat = $customfield->get_field()->get_category()->get('name');
 
-            if ($cat == $this->ato->name) {
+            if ($cat == ucfirst(get_string('pluginname', 'local_booking'))) {
                 // split textarea values into cleaned up array values
                 if ($customfield->get_field()->get('type') == 'textarea') {
                     $fieldvalues = array_filter(preg_split('/\n|\r\n?/', format_text($customfield->get_value(), FORMAT_MARKDOWN)));
@@ -263,7 +262,7 @@ class subscriber implements subscriber_interface {
 
         if (empty($student)) {
             $studentrec = participant_vault::get_student($this->courseid, $studentid);
-            $colors = (array) get_booking_config('colors', true);
+            $colors = LOCAL_BOOKING_SLOTCOLORS;
 
             // add a color for the student slots from the config.json file for each student
             if (!empty($studentrec->userid)) {
@@ -287,7 +286,7 @@ class subscriber implements subscriber_interface {
     public function get_students(string $filter = 'active', bool $includeonhold = false) {
         $activestudents = [];
         $studentrecs = participant_vault::get_students($this->courseid, $filter, $includeonhold);
-        $colors = (array) get_booking_config('colors', true);
+        $colors = LOCAL_BOOKING_SLOTCOLORS;
 
         // add a color for the student slots from the config.json file for each student
         $i = 0;
@@ -445,10 +444,10 @@ class subscriber implements subscriber_interface {
         $fieldnames = array_keys((array) $target->$data->fields);
         $fields = implode(',', (array) $target->$data->fields);
         $table = $target->$data->table;
-        $keyfield = $target->$data->key;
+        $primarykey = $target->$data->primarykey;
 
         if (!$conn->connect_errno) {
-            $sql = 'SELECT ' . $fields . ' FROM ' . $table . ' WHERE ' . $keyfield . ' = "' . $value . '"';
+            $sql = 'SELECT ' . $fields . ' FROM ' . $table . ' WHERE ' . $primarykey . ' = "' . $value . '"';
             // Return name of current default database
             if ($result = $conn->query($sql)) {
                 $values = $result->fetch_row();

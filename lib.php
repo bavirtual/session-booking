@@ -122,6 +122,31 @@ define('LOCAL_BOOKING_SENIORINSTRUCTORROLE', 'seniorinstructor');
  * LOCAL_BOOKING_FLIGHTTRAININGMANAGERROLE - constant for instructor role shortname
  */
 define('LOCAL_BOOKING_FLIGHTTRAININGMANAGERROLE', 'flighttrainingmanager');
+/**
+ * LOCAL_BOOKING_SLOTCOLORS - constant array for slot colors for students availability grid
+ */
+define('LOCAL_BOOKING_SLOTCOLORS', [
+    "red"         => "#d50000",
+    "green"       => "#689f38",
+    "yellow"      => "#ffeb3b",
+    "deep orange" => "#ff3d00",
+    "lime"        => "#aeea00",
+    "dark green"  => "#1b5e20",
+    "blue"        => "#2962ff",
+    "light blue"  => "#0091ea",
+    "orange"      => "#ff6d00",
+    "deep purple" => "#9fa8da",
+    "pink"        => "#fce4ec",
+    "light green" => "#00e676",
+    "dark blue"   => "#0d47a1",
+    "teal"        => "#00897b",
+    "light purple"=> "#c5cae9",
+    "brown"       => "#5d4037",
+    "light indigo"=> "#dcedc8",
+    "light cyan"  => "#b2ebf2",
+    "dark purple" => "#4a148c",
+    "light yellow"=> "#ffff00"
+]);
 
 /**
  * This function extends the navigation with the booking item
@@ -163,7 +188,7 @@ function local_booking_extend_navigation(global_navigation $navigation) {
             }
         }
 
-        // Add student availability navigation node for active participants
+        // Add student availability navigation and students progression nodes for active participants
         if ($participant->is_active()) {
             if (has_capability('local/booking:availabilityview', $context)) {
                 $activeparticipant = true;
@@ -195,10 +220,23 @@ function local_booking_extend_navigation(global_navigation $navigation) {
                         $parent->add_node($node);
                     }
                 }
+                // show for students only
+                if ($participant->is_student()) {
+                    $node = $navigation->find('progression', navigation_node::NODETYPE_LEAF);
+                    if (!$node && $courseid!==SITEID) {
+                        $parent = $navigation->find($courseid, navigation_node::TYPE_COURSE);
+                        $node = navigation_node::create(get_string('bookingprogression', 'local_booking'), new moodle_url('/local/booking/progression.php', array('courseid'=>$courseid)));
+                        $node->key = 'progression';
+                        $node->type = navigation_node::NODETYPE_LEAF;
+                        $node->forceopen = true;
+                        $node->icon = new  pix_icon('progression', '', 'local_booking');
+                        $parent->add_node($node);
+                    }
+                }
             }
         }
 
-        // Add instructor booking navigation node
+        // Add instructor dashboard node
         if (has_capability('local/booking:view', $context)) {
             $node = $navigation->find('bookings', navigation_node::NODETYPE_LEAF);
             if (!$node && $courseid!==SITEID) {
@@ -304,6 +342,7 @@ function local_booking_get_fontawesome_icon_map() {
         'local_booking:logbook'         => 'fa-address-book-o',
         'local_booking:paste'           => 'fa-paste',
         'local_booking:plus-square'     => 'fa-plus-square',
+        'local_booking:progression'     => 'fa-tasks',
         'local_booking:question-circle' => 'fa-question-circle',
         'local_booking:save'            => 'fa-save',
         'local_booking:subscribed'      => 'fa-envelope-o',
@@ -378,12 +417,12 @@ function get_profile_view(int $courseid, int $userid) {
  * @param   string  $filter the filter to show students, inactive (including graduates), suspended, and default to active.
  * @return  array[array, string]
  */
-function get_bookings_view(int $courseid, string $sorttype = '', string $filter = 'active') {
+function get_bookings_view(int $courseid, string $sorttype = '', string $filter = 'active', bool $readonly = false) {
     global $PAGE;
 
     $renderer = $PAGE->get_renderer('local_booking');
 
-    $template = 'local_booking/bookings';
+    $template = 'local_booking/bookings' . ($readonly ? '_readonly' : '');
     $data = [
         'courseid'=>$courseid,
         'view'      => 'sessions',
@@ -889,45 +928,4 @@ function set_booking_config(string $key, string $value) {
         var_dump(get_string('configmissing', 'local_booking', $configfile));
 
     }
-}
-
-/**
- * Callback function to updates ATO config information and course setting
- * category label
- *
- */
-function update_ato_config() {
-
-    // check if the ATO name changed
-    if (get_booking_config('ato')->name != get_config('local_booking', 'atoname')) {
-
-        // update subscribing course custom field category label w/ saved ATO name
-        $categories = api::get_categories_with_fields('core_course', 'course', 0);
-
-        foreach ($categories as $coursecategory) {
-
-            $categoryname = $coursecategory->get('name');
-
-            if ($categoryname == get_booking_config('ato')->name && $categoryname != get_config('local_booking', 'atoname')) {
-                $coursecategory->set('name', get_config('local_booking', 'atoname'));
-                api::save_category($coursecategory);
-            }
-        }
-
-        // update config file with ATO saved data in Admin settings
-        set_booking_config('name', get_config('local_booking', 'atoname'));
-    }
-
-    // check if the ATO website URL changed
-    if (get_booking_config('ato')->url != get_config('local_booking', 'atourl'))
-        set_booking_config('url', get_config('local_booking', 'atourl'));
-
-    // check if the ATO email changed
-    if (get_booking_config('ato')->email != get_config('local_booking', 'atoemail'))
-        set_booking_config('email', get_config('local_booking', 'atoemail'));
-
-    // check if the ATO logo changed
-    if (get_booking_config('ato')->logo != get_config('local_booking', 'atologourl'))
-        set_booking_config('logo', get_config('local_booking', 'atologourl'));
-
 }
