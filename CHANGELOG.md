@@ -1,5 +1,11 @@
 # Change log
 
+## [2022112700] - RELEASED 2022-11-27 - UNRELEASED
+
+### Added
+
+- no-show (1st time warning, 2nd time suspension, 3rd unenrolment) + notifications
+
 ## [2022111100] - RELEASED 2022-11-11 - hotfix
 
 ### Fixed
