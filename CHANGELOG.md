@@ -1,10 +1,10 @@
 # Change log
 
-## [2022112700] - RELEASED 2022-11-27 - UNRELEASED
+## [2022112700] - RELEASED 2022-11-27 - hotfix
 
-### Added
+### Fixed
 
-- no-show (1st time warning, 2nd time suspension, 3rd unenrolment) + notifications
+- posted slots display should be course specific
 
 ## [2022111100] - RELEASED 2022-11-11 - hotfix
 
