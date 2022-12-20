@@ -1,5 +1,32 @@
 # Change log
 
+## [2022122003] - RELEASED 2022-12-20 - hotfix
+
+### Fixed
+
+- booking sessions interface to include quizes, noshows, and passed sessions
+- style sheet progressing (color code)
+
+## [2022122001] - RELEASED 2022-12-20
+
+### Added
+
+- ‘No Show’ feature under ‘My bookings’
+    - 1st no-show: warning notification copying senior instructors
+    - 2nd no-show: suspension notification & automatic suspension for 30 days
+    - 3rd no-show: unenrolment notification copying senior instructors to manually unenrol the repeated offender
+
+### Fixed
+
+- progressing graded sessions status to show the new booked status vs progressing (color coding)
+- instructor last booked date to show booking date/time vs booking creation date/time
+
+### Changed
+
+- cron task to automatically unsuspend students after the 30 day period is done and sends reinstatement notification
+- updated some functions to be PHP 8 compatible
+- moved save_booking and confirm_booking from lib
+
 ## [2022112700] - RELEASED 2022-11-27 - hotfix
 
 ### Fixed
