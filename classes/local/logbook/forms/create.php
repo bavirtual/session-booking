@@ -26,8 +26,8 @@
 
 namespace local_booking\local\logbook\forms;
 
-use ArrayIterator;
 use ArrayObject;
+use DateTimeImmutable;
 use local_booking\local\logbook\entities\logbook;
 use local_booking\local\participant\entities\participant;
 use local_booking\local\session\entities\booking;
@@ -57,10 +57,13 @@ class create extends \moodleform {
 
         $mform = $this->_form;
         $logentry = isset($this->_customdata['logentry']) ? $this->_customdata['logentry'] : null;
-        $courseid = isset($this->_customdata['courseid']) ? $this->_customdata['courseid'] : null;
-        $newentry = true;
-        if (!empty($logentry))
+
+        // check for new entry
+        if (!empty($logentry)) {
             $newentry = $logentry->get_id() == 0;
+        } else {
+            $newentry = true;
+        }
 
         $mform->setDisableShortforms();
         $mform->disable_form_change_checker();
@@ -88,8 +91,8 @@ class create extends \moodleform {
 
         // validate the flight date is not before the booking date
         $exercisedate = booking::get_exercise_date($data['courseid'], $data['userid'], $data['exerciseid']);
-        if (!empty($exercisedate) && $data['flighttype'] != 'solo') {
-            if ($data['flightdate'] < $exercisedate)
+        if (!empty($exercisedate) && array_key_exists('flighttype', $data) && array_key_exists('flightdate', $data)) {
+            if ($data['flightdate'] < $exercisedate && $data['flighttype'] != 'solo' )
                 $errors['flightdate'] = get_string('errorinvaliddate', 'local_booking');
         }
 
@@ -116,9 +119,13 @@ class create extends \moodleform {
         $integratedpireps = $subscriber->has_integration('pireps');
         $newlogentry = empty($logentry) || empty($logentry->get_id());
 
-        // set additional information
+        // set core logentry data
         if ($newlogentry) {
-            $flightdate = isset($this->_customdata['flightdate']) ? $this->_customdata['flightdate'] : null;
+            $flightdate = time();
+            if (array_key_exists('flightdate', $this->_customdata)) {
+                $flightdate = is_numeric($this->_customdata['flightdate']) ? $this->_customdata['flightdate'] :
+                    (new DateTimeImmutable(str_replace("- ", "", $this->_customdata['flightdate'])))->getTimestamp();
+            }
             $p1id = $USER->id;
             $p2id = $this->_customdata['userid'];
         } else {
@@ -148,7 +155,7 @@ class create extends \moodleform {
         }
 
         // add primary elements
-        $this->add_element($mform, 'flightdate', array($flightdate));
+        $this->add_element($mform, 'flightdate', [$flightdate]);
         $this->add_element($mform, 'p1id', array($pilots, $p1id, $subscriber->trainingtype));
         $this->add_element($mform, 'p2id', array($pilots, $p2id, $subscriber->trainingtype));
 
@@ -180,8 +187,12 @@ class create extends \moodleform {
         }
 
         // default to 30 hr/mins from session time for departure and 1:30 hr/mins from session time for arrival
-        $defaultdepttime = logbook::convert_time(($flightdate + (30 * 60)), 'TS_TO_TIME');
-        $defaultarrttime = logbook::convert_time(($flightdate + (90 * 60)), 'TS_TO_TIME');
+        $datetime = time();
+        if (!empty($flightdate)) {
+            $datetime = is_numeric($flightdate) ? $flightdate : strtotime($flightdate);
+        }
+        $defaultdepttime = logbook::convert_time(($datetime + (30 * 60)), 'TS_TO_TIME');
+        $defaultarrttime = logbook::convert_time(($datetime + (90 * 60)), 'TS_TO_TIME');
         $this->add_element($mform, 'departure', array($subscriber->homeicao, $defaultdepttime), false);
         $this->add_element($mform, 'arrival', array($subscriber->homeicao, $defaultarrttime), false);
         $this->add_element($mform, 'aircraft', array($subscriber->aircrafticao, [
@@ -347,7 +358,8 @@ class create extends \moodleform {
                 // Show integrated PIREP lookup (options[0])
                 if ($options[0]) {
                     // Show P1 PIREP vs PIREP depending on whether it's a new entry or not (options[1])
-                    $mform->addElement('text', 'p1pirep', get_string(($options[1] ? 'instpirep' : 'pirep'), 'local_booking'));
+                    $mform->addElement('text', 'p1pirep', get_string(($options[1] ? 'instpirep' : 'pirep'), 'local_booking'),
+                        'placeholder="' . get_string('pireplabel', 'local_booking') . '"');
                     $mform->addRule('p1pirep', get_string('err_numeric', 'form'), 'numeric', null, 'client');
                     if ($options[1])
                         $mform->addHelpButton('p1pirep', 'instpirep', 'local_booking');

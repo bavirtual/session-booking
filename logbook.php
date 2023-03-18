@@ -24,7 +24,7 @@
  */
 
 use local_booking\local\participant\entities\participant;
-use local_booking\local\session\entities\booking;
+use local_booking\navigation\views\manage_action_bar;
 
 // Standard GPL and phpdocs
 require_once(__DIR__ . '/../../config.php');
@@ -39,9 +39,10 @@ $categoryid = optional_param('categoryid', null, PARAM_INT);
 $courseid = optional_param('courseid', SITEID, PARAM_INT);
 $userid = optional_param('userid', $USER->id, PARAM_INT);
 $username = participant::get_fullname($userid);
-$format = optional_param('format', '', PARAM_TEXT);
+$format = optional_param('format', 'easa', PARAM_TEXT);
 $course = get_course($courseid);
-$title = $USER->id == $userid ? get_string('logbookmy', 'local_booking') : $username;
+$title = ($USER->id == $userid ? get_string('logbookmy', 'local_booking') : $username)
+    . ' ' . get_string('logbook', 'local_booking');
 
 $params = array('courseid'=>$courseid, 'userid'=>$userid);
 $url = new moodle_url('/local/booking/logbook.php', $params);
@@ -70,8 +71,8 @@ $PAGE->requires->css(new \moodle_url('https://cdn.datatables.net/responsive/2.2.
 $PAGE->requires->js(new \moodle_url($CFG->wwwroot . '/local/booking/js/datatables/logbook.js'));
 
 $PAGE->navbar->add($USER->id == $userid ? get_string('logbookmy', 'local_booking') : ucfirst(get_string('logbook', 'local_booking')));
-$PAGE->set_pagelayout('standard');  // otherwise use 'standard' layout
-$PAGE->set_title($title, 'local_booking');
+$PAGE->set_pagelayout('admin'); // wide page layout
+$PAGE->set_title($COURSE->shortname . ': ' . $title, 'local_booking');
 $PAGE->set_heading($title, 'local_booking');
 $PAGE->add_body_class('path-local-booking');
 
@@ -79,6 +80,10 @@ $renderer = $PAGE->get_renderer('local_booking');
 
 echo $OUTPUT->header();
 echo $renderer->start_layout();
+
+// output action bar
+$actionbar = new manage_action_bar($PAGE, 'logbook');
+echo $renderer->render_tertiary_navigation($actionbar);
 
 list($data, $template) = get_logbook_view($courseid, $userid, $format);
 echo $renderer->render_from_template($template, $data);

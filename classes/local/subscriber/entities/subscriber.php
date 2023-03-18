@@ -357,10 +357,12 @@ class subscriber implements subscriber_interface {
         $i = 0;
         foreach ($studentrecs as $studentrec) {
             $student = new student($this, $studentrec->userid);
-            $student->populate($studentrec);
-            $student->set_slot_color(count($colors) > 0 ? array_values($colors)[$i % LOCAL_BOOKING_MAXLANES] : LOCAL_BOOKING_SLOTCOLOR);
-            $activestudents[] = $student;
-            $i++;
+            if (!$student->is_instructor()) {
+                $student->populate($studentrec);
+                $student->set_slot_color(count($colors) > 0 ? array_values($colors)[$i % LOCAL_BOOKING_MAXLANES] : LOCAL_BOOKING_SLOTCOLOR);
+                $activestudents[] = $student;
+                $i++;
+            }
         }
         $this->activestudents = $activestudents;
 
@@ -477,12 +479,16 @@ class subscriber implements subscriber_interface {
     public function get_exercise_name(int $exerciseid, int $courseid = 0) {
 
         // look in another course
-        if ($courseid != 0 && $courseid != $this->courseid) {
-            $coursemodinfo = get_fast_modinfo($courseid);
-            $mods = $coursemodinfo->get_cms();
-            $modname = $mods[$exerciseid]->name;
+        if (!empty($exerciseid)) {
+            if ($courseid != 0 && $courseid != $this->courseid) {
+                $coursemodinfo = get_fast_modinfo($courseid);
+                $mods = $coursemodinfo->get_cms();
+                $modname = $mods[$exerciseid]->name;
+            } else {
+                $modname = $this->modules[$exerciseid]->name;
+            }
         } else {
-            $modname = $this->modules[$exerciseid]->name;
+            $modname = get_string('errorexercisemissing', 'local_booking');
         }
 
         return $modname;

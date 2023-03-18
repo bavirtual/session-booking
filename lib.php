@@ -38,6 +38,7 @@ use local_booking\local\logbook\forms\create as update_logentry_form;
 use local_booking\external\week_exporter;
 use local_booking\local\logbook\entities\logbook;
 use local_booking\local\logbook\entities\logentry;
+use local_booking\local\participant\entities\instructor;
 use local_booking\local\subscriber\entities\subscriber;
 
 /**
@@ -81,7 +82,7 @@ define('LOCAL_BOOKING_WEEKSLOOKAHEAD', 5);
  */
 define('LOCAL_BOOKING_OVERDUE_PERIOD', 10);
 /**
- * LOCAL_BOOKING_PASTDATACUTOFF - default value of days in processing past data (i.e. past grades)
+ * LOCAL_BOOKING_PASTDATACUTOFF - default value of days in processing past data (i.e. past grades) - (2 years)
  */
 define('LOCAL_BOOKING_PASTDATACUTOFF', 730);
 /**
@@ -91,7 +92,7 @@ define('LOCAL_BOOKING_NOSHOWPERIOD', 90);
 /**
  * LOCAL_BOOKING_NOSHOWSUSPENSIONPERIOD - constant for the period of suspension due to no-show
  */
-define('LOCAL_BOOKING_NOSHOWSUSPENSIONPERIOD', 30);
+define('LOCAL_BOOKING_NOSHOWSUSPENSIONPERIOD', 1);
 /**
  * LOCAL_BOOKING_ONHOLDGROUP - constant string value for students placed on-hold for group quering purposes
  */
@@ -155,7 +156,7 @@ define('LOCAL_BOOKING_SLOTCOLORS', [
  *
  * @param global_navigation $navigation The global navigation node to extend
  */
-function local_booking_extend_navigation(global_navigation $navigation) {
+function local_booking_extend_navigation_course(navigation_node $navigation) {
     global $COURSE, $USER;
 
     $courseid = $COURSE->id;
@@ -169,23 +170,17 @@ function local_booking_extend_navigation(global_navigation $navigation) {
         // for checking if the participant is active
         $participant = $COURSE->subscriber->get_participant($USER->id);
 
-        // Add student log book navigation node for active participants
-        if ($participant->is_active()) {
-            if (has_capability('local/booking:logbookview', $context)) {
-                $node = $navigation->find('logbook', navigation_node::NODETYPE_LEAF);
-                if (!$node && $courseid!==SITEID) {
-                    // form URL and parameters
-                    $params = array('courseid'=>$courseid, 'userid'=>$USER->id);
-                    $url = new moodle_url('/local/booking/logbook.php', $params);
-
-                    $parent = $navigation->find($courseid, navigation_node::TYPE_COURSE);
-                    $node = navigation_node::create(ucfirst(get_string('logbook', 'local_booking')), $url);
-                    $node->key = 'logbook';
-                    $node->type = navigation_node::NODETYPE_LEAF;
-                    $node->forceopen = true;
-                    $node->icon = new  pix_icon('logbook', '', 'local_booking');
-                    $parent->add_node($node);
-                }
+        // Add instructor dashboard node
+        if (has_capability('local/booking:view', $context)) {
+            $node = $navigation->find('bookings', navigation_node::TYPE_SETTING);
+            if (!$node && $courseid!==SITEID) {
+                $url = new moodle_url('/local/booking/view.php', array('courseid'=>$courseid));
+                $node = navigation_node::create(get_string('bookings', 'local_booking'), $url,
+                navigation_node::TYPE_SETTING,
+                null,
+                null,
+                new pix_icon('booking', '', 'local_booking'));
+                $navigation->add_node($node);
             }
         }
 
@@ -194,11 +189,14 @@ function local_booking_extend_navigation(global_navigation $navigation) {
             if (has_capability('local/booking:availabilityview', $context)) {
                 $activeparticipant = true;
                 $nodename = '';
-                $node = $navigation->find('availability', navigation_node::NODETYPE_LEAF);
+                $node = $navigation->find('availability', navigation_node::TYPE_SETTING);
+
                 if (!$node && $courseid!==SITEID) {
+
                     // form URL and parameters
                     $params = array('courseid'=>$courseid);
-                    // view all capability for instructors
+
+                    // get proper link for instructors
                     if (has_capability('local/booking:view', $context)) {
                         $nodename = get_string('availabilityinst', 'local_booking');
                     } else {
@@ -209,45 +207,48 @@ function local_booking_extend_navigation(global_navigation $navigation) {
                         $activeparticipant = !empty($student);
                     }
 
+                    // add the node to active participants
                     if ($activeparticipant) {
                         $url = new moodle_url('/local/booking/availability.php', $params);
-
-                        $parent = $navigation->find($courseid, navigation_node::TYPE_COURSE);
-                        $node = navigation_node::create($nodename, $url);
-                        $node->key = 'availability';
-                        $node->type = navigation_node::NODETYPE_LEAF;
-                        $node->forceopen = true;
-                        $node->icon = new  pix_icon('availability', '', 'local_booking');
-                        $parent->add_node($node);
+                        $node = navigation_node::create($nodename, $url,
+                        navigation_node::TYPE_SETTING,
+                        null,
+                        null,
+                        new pix_icon('availability', '', 'local_booking'));
+                        $navigation->add_node($node);
                     }
                 }
                 // show for students only
-                if ($participant->is_student()) {
-                    $node = $navigation->find('progression', navigation_node::NODETYPE_LEAF);
+                if (!$participant->is_instructor()) {
+                    $node = $navigation->find('progression', navigation_node::TYPE_SETTING);
                     if (!$node && $courseid!==SITEID) {
-                        $parent = $navigation->find($courseid, navigation_node::TYPE_COURSE);
-                        $node = navigation_node::create(get_string('bookingprogression', 'local_booking'), new moodle_url('/local/booking/progression.php', array('courseid'=>$courseid)));
-                        $node->key = 'progression';
-                        $node->type = navigation_node::NODETYPE_LEAF;
-                        $node->forceopen = true;
-                        $node->icon = new  pix_icon('progression', '', 'local_booking');
-                        $parent->add_node($node);
+                        $url = new moodle_url('/local/booking/progression.php', array('courseid'=>$courseid));
+                        $node = navigation_node::create(get_string('bookingprogression', 'local_booking'), $url,
+                        navigation_node::TYPE_SETTING,
+                        null,
+                        null,
+                        new pix_icon('progression', '', 'local_booking'));
+                        $navigation->add_node($node);
                     }
                 }
             }
         }
 
-        // Add instructor dashboard node
-        if (has_capability('local/booking:view', $context)) {
-            $node = $navigation->find('bookings', navigation_node::NODETYPE_LEAF);
-            if (!$node && $courseid!==SITEID) {
-                $parent = $navigation->find($courseid, navigation_node::TYPE_COURSE);
-                $node = navigation_node::create(get_string('bookings', 'local_booking'), new moodle_url('/local/booking/view.php', array('courseid'=>$courseid)));
-                $node->key = 'bookings';
-                $node->type = navigation_node::NODETYPE_LEAF;
-                $node->forceopen = true;
-                $node->icon = new  pix_icon('booking', '', 'local_booking');
-                $parent->add_node($node);
+        // Add student log book navigation node for active participants
+        if ($participant->is_active()) {
+            if (has_capability('local/booking:logbookview', $context)) {
+                $node = $navigation->find('logbook', navigation_node::TYPE_SETTING);
+                if (!$node && $courseid!==SITEID) {
+                    // form URL and parameters
+                    $params = array('courseid'=>$courseid, 'userid'=>$USER->id);
+                    $url = new moodle_url('/local/booking/logbook.php', $params);
+                    $node = navigation_node::create(ucfirst(get_string('logbookmy', 'local_booking')), $url,
+                    navigation_node::TYPE_SETTING,
+                    null,
+                    null,
+                    new pix_icon('logbookmy', '', 'local_booking'));
+                    $navigation->add_node($node);
+                }
             }
         }
     }
@@ -341,6 +342,7 @@ function local_booking_get_fontawesome_icon_map() {
         'local_booking:graduate'        => 'fa-graduation-cap',
         'local_booking:info-circle'     => 'fa-info-circle',
         'local_booking:logbook'         => 'fa-address-book-o',
+        'local_booking:noslot'          => 'fa-calendar-times-o',
         'local_booking:paste'           => 'fa-paste',
         'local_booking:plus-square'     => 'fa-plus-square',
         'local_booking:progression'     => 'fa-tasks',
@@ -377,7 +379,7 @@ function get_weekly_view(\calendar_information $calendar, array $actiondata, str
     $week = new week_exporter($actiondata, $view, $related);
     $data = $week->export($renderer);
     $data->viewingmonth = true;
-    $template = 'local_booking/calendar_week';
+    $template = 'local_booking/availability_calendar';
 
     return [$data, $template];
 }
@@ -414,22 +416,24 @@ function get_profile_view(int $courseid, int $userid) {
 /**
  * Get the student's progression view output.
  *
- * @param   int     $courseid the associated course.
- * @param   string  $sorttype student progression sorting.
- * @param   string  $filter the filter to show students, inactive (including graduates), suspended, and default to active.
+ * @param   int        $courseid the associated course.
+ * @param   instructor $instructor the associated course.
+ * @param   string     $sorttype student progression sorting.
+ * @param   string     $filter the filter to show students, inactive (including graduates), suspended, and default to active.
  * @return  array[array, string]
  */
-function get_bookings_view(int $courseid, string $sorttype = '', string $filter = 'active', bool $readonly = false) {
+function get_bookings_view(int $courseid, ?instructor $instructor, string $sorttype = '', string $filter = 'active', bool $readonly = false) {
     global $PAGE;
 
     $renderer = $PAGE->get_renderer('local_booking');
 
     $template = 'local_booking/bookings' . ($readonly ? '_readonly' : '');
     $data = [
-        'courseid'=>$courseid,
+        'courseid'  => $courseid,
+        'instructor'=> $instructor,
         'view'      => 'sessions',
         'sorttype'  => $sorttype,
-        'filter'  => $filter
+        'filter'    => $filter
     ];
     $related = [
         'context'   => \context_course::instance($courseid),
@@ -444,19 +448,21 @@ function get_bookings_view(int $courseid, string $sorttype = '', string $filter 
 /**
  * Get the booking confirmation output view.
  *
- * @param   int     $courseid the associated course.
- * @param   int     $studentid the student user id being confirmed.
+ * @param   int        $courseid the associated course.
+ * @param   instructor $instructor the associated course.
+ * @param   int        $studentid the student user id being confirmed.
  * @return  array[array, string]
  */
-function get_session_selection_view(int $courseid, int $studentid) {
+function get_session_selection_view(int $courseid, instructor $instructor, int $studentid) {
     global $PAGE;
 
     $renderer = $PAGE->get_renderer('local_booking');
 
     $template = 'local_booking/booking';
     $data = [
-        'courseid'=>$courseid,
-        'view'      => 'confirm'
+        'courseid'    => $courseid,
+        'instructor'  => $instructor,
+        'view'        => 'confirm'
     ];
     $related = [
         'context'   => \context_course::instance($courseid),
@@ -556,17 +562,19 @@ function get_logentry_view(int $courseid, int $userid, array $formdata = null) {
 /**
  * Get instructor assigned students view output.
  *
- * @param   int     $courseid the associated course id.
+ * @param   int         $courseid the associated course id.
+ * @param   instructor  $instructor the instructor requesting the view.
  * @return  array[array, string]
  */
-function get_students_view(int $courseid) {
+function get_students_view(int $courseid, instructor $instructor) {
     global $PAGE;
 
     $renderer = $PAGE->get_renderer('local_booking');
 
     $template = 'local_booking/my_students';
     $data = [
-        'courseid'  => $courseid,
+        'courseid'    => $courseid,
+        'instructor'  => $instructor,
     ];
 
     $students = new assigned_students_exporter($data, ['context' => \context_course::instance($courseid)]);

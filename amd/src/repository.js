@@ -104,7 +104,6 @@ import Ajax from 'core/ajax';
  * @param {int} courseId        The course id of the booking
  * @param {int} exerciseId      The exercise id of the associated course
  * @param {int} studentId       The id of the associated user
- * @param {int} slotId          The id of the slot if exists != 0
  * @return {promise}
  */
  export const saveBookedSlot = (bookedslot, courseId, exerciseId, studentId) => {
@@ -284,15 +283,17 @@ import Ajax from 'core/ajax';
  * @param  {string} pirep The passed PIREP number
  * @param  {number} courseId The logbook entry user id.
  * @param  {number} userId The logbook entry course id.
+ * @param  {number} exerciseId The logbook entry course id.
  * @return  {promise} Resolved with the pirep data
  */
- export const findPirep = (pirep, courseId, userId) => {
+ export const findPirep = (pirep, courseId, userId, exerciseId) => {
     const request = {
         methodname: 'local_booking_get_pirep',
         args: {
             pirep: pirep,
             courseid: courseId,
-            userid: userId
+            userid: userId,
+            exerciseid: exerciseId
         }
     };
 

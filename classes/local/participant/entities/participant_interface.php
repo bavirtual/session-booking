@@ -122,6 +122,13 @@ interface participant_interface {
     public function get_callsign();
 
     /**
+     * Returns pilot's fleet association
+     *
+     * @return string   The participant's fleet
+     */
+    public function get_fleet();
+
+    /**
      * Returns a participant's user profile field
      *
      * @param string $field     The name of the field
@@ -176,6 +183,13 @@ interface participant_interface {
      * @return bool $is_student.
      */
     public function is_student();
+
+    /**
+     * check if the participant is an instructor
+     *
+     * @return bool $is_instructor.
+     */
+    public function is_instructor();
 
     /**
      * check if the participant is active

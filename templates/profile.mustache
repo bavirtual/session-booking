@@ -45,6 +45,7 @@
                     <h3 class="lead">{{#str}} profile {{/str}}</h3>
                     <dl><dt>{{#str}} name {{/str}}</dt><dd>{{fullname}}</dd></dl>
                     <dl><dt>{{#str}} timezone {{/str}}</dt><dd>{{timezone}}</dd></dl>
+                    <dl><dt>{{#str}} fleet , local_booking {{/str}}</dt><dd>{{fleet}}</dd></dl>
                     <dl><dt>{{#str}} sim1 , local_booking {{/str}}</dt><dd>{{sim1}}</dd></dl>
                     <dl><dt>{{#str}} sim2 , local_booking {{/str}}</dt><dd>{{sim2}}</dd></dl>
                     <span><a href="{{moodleprofileurl}}">{{#str}} moodleprofile , local_booking {{/str}}</a></span>
@@ -186,17 +187,6 @@
                     <div id="status" class="comment-status"></div>
                 </div>
             </section>
-        </div>
-        <div class="bottom" style="text-align: center;">
-            <div class="singlebutton">
-                <button type="button" onclick="location.href='{{url}}'"
-                    class="session-button-confirm"
-                    data-region="back-button"
-                    id="back_button"
-                    title="">
-                    {{#str}} back {{/str}}
-                </button>
-            </div>
         </div>
     </div>
 </div>

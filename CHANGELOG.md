@@ -1,5 +1,61 @@
 # Change log
 
+## [2023031800] - RELEASED 2023-03-18
+
+### Fixed
+
+- logbook entry quick form search PIREP null fix
+
+### Added
+
+- fleet field MVC
+
+## [2023031300] - RELEASED 2023-03-13
+
+### Fixed
+
+- availability cell selection border
+
+### Added
+
+- secondary navigation callbacks
+
+### Changed
+
+- availability page formatting
+- Session booking page formatting
+- tertiary menus options and buttons moved to top of views
+- Secondary menu link selection (check mark) based on the right context
+- strtotime change to DateTimeImmutable::createFromFormat
+
+## [2023022800] - RELEASED 2023-02-28
+
+### Fixed
+
+- solo flight editing
+
+### Added
+
+- student notification of logbook entry recording
+
+### Changed
+
+- logbook entries to show solo flight types in the heading of an entry
+- participants list to be limited to past cutoff date for data retrieval
+- remove instructors from graduates list
+
+## [2023022700] - RELEASED 2023-02-27 - hotfix
+
+### Fixed
+
+- solo flight persistence exception
+
+## [2023022200] - RELEASED 2023-02-22 - hotfix
+
+### Fixed
+
+- old grades for returning students are showing even when they're before past processing cutoff date 'LOCAL_BOOKING_PASTDATACUTOFF'
+
 ## [2023020700] - RELEASED 2023-02-07
 
 ### Fixed

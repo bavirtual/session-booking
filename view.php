@@ -24,28 +24,27 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use local_booking\local\subscriber\entities\subscriber;
+
 // Standard GPL and phpdocs
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
 
 // Set up the page.
 $categoryid = optional_param('categoryid', null, PARAM_INT);
-$courseid = optional_param('courseid', SITEID, PARAM_INT);
-$course = get_course($courseid);
-$studentid = optional_param('userid', 0, PARAM_INT);
-$sorttype = optional_param('sort', '', PARAM_ALPHA);
-$action = optional_param('action', 'book', PARAM_ALPHA);
-$title = get_string('pluginname', 'local_booking');
-
-$url = new moodle_url('/local/booking/view.php');
-$url->param('courseid', $courseid);
-
-$PAGE->set_url($url);
-
-$context = context_course::instance($courseid);
+$courseid   = optional_param('courseid', SITEID, PARAM_INT);
+$course     = get_course($courseid);
+$studentid  = optional_param('userid', 0, PARAM_INT);
+$sorttype   = optional_param('sort', '', PARAM_ALPHA);
+$action     = optional_param('action', 'book', PARAM_ALPHA);
+$context     = context_course::instance($courseid);
 
 require_login($course, false);
 require_capability('local/booking:view', $context);
+
+$url = new moodle_url('/local/booking/view.php');
+$url->param('courseid', $courseid);
+$PAGE->set_url($url);
 
 // Flight rules library RobinHerbots-Inputmask library to mask flight times in the Log Book modal form
 $PAGE->requires->jquery();
@@ -53,9 +52,9 @@ $PAGE->requires->js( new moodle_url($CFG->wwwroot . '/local/booking/js/inputmask
 
 $navbartext = $action == 'book' ? get_string('bookingdashboard', 'local_booking') : get_string('bookingsessionselection', 'local_booking');
 $PAGE->navbar->add($navbartext);
-$PAGE->set_pagelayout('standard');
-$PAGE->set_title($title, 'local_booking');
-$PAGE->set_heading($title, 'local_booking');
+$PAGE->set_pagelayout('admin');   // wide page layout
+$PAGE->set_title($COURSE->shortname . ': ' . get_string('pluginname', 'local_booking'), 'local_booking');
+$PAGE->set_heading(get_string('bookingdashboard', 'local_booking'), 'local_booking');
 $PAGE->add_body_class('path-local-booking');
 
 $renderer = $PAGE->get_renderer('local_booking');
@@ -64,22 +63,34 @@ echo $OUTPUT->header();
 echo $renderer->start_layout();
 echo html_writer::start_tag('div', array('class'=>'heightcontainer'));
 
+// define subscriber globally
+if (empty($COURSE->subscriber)) {
+    $COURSE->subscriber = new subscriber($courseid);
+}
+
+// instructor object
+$instructor = $COURSE->subscriber->get_instructor($USER->id);
+
 // select the student progression booking view or the booking confirmation view
 if ($action=='book') {
     // get students bookings and progression view
-    list($data, $template) = get_bookings_view($courseid, $sorttype);
-    echo $renderer->render_from_template($template, $data);
-
-    // get instructor's assigned students
-    list($data, $template) = get_students_view($courseid);
+    list($data, $template) = get_bookings_view($courseid, $instructor, $sorttype);
     echo $renderer->render_from_template($template, $data);
 
     if (has_capability('local/booking:participationview', $context)) {
+
+        if (count($instructor->get_assigned_students()) > 0) {
+            // get instructor's assigned students
+            list($data, $template) = get_students_view($courseid, $instructor);
+            echo $renderer->render_from_template($template, $data);
+        }
+
         list($data, $template) = get_participation_view($courseid);
         echo $renderer->render_from_template($template, $data);
     }
 } elseif ($action=='confirm') {
-    list($data, $template) = get_session_selection_view($courseid, $studentid);
+
+    list($data, $template) = get_session_selection_view($courseid, $instructor, $studentid);
     echo $renderer->render_from_template($template, $data);
 }
 

@@ -28,6 +28,7 @@ define([
         'core/str',
         'core/pending',
         'core/modal_factory',
+        'core/notification',
         'local_booking/booking_view_manager',
         'local_booking/booking_actions',
         'local_booking/events',
@@ -39,6 +40,7 @@ define([
         Str,
         Pending,
         ModalFactory,
+        Notification,
         ViewManager,
         BookingActions,
         BookingEvents,
@@ -52,8 +54,6 @@ define([
      *
      * @method registerBookingEventListeners
      * @param  {object} root The booking root element
-     * @param  {object} logentryFormModalPromise A promise reolved with the Logentry form modal
-     * @param  {object} pirepFormPromise A promise reolved with the PIREP verification form modal
      */
      const registerBookingEventListeners = function(root) {
         const body = $('body');
@@ -86,7 +86,7 @@ define([
         // Listen to the click on the 'No-show' booking buttons in 'Instructor dashboard' page.
         root.on('click', Selectors.noshowbutton, function(e) {
             // Get number of no shows
-            const noshows = $(e.target).closest(Selectors.sessionbutton).data('noshows');
+            const noshows = $(e.target).closest(Selectors.noshowbutton).data('noshows');
             // Get the message associated with the number of no-show occurence
             const noShowComment = Str.get_string('commentnoshow' + noshows, 'local_booking').then(function(noshowMsg) {
                 return noshowMsg;

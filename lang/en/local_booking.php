@@ -52,21 +52,23 @@ $string['bookingsortbyscore'] = 'score';
 $string['bookingsortbyscoretooltip'] = 'Sorts by student score';
 $string['bookingsortbyavailability'] = 'availability';
 $string['bookingsortbyavailabilitytooltip'] = 'Sorts by students with availability posts, then no posts, then incomplete lessons';
-$string['booksave'] = 'Save Booking';
+$string['booksave'] = 'Save booking';
 $string['commentcancel'] = 'Please provide the student with a short comment on this cancellation:';
 $string['commentnoshow'] = 'Confirm student failed to show without a prior notice.';
 $string['commentnoshow0'] = 'This is the student\'s first no-show, therefore they will be sent a warning.';
 $string['commentnoshow1'] = 'This is the student\'s second no-show within 3 months, therefore they will be suspended.';
 $string['commentnoshow2'] = 'This is the student\'s third no-show within 3 months, therefore they will be scheduled to be unenroled from the course.';
-$string['evaluate'] = 'Eval.';
-$string['graduate'] = 'Grad.';
 $string['configmissing'] = 'Failed to open {$a}';
+$string['coursecompletion'] = 'course completion';
 $string['customfielddual'] = 'Dual';
 $string['customfieldmulticrew'] = 'Multicrew';
 $string['elapseddays'] = 'Elapsed Days';
 $string['enroldate'] = 'Enrol Date';
+$string['evaluate'] = 'Eval.';
 $string['exercise'] = 'Exercise';
+$string['fleet'] = 'Fleet';
 $string['grade'] = 'Grade';
+$string['graduate'] = 'Grad.';
 $string['instructors'] = 'Instructors';
 $string['lastgradeddate'] = 'Last session graded';
 $string['lastsessiondate'] = 'Last session booked';
@@ -75,7 +77,6 @@ $string['nextlesson'] = 'Next Lesson';
 $string['nobookingtoconfirm'] = 'You have no booking to confirm.';
 $string['participation'] = 'Instructor participation';
 $string['pluginname'] = 'Session booking';
-$string['progression'] = 'Students Progression';
 $string['role'] = 'Role';
 $string['sequencetooltip'] = 'Score: {$a->score}<br/>Last session: {$a->recency} days<br/>Course activity: {$a->activity} views
 <br/>Availability: {$a->slots} posts<br/>Completion: {$a->completion} lessons';
@@ -258,10 +259,12 @@ $string['picustime_help'] = 'Flight time logged by the pilot in command under su
 $string['pilot'] = 'Pilot';
 $string['pilotlogbook'] = 'Pilot\'s Logbook';
 $string['pirep'] = 'PIREP';
+$string['pireplabel'] = 'PIREP search';
 $string['pirepfound'] = ' - PIREP found.';
 $string['pirepsgroup'] = 'PIREPs (P1/P2)';
 $string['remarks'] = 'Remarks';
 $string['sessionlength'] = 'Session length';
+$string['soloflight'] = 'Solo Flight';
 $string['solotime'] = 'Solo time';
 $string['titleeditlogentry'] = 'Editing logbook entry';
 $string['titlenewlogentry'] = 'New logbook entry';
@@ -289,6 +292,7 @@ $string['comment'] = 'Comments';
 $string['commentsaved'] = '- Comment saved';
 $string['commentnotsaved'] = '- Unable to save comment';
 $string['courseactivity'] = 'Course Activity';
+$string['studentprofile'] = 'Student profile';
 $string['daysback'] = 'days back';
 $string['graduated'] = 'Graduated';
 $string['endorsement'] = 'Skill Test Recommendation';
@@ -377,7 +381,7 @@ $string['trainingaudit'] = 'Flight Training Audit';
 $string['trainingcontent'] = 'Training Content';
 $string['uploadreport'] = 'Submit evaluation form';
 $string['uploadreportmsg1'] = '<span class"mt-4" style="color: darkred;">Upon completion of the form below, please save it to your local drive using the download button from the PDF menu.';
-$string['uploadreportmsg2'] = '<br />Afterwards submit the saved file to the <strong>Feedback files</strong> section of the Skill Test exercise accessible from the button above.</span>';
+$string['uploadreportmsg2'] = '<br />Afterwards submit the saved file to the <strong>Feedback files</strong> section of the Skill Test exercise accessible from the button below.</span>';
 $string['vatsimid'] = 'VATSIM PID';
 $string['vatsimidmissing'] = 'VATSIM PID missing!';
 $string['aircrafttype'] = "Aircraft Type";
@@ -399,6 +403,7 @@ $string['booking:view'] = 'View session bookings';
 $string['messageprovider:booking_notification'] = 'Session booked notification';
 $string['messageprovider:booking_confirmation'] = 'Booked session instructor confirmation';
 $string['messageprovider:instructor_notification'] = 'Student confirmation of booked session';
+$string['messageprovider:logbook_notification'] = 'Student notification of a logbook entry';
 $string['messageprovider:session_cancellation'] = 'Student session cancellation / no-show notifications';
 $string['messageprovider:noshow_notification'] = 'Student notification of no-show and resulting actions';
 $string['messageprovider:noshow_instructor_notification'] = 'Instructor notification of student no-show actions taken';
@@ -449,6 +454,29 @@ $string['emailinstconfirmnmsg'] = '{$a->student} confirmed your booked session f
 $string['emailinstconfirmhtml'] = '<font face="sans-serif"><p><a href=\'{$a->courseurl}\'>{$a->coursename}</a> -> <a href=\'{$a->assignurl}\'>Assignment</a> ->
     <a href=\'{$a->exerciseurl}\'>{$a->exercise}</a></p><hr /><p><strong>{$a->student}</strong> confirmed your booked session for \'<i>{$a->exercise}</i>\' on
     <strong>{$a->sessiondate} zulu</strong>.</p></p><hr />';
+
+// email to student: logbook entry recorded
+$string['emaillogentry'] = 'Logbook entry recorded';
+$string['emaillogentrysubject'] = '{$a->coursename} logbook entry recorded: \'{$a->title}\'';
+$string['emaillogentrymsg'] = '\'{$a->title}\' logbook entry recorded for {$a->student} by \'{$a->instructor}\' on {$a->recordeddate}.
+    Ground time: {$a->groundtime}
+    Flight time: {$a->flighttime}
+    Aircraft: {$a->aircraft}
+    PIREP: {$a->pirep}
+    Departure ICAO: {$a->dept}
+    Arrival ICAO: {$a->arr}
+    Route: {$a->route}';
+$string['emaillogentryhtml'] = '<div style="font-family:sans-serif"><a href=\'{$a->courseurl}\'>{$a->coursename}</a> -> <a href=\'{$a->assignurl}\'>Assignment</a> -> {$a->title}
+    <p><hr /><p>\'{$a->title}\' <a href=\'{$a->logbookurl}\'>logbook</a> entry recorded for <strong>{$a->student}</strong> by \'<i>{$a->instructor}</i>\' on {$a->recordeddate}.</p>
+    <p><strong>Flight details:</strong></p><pre>    Ground time&#09;&#09;{$a->groundtime}
+    Flight time&#09;&#09;{$a->flighttime}
+    Aircraft&#09;&#09;{$a->aircraft}
+    PIREP&#09;&#09;{$a->pirep}
+    Departure ICAO&#09;{$a->dept}
+    Arrival ICAO&#09;{$a->arr}
+    Route&#09;&#09;{$a->route}
+    Remarks</pre><span style="font-size:14px; padding-left: 50px; position: relative; display: flex; justify-content: flex-start; flex-wrap: wrap;">{$a->remarks}</span><br />
+    <hr /><a href=\'{$a->courseurl}\'>{$a->coursename}</a> -> <a href=\'{$a->assignurl}\'>Assignment</a> -> {$a->title}</div>';
 
 // email to student: session cancellation
 $string['emailcancel'] = '{$a->coursename} session booking cancellation: \'{$a->exercise}\'';
@@ -730,6 +758,7 @@ $string['groupexaminersdesc'] = 'Group to identify examiner instructors.';
 // Plugin errors
 $string['errorcertifiernotexaminer'] = 'Permission denied. Only the examiner can certify a graduating student.';
 $string['errordelete'] = 'Failed to delete logentry';
+$string['errorexercisemissing'] = 'Exercise not found!';
 $string['errorinvaliddate'] = 'Flight date cannot be before booked session date';
 $string['errorinvalidarrtime'] = 'Arrival date/time must be greater than departure date/time';
 $string['errorlandings'] = 'Number from 1-9';

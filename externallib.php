@@ -97,7 +97,7 @@ class local_booking_external extends external_api {
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
     public static function get_bookings_view(int $courseid, string $filter) {
-        global $PAGE, $COURSE;
+        global $COURSE, $USER;
 
         // Parameter validation.
         $params = self::validate_parameters(self::get_bookings_view_parameters(), array(
@@ -109,7 +109,11 @@ class local_booking_external extends external_api {
         // set the subscriber object
         self::set_course_subscriber_context('/local/booking/', $courseid);
 
-        list($data, $template) = get_bookings_view($courseid, '', $filter);
+        // define subscriber globally
+        if (empty($COURSE->subscriber))
+            $COURSE->subscriber = new subscriber($courseid);
+
+        list($data, $template) = get_bookings_view($courseid, $COURSE->subscriber->get_instructor($USER->id), '', $filter);
 
         return $data;
     }
@@ -265,6 +269,7 @@ class local_booking_external extends external_api {
                 'pirep'  => new external_value(PARAM_TEXT, 'The PIREP id', VALUE_DEFAULT),
                 'courseid'  => new external_value(PARAM_INT, 'The cousre id', VALUE_DEFAULT),
                 'userid'  => new external_value(PARAM_INT, 'The user id', VALUE_DEFAULT),
+                'exerciseid'  => new external_value(PARAM_INT, 'The exercise id', VALUE_DEFAULT),
             )
         );
     }
@@ -274,12 +279,12 @@ class local_booking_external extends external_api {
      *
      * @param int $logentryid The logbook entry id.
      * @param int $courseid The course id in context.
-     * @param int $userid The user user id in context.
+     * @param int $userid The user id in context.
+     * @param int $exerciseid The exerciseid id in context.
      * @return array array of slots created.
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
-    public static function get_pirep($pirep, $courseid, $userid) {
-        global $PAGE, $COURSE;
+    public static function get_pirep($pirep, $courseid, $userid, $exerciseid) {
 
         // Parameter validation.
         $params = self::validate_parameters(self::get_pirep_parameters(), array(
@@ -323,6 +328,7 @@ class local_booking_external extends external_api {
                     $data['logentry'] = $logentry;
                     $data['courseid'] = $courseid;
                     $data['userid'] = $userid;
+                    $data['exerciseid'] = $exerciseid;
                     $data['view'] = 'summary';
                     $data['nullable'] = false;
                     list($data, $template) = get_logentry_view($courseid, $userid, $data);
@@ -1282,7 +1288,7 @@ class local_booking_external extends external_api {
                 $studentlogentry = $studentlogbook->create_logentry();
                 $studentlogentry->populate($validateddata);
 
-                if ($validateddata->flighttype != 'solo') {
+                if (property_exists('validateddata', 'flighttype') && $validateddata->flighttype != 'solo') {
                     // add instructor logentry, the user creating the entry is always the instructor
                     $instructorlogbook = new logbook($courseid, $USER->id);
                     $instructorlogentry = $instructorlogbook->create_logentry();
@@ -1300,7 +1306,13 @@ class local_booking_external extends external_api {
             // get exporter output for return values
             list($output, $template) = get_logentry_view($courseid, $userid, $data);
 
+            // send student notification for new logbook entries
+            if (!$editing) {
+                (new notification())->send_logentry_notification($logentry);
+            }
+
             \core\notification::success(get_string('logentrysavesuccess', 'local_booking'));
+
             return [ 'logentry' => $output ];
         } else {
             \core\notification::error(get_string('logentrysaveunable', 'local_booking'));
