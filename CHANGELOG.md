@@ -1,5 +1,17 @@
 # Change log
 
+## [2023040301] - RELEASED 2023-04-03 - hotfix
+
+### Fixed
+
+- examiner tooltip for final examination / skill test book button
+
+## [2023040300] - RELEASED 2023-04-03 - hotfix
+
+### Fixed
+
+- last session booking disabled if instructor is not an examiner for progressing and objective not met sessions
+
 ## [2023033100] - RELEASED 2023-03-31 - hotfix
 
 ### Fixed
