@@ -56,7 +56,6 @@ export const refreshBookingsContent = (root, courseId, categoryId, target = null
     M.util.js_pending([root.get('id'), courseId, categoryId].join('-'));
     return Repository.getBookingsData(courseId, filter)
         .then((context) => {
-            context.viewingbooking = true;
             bookingsContext = context;
             return Templates.render(template, context);
         })
@@ -89,9 +88,11 @@ export const refreshBookingsContent = (root, courseId, categoryId, target = null
  * @param   {number} userId     The graded session user id.
  * @param   {number} logentryId The graded session logbook entry id.
  * @param   {bool}   isNew      Whether the render is for edit.
+ * @param   {string} template   The source template for edits.
  * @returns {promise}
  */
- export const renderLogentryModal = (root, e, LogentryFormPromise, target, contextId, courseId, userId, logentryId, isNew) => {
+ export const renderLogentryModal = (root, e, LogentryFormPromise, target, contextId, courseId,
+    userId, logentryId, isNew, template) => {
     const pendingPromise = new Pending('local_booking/booking_view_manager:renderLogentryModal');
 
     return LogentryFormPromise
@@ -110,12 +111,20 @@ export const refreshBookingsContent = (root, courseId, categoryId, target = null
                 flightType = logegntrySession.dataset.flightType;
                 findpirepenabled = $(Selectors.bookingwrapper).data('findpirep');
             } else {
-                // From lib get_logentry_view
-                logegntrySession = root.find(Selectors.containers.summaryForm);
-                flightDate = logegntrySession.data('flight-date');
-                exerciseId = logegntrySession.data('exercise-id');
-                flightType = logegntrySession.data('flight-type');
-                findpirepenabled = logegntrySession.data('find-pirep');
+                if (template == 'local_booking/logbook_std') {
+                    // From logbook
+                    let logegntrySession = target.closest(Selectors.containers.summaryForm);
+                    flightDate = logegntrySession.dataset.flightDate;
+                    exerciseId = logegntrySession.dataset.exerciseId;
+                    flightType = logegntrySession.dataset.flightType;
+                } else {
+                    // From get_logentry_view
+                    logegntrySession = root.find(Selectors.containers.summaryForm);
+                    flightDate = logegntrySession.data('flight-date');
+                    exerciseId = logegntrySession.data('exercise-id');
+                    flightType = logegntrySession.data('flight-type');
+                    findpirepenabled = logegntrySession.data('find-pirep');
+                }
             }
 
             // Set form properties

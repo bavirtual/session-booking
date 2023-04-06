@@ -39,7 +39,7 @@ $categoryid = optional_param('categoryid', null, PARAM_INT);
 $courseid = optional_param('courseid', SITEID, PARAM_INT);
 $userid = optional_param('userid', $USER->id, PARAM_INT);
 $username = participant::get_fullname($userid);
-$format = optional_param('format', 'easa', PARAM_TEXT);
+$format = optional_param('format', '', PARAM_TEXT);
 $course = get_course($courseid);
 $title = ($USER->id == $userid ? get_string('logbookmy', 'local_booking') : $username)
     . ' ' . get_string('logbook', 'local_booking');
@@ -68,7 +68,7 @@ $PAGE->requires->css(new \moodle_url('https://cdn.datatables.net/1.11.3/css/data
 $PAGE->requires->js(new \moodle_url('https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js'), true);
 $PAGE->requires->js(new \moodle_url('https://cdn.datatables.net/responsive/2.2.9/js/responsive.bootstrap4.min.js'), true);
 $PAGE->requires->css(new \moodle_url('https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css'));
-$PAGE->requires->js(new \moodle_url($CFG->wwwroot . '/local/booking/js/datatables/logbook.js'));
+$PAGE->requires->js(new \moodle_url($CFG->wwwroot . '/local/booking/js/datatables/logbook_easa.js'));
 
 $PAGE->navbar->add($USER->id == $userid ? get_string('logbookmy', 'local_booking') : ucfirst(get_string('logbook', 'local_booking')));
 $PAGE->set_pagelayout('admin'); // wide page layout

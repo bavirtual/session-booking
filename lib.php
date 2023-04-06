@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Session Booking Plugin
+ * Class containing Moodle callback functions and plugin constants
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafahajjar@gmail.com)
@@ -484,7 +484,7 @@ function get_session_selection_view(int $courseid, instructor $instructor, int $
  * @return  array[array, string]
  */
 function get_logbook_view(int $courseid, int $userid, string $templateformat) {
-    global $PAGE, $COURSE;
+    global $PAGE, $COURSE, $USER;
 
     $renderer = $PAGE->get_renderer('local_booking');
 
@@ -500,16 +500,22 @@ function get_logbook_view(int $courseid, int $userid, string $templateformat) {
     $template = 'local_booking/logbook_' . $templateformat;
 
     // get summary information (not requested by the webservice)
-    $pilot = $COURSE->subscriber->get_participant($userid);
+    $pilot   = $COURSE->subscriber->get_participant($userid);
+    $editor  = $COURSE->subscriber->get_instructor($USER->id);
     $logbook = $pilot->get_logbook(true, $templateformat == 'easa');
-    $totals = (array) $logbook->get_summary(true, $templateformat == 'easa');
-    $data = [
+    $totals  = (array) $logbook->get_summary(true, $templateformat == 'easa', $COURSE->subscriber->get_graduation_exercise());
+    $data    = [
+        'contextid'     => $COURSE->subscriber->get_context()->id,
         'courseid'      => $courseid,
         'userid'        => $userid,
         'username'      => $pilot->get_fullname($userid),
         'courseshortname' => $PAGE->course->shortname,
         'logbook'       => $logbook,
         'isstudent'     => $pilot->is_student(),
+        'isinstructor'  => $pilot->is_instructor(),
+        'isexaminer'    => $pilot->is_examiner(),
+        'canedit'       => $editor->is_instructor(),
+        'hasfindpirep'  => $COURSE->subscriber->has_integration('pireps'),
         'easaformaturl' => $PAGE->url . '&format=easa',
         'stdformaturl'  => $PAGE->url . '&format=std',
         'shortdate'     => $templateformat == 'easa'
@@ -548,9 +554,11 @@ function get_logentry_view(int $courseid, int $userid, array $formdata = null) {
     }
 
     // add training type to the data sent to the exporter
+    $pilot = $COURSE->subscriber->get_participant($userid);
     $data['trainingtype'] = $COURSE->subscriber->trainingtype;
     $data['hasfindpirep'] = $COURSE->subscriber->has_integration('pireps');
-    $data['isstudent'] = $COURSE->subscriber->get_participant($userid)->is_student();
+    $data['isstudent']    = $pilot->is_student();
+    $data['isinstructor'] = $pilot->is_instructor();
     $data['courseshortname'] = $PAGE->course->shortname;
 
     $logentryexp = new logentry_exporter($data, ['context' => $context]);

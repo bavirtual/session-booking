@@ -1,6 +1,23 @@
 # Change log
 
-## [2023040300] - RELEASED 2023-03-31 - hotfix
+## [2023040600] - RELEASED 2023-04-06
+
+### Added
+
+- logentry edit & delete handling in the logbook view
+- examiner and instructor total time calculation and display for dual flights in logbook header
+
+### Fixed
+
+- lang text in students_progression mustache
+
+## [2023040301] - RELEASED 2023-04-03 - hotfix
+
+### Fixed
+
+- examiner tooltip for final examination / skill test book button
+
+## [2023040300] - RELEASED 2023-04-03 - hotfix
 
 ### Fixed
 
