@@ -70,6 +70,10 @@ class logbook_exporter extends exporter {
      */
     protected static function define_properties() {
         return [
+            'contextid' => [
+                'type' => PARAM_INT,
+                'default' => 0,
+            ],
             'courseid' => [
                 'type' => PARAM_INT
             ],
@@ -92,6 +96,10 @@ class logbook_exporter extends exporter {
                 'type' => PARAM_TEXT,
                 'optional' => true
             ],
+            'hasfindpirep' => [
+                'type' => PARAM_BOOL,
+                'default' => false
+            ],
             'totalgroundtime' => [
                 'type' => PARAM_TEXT,
                 'optional' => true
@@ -109,6 +117,10 @@ class logbook_exporter extends exporter {
                 'optional' => true
             ],
             'totalinstructortime' => [
+                'type' => PARAM_TEXT,
+                'optional' => true
+            ],
+            'totalexaminertime' => [
                 'type' => PARAM_TEXT,
                 'optional' => true
             ],
@@ -162,6 +174,18 @@ class logbook_exporter extends exporter {
                 'type' => PARAM_BOOL,
                 'default' => true
             ],
+            'isinstructor' => [
+                'type' => PARAM_BOOL,
+                'default' => true
+            ],
+            'isexaminer' => [
+                'type' => PARAM_BOOL,
+                'default' => true
+            ],
+            'canedit' => [
+                'type' => PARAM_BOOL,
+                'default' => true
+            ],
             'dualops' => [
                 'type' => PARAM_BOOL,
                 'default' => false
@@ -204,13 +228,15 @@ class logbook_exporter extends exporter {
 
         // iterate through all the entries and export them
         foreach ($logbookentries as $logbookentry) {
-            $data['logentry'] = $logbookentry;
-            $data['courseid'] = $this->courseid;
-            $data['userid'] = $this->userid;
-            $data['view'] = 'summary';
-            $data['trainingtype'] = $trainingtype;
-            $data['isstudent'] = $this->data['isstudent'];
-            $data['shortdate'] = $this->data['shortdate'];
+            $data['logentry']        = $logbookentry;
+            $data['courseid']        = $this->courseid;
+            $data['userid']          = $this->userid;
+            $data['view']            = 'summary';
+            $data['trainingtype']    = $trainingtype;
+            $data['isstudent']       = $this->data['isstudent'];
+            $data['isinstructor']    = $this->data['isinstructor'];
+            $data['isexaminer']      = $this->data['isexaminer'];
+            $data['shortdate']       = $this->data['shortdate'];
             $data['courseshortname'] = $this->data['courseshortname'];
             $entry = new logentry_exporter($data, $this->related);
             $entries[] = $entry->export($output);

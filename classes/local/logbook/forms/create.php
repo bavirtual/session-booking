@@ -157,7 +157,7 @@ class create extends \moodleform {
         // add primary elements
         $this->add_element($mform, 'flightdate', [$flightdate]);
         $this->add_element($mform, 'p1id', array($pilots, $p1id, $subscriber->trainingtype));
-        $this->add_element($mform, 'p2id', array($pilots, $p2id, $subscriber->trainingtype));
+        $this->add_element($mform, 'p2id', array($pilots, $p2id, $subscriber->trainingtype, $flighttype));
 
         // add primary flight time
         if ($flighttype == 'training')
@@ -254,7 +254,10 @@ class create extends \moodleform {
                 $select = $mform->addElement('select', 'p2id', get_string('p2' . strtolower($options[2]), 'local_booking'), $options[0]);
                 $select->setSelected($options[1]);
                 $mform->setType('p2id', PARAM_INT);
-                $mform->addRule('p2id', get_string('required'), 'required', null, 'client');
+                // Check fo solo flights
+                if ($options[3] != 'solo') {
+                    $mform->addRule('p2id', get_string('required'), 'required', null, 'client');
+                }
                 $mform->addHelpButton('p2id', 'p2' . strtolower($options[2]), 'local_booking');
                 if (!is_siteadmin($USER))
                     $mform->freeze('p2id');
@@ -359,7 +362,7 @@ class create extends \moodleform {
                 if ($options[0]) {
                     // Show P1 PIREP vs PIREP depending on whether it's a new entry or not (options[1])
                     $mform->addElement('text', 'p1pirep', get_string(($options[1] ? 'instpirep' : 'pirep'), 'local_booking'),
-                        'placeholder="' . get_string('pireplabel', 'local_booking') . '"');
+                        ($options[1] ? 'placeholder="' . get_string('pireplabel', 'local_booking') . '"' : ''));
                     $mform->addRule('p1pirep', get_string('err_numeric', 'form'), 'numeric', null, 'client');
                     if ($options[1])
                         $mform->addHelpButton('p1pirep', 'instpirep', 'local_booking');

@@ -17,9 +17,7 @@
 namespace local_booking\navigation\views;
 
 use renderable;
-use renderer_base;
 use moodle_page;
-use navigation_node;
 use templatable;
 
 /**
