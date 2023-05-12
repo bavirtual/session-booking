@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template local_booking/profile
+    @template local_booking/student_profile
 
     Log book view for summary and log book entries.
 
@@ -67,12 +67,12 @@
                     <dl><dt>{{#str}} lastlogin {{/str}}</dt><dd>{{lastlogin}}</dd></dl>
                     <dl><dt>{{#str}} lastgraded , local_booking{{/str}}</dt><dd>{{lastgraded}}</dd></dl>
                     <dl><dt>{{#str}} lastlesson , local_booking {{/str}}</dt><dd>{{lastlesson}}</dd></dl>
-                    <dl><dt>{{#str}} lastlessoncompleted , local_booking {{/str}}</dt><dd>{{lastlessoncompleted}}</dd></dl>
+                    <dl><dt>{{#str}} noshows , local_booking {{/str}}</dt><dd>{{{noshows}}}</dd></dl>
                 </div>
             </section>
             <section class="node_category card d-inline-block w-100 mb-3">
                 <div class="card-body">
-                    <h3 class="lead">{{#str}} graduation , local_booking {{/str}}</h3>
+                    <h3 class="lead">{{#str}} coursecompletion {{/str}}</h3>
                     <dl>
                         <dt>{{#str}} status {{/str}}</dt>
                         <dd>
@@ -151,7 +151,7 @@
                     <dl><dt>Moodle
                         <dd><span><a href="{{outlinereporturl}}">{{#str}} outlinereport , local_booking {{/str}}</a></span></dd>
                         <dd><span><a href="{{completereporturl}}">{{#str}} completereport , local_booking {{/str}}</a></span></dd>
-                        <dd><span><a href="{{logbookurl}}">{{#str}} logbookstudent , local_booking {{/str}}</a></span></dd>
+                        <dd><span><a href="{{logbookurl}}">{{#str}} logbooklabel , local_booking {{/str}}</a></span></dd>
                     </dt></dl>
                     <dl><dt>{{#str}} auditreports , local_booking {{/str}}
                         <dd><span><a href="{{mentorreporturl}}">{{#str}} mentorreport , local_booking {{/str}}</a></span></dd>
