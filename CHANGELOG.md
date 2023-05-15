@@ -1,5 +1,15 @@
 # Change log
 
+## [xxxxxxxxxx] - RELEASED 2023-05-xx
+
+### Fixed
+
+- instructor page title
+
+### Changed
+
+- default value of days in processing past data (i.e. past grades) to 3 years
+
 ## [2023051301] - UNRELEASED 2023-05-13
 
 ### Fixed
