@@ -1,5 +1,11 @@
 # Change log
 
+## [2023061100] - RELEASED 2023-06-11
+
+### Changed
+
+- revereted 4.2+ compatibility
+
 ## [2023051500] - RELEASED 2023-05-15
 
 ### Fixed
