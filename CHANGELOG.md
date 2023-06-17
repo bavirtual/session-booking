@@ -1,5 +1,12 @@
 # Change log
 
+## [2023061702] - RELEASED 2023-06-17 - hotfix
+
+### Fixed
+
+- keep student active when taken off-hold
+- instructor profile 'Sessions Conducted' based on assignment grades and grader id
+
 ## [2023061700] - RELEASED 2023-06-17
 
 ### Fixed
