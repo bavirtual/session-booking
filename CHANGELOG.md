@@ -1,12 +1,27 @@
 # Change log
 
+## [2023070100] - RELEASED 2023-07-01
+
+### Fixed
+
+- students that became instructors to show in the graduated students list
+
+### Added
+
+- attempts in the practical skill test report
+
+### Changed
+
+- first feedback attachment of the skill test to be the examiner evaluation report
+- Action hidden in the Instructor Dashboard for On-hold, Graduated, and Suspended users
+
 ## [2023062900] - RELEASED 2023-06-29 - hotfix
 
 ### Fixed
 
-- Exams showing as an option for booking a sesison
-- Student profile displaying as instructor in the title
-- Listing the lessons that are incomplete in student notification
+- exams showing as an option for booking a sesison
+- student profile displaying as instructor in the title
+- listing the lessons that are incomplete in student notification
 
 ## [2023061702] - RELEASED 2023-06-17 - hotfix
 
