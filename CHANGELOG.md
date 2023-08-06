@@ -1,5 +1,11 @@
 # Change log
 
+## [2023080600] - RELEASED 2023-08-06
+
+### Fixed
+
+- externalapi AJAX exceptions related to 4.2.1+ Moodle release
+
 ## [2023070100] - RELEASED 2023-07-01
 
 ### Fixed
