@@ -24,12 +24,12 @@
  */
 
 use core_badges\badge;
-use local_booking\local\participant\entities\participant;
 use local_booking\local\views\manage_action_bar;
 use local_booking\local\participant\entities\student;
 use local_booking\local\report\pdf_report_skilltest;
 use local_booking\local\subscriber\entities\subscriber;
 use local_booking\local\message\notification;
+use local_booking\local\participant\entities\examiner;
 
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
@@ -58,25 +58,27 @@ $COURSE->subscriber = new subscriber($courseid);
 $student = new student($COURSE->subscriber, $studentid);
 $title = $student->get_name()  . ' ' . get_string('coursecompletion', 'local_booking');
 
-// verify credentials, if the certifier is not the same as the examiner throw invalid permissions error
-$exerciseid = $COURSE->subscriber->get_graduation_exercise();
-$grade = $student->get_grade($exerciseid, true);
-$examinerid = $grade->usermodified;
-
-if ($examinerid != $USER->id)
-    throw new \Error(get_string('errorcertifiernotexaminer', 'local_booking'));
-
 // check if student evaluation is required and if so whether the student has been evaluated
 if ($COURSE->subscriber->requires_skills_evaluation()) {
+
+    // verify credentials, if the certifier is not the same as the examiner throw invalid permissions error
+    $exerciseid = $COURSE->subscriber->get_graduation_exercise();
+    $grade = $student->get_grade($exerciseid, true);
+    $lastattempt = (count($grade->attempts) ?: 1) - 1;
+    $examinerid = $grade->attempts[$lastattempt]->grader;
+
+    if ($examinerid != $USER->id)
+        throw new \Error(get_string('errorcertifiernotexaminer', 'local_booking'));
+
     // certify the student
     // generate form data file
     if ($action == 'certify' || $action == 'generate') {
-        $evaluationform = new pdf_report_skilltest($COURSE->subscriber, $student, 'evalution');
+        $evaluationform = new pdf_report_skilltest($COURSE->subscriber, $student, $lastattempt);
         if (!$outputform = $evaluationform->generate_evaluation_form($grade))
             throw new \Error(get_string('errorexaminerevalformunable', 'local_booking'));
 
         // upload the form to the graded exercise
-        $grade->save_feedback_file($outputform, $student);
+        $grade->save_feedback_file($outputform, $student, $lastattempt);
 
         // clean up: remove created evaluation form staged file
         $evaluationform->unlink($outputform);
@@ -153,7 +155,8 @@ if ($COURSE->subscriber->requires_skills_evaluation()) {
                 'userid'          => $studentid,
                 'firstname'       => $student->get_name(false, 'first'),
                 'fullname'        => $student->get_name(),
-                'courseshortname' => $COURSE->subscriber->get_shortname()
+                'courseshortname' => $COURSE->subscriber->get_shortname(),
+                'attempt'         => $lastattempt+1
             ];
             $certifiedactionbar = new manage_action_bar($PAGE, 'certify', $data);
             echo get_string('graduationconfirmation', 'local_booking', $data);
@@ -163,10 +166,10 @@ if ($COURSE->subscriber->requires_skills_evaluation()) {
 
             // get feedback file
             $fs = get_file_storage();
-            $feedbackfile = $grade->get_feedback_file('assignfeedback_file', 'feedback_files', '', false);
+            $feedbackfile = $grade->get_feedback_file('assignfeedback_file', 'feedback_files', '', false, $lastattempt);
 
             // send the form email message
-            $examiner = new participant($COURSE->subscriber, $USER->id);
+            $examiner = new examiner($COURSE->subscriber, $USER->id);
             $data = [
                 'vatsimcertuid' => $COURSE->subscriber->get_booking_config('vatsimcertemail'),
                 'examinerid'    => $examiner->get_id(),
@@ -200,7 +203,8 @@ if ($COURSE->subscriber->requires_skills_evaluation()) {
             'courseid' => $courseid,
             'userid'   => $studentid,
             'report'   => 'evalform',
-            'action'   => 'generate'
+            'action'   => 'generate',
+            'attempt'  => $lastattempt
         ]);
         redirect($newevalformurl);
     }
