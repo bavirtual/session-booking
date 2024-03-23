@@ -221,7 +221,7 @@ class bookings_exporter extends exporter {
         $return = [
             'coursemodules'  => base_view::get_modules($output, $this->course, $options),
             'activestudents' => $this->get_students($output),
-            'activebookings' => $this->get_bookings($output),
+            'activebookings' => $this->get_mybookings($output),
             'avgwait' => $this->averagewait,
             'showaction' => $this->filter == 'active',
             'showactive' => $this->filter == 'active' || empty($this->filter) ? 'checked' : '',
@@ -254,7 +254,6 @@ class bookings_exporter extends exporter {
      * @return  student_exporter[]
      */
     protected function get_students($output) {
-        global $COURSE;
         $activestudentsexports = [];
 
         // get all active students for the instructor dashboard view (sessions) or a single student of the interim step (confirm)
@@ -425,8 +424,8 @@ class bookings_exporter extends exporter {
      * @param   renderer_base $output
      * @return  mybooking_exporter[]
      */
-    protected function get_bookings($output) {
-        global $USER, $COURSE;
+    protected function get_mybookings($output) {
+        global $USER;
         $bookingexports = [];
 
         // get active bookings if the view is session booking
@@ -452,7 +451,6 @@ class bookings_exporter extends exporter {
      * @return  int $flag       The delay flag
      */
     protected function get_warning($dayssincelast) {
-        global $COURSE;
         $warning = 0;
         $waitdays = intval($this->course->postingwait);
         $onholdperiod = intval($this->course->onholdperiod);
