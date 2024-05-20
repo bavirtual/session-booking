@@ -1,5 +1,16 @@
 # Change log
 
+## [2024052000] - RELEASED 2024-05-20
+
+### Added
+
+- site admin graduate student (override)
+- logentry Add capability from logbook w/ exercise selection
+
+### Changed
+
+- logentry dynamic rendering of fields based on flight type & training type
+
 ## [2024032600] - RELEASED 2024-03-26
 
 ### Fixed
