@@ -195,6 +195,7 @@ class local_booking_external extends external_api {
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
     public static function get_logentry_by_id(int $logentryid, int $courseid, int $userid) {
+        global $USER;
 
         // Parameter validation.
         $params = self::validate_parameters(self::get_logentry_by_id_parameters(), array(
@@ -207,7 +208,7 @@ class local_booking_external extends external_api {
         $warnings = array();
         $logentry = (new logbook($courseid, $userid))->get_logentry($logentryid);
         $subscriber = self::get_course_subscriber_context('/local/booking/logbook?courseid=' . $courseid, $courseid);
-        $data = array('subscriber'=>$subscriber, 'logentry' => $logentry, 'view' => 'summary') + $params;
+        $data = array('subscriber'=>$subscriber, 'logentry' => $logentry, 'view' => 'summary', 'canedit' => $subscriber->get_instructor($USER->id)->is_instructor()) + $params;
         $entry = new logentry_view($subscriber->get_context(), $courseid, $data);
 
         return array('logentry' => $entry->get_exported_data(), 'warnings' => $warnings);
@@ -366,6 +367,7 @@ class local_booking_external extends external_api {
                 'logentryid'  => new external_value(PARAM_INT, 'The logbook entry id', VALUE_DEFAULT),
                 'userid'  => new external_value(PARAM_INT, 'The user id', VALUE_DEFAULT),
                 'courseid'  => new external_value(PARAM_INT, 'The course id in context', VALUE_DEFAULT),
+                'cascade'  => new external_value(PARAM_BOOL, 'Whether to ignore cascade delete of linked logentry', VALUE_DEFAULT),
             )
         );
     }
@@ -373,13 +375,14 @@ class local_booking_external extends external_api {
     /**
      * Delete a logbook entry.
      *
-     * @param int $logentryid The logbook entry id.
-     * @param int $userid The user user id in context.
-     * @param int $courseid The course id in context.
+     * @param int  $logentryid The logbook entry id.
+     * @param int  $userid The user user id in context.
+     * @param int  $courseid The course id in context.
+     * @param bool $cascade Whether to ignore cascading delete of linked logentry.
      * @return array array of slots created.
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
-    public static function delete_logentry($logentryid, $userid, $courseid) {
+    public static function delete_logentry($logentryid, $userid, $courseid, $cascade) {
         global $PAGE;
 
         // Parameter validation.
@@ -387,6 +390,7 @@ class local_booking_external extends external_api {
                 'logentryid' => $logentryid,
                 'courseid' => $courseid,
                 'userid' => $userid,
+                'cascade' => $cascade,
                 )
             );
 
@@ -396,7 +400,7 @@ class local_booking_external extends external_api {
 
         $logbook = new logbook($courseid, $userid);
 
-        if ($logbook->delete($logentryid))
+        if ($logbook->delete($logentryid, $cascade))
             \core\notification::SUCCESS(get_string('logentrydeletesuccess', 'local_booking'));
         else
             \core\notification::ERROR(get_string('logentrydeletefailed', 'local_booking'));
@@ -948,7 +952,7 @@ class local_booking_external extends external_api {
      * Update user group membership add/remove for the course.
      *
      * @param string $group      The user group.
-     * @param bool $ismember       Add/remove to/from group.
+     * @param bool $ismember     Add/remove to/from group.
      * @param int $courseid      The course id.
      * @param int $studentid     The student id.
      * @return bool $result      The result of the availability override operation.
@@ -1016,7 +1020,7 @@ class local_booking_external extends external_api {
      * @param int    $courseid   The course id.
      * @param int    $userid     The user id.
      * @param string $comment    The comment text.
-     * @return bool $result      The comment save was successful.
+     * @return bool  $result     The comment save was successful.
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
     public static function update_profile_comment(int $courseid, int $userid, string $comment) {
@@ -1088,7 +1092,7 @@ class local_booking_external extends external_api {
      * @param int $courseid the course id associated with the slot.
      * @param int $year the year in which the slot occur.
      * @param int $week the week in which the slot occur.
-     * @return array array of slots created.
+     * @return bool operation result.
      * @since Moodle 2.5
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
@@ -1165,7 +1169,7 @@ class local_booking_external extends external_api {
      * Delete availability slot.
      *
      * @param array $events A list of slots to create.
-     * @return array array of slots created.
+     * @return bool operation result.
      * @since Moodle 2.5
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
@@ -1226,6 +1230,7 @@ class local_booking_external extends external_api {
             array(
                 'courseid'  => new external_value(PARAM_INT, 'The course id in context', VALUE_DEFAULT),
                 'exerciseid'  => new external_value(PARAM_INT, 'The exercise id', VALUE_DEFAULT),
+                'returnempty'  => new external_value(PARAM_BOOL, 'Wether the return value can be empty or an exception', VALUE_DEFAULT),
             )
         );
     }
@@ -1235,15 +1240,16 @@ class local_booking_external extends external_api {
      *
      * @param int $courseid   The course id.
      * @param int $exerciseid The exerciser id.
-     * @return array array of slots created.
+     * @return string exercise name.
      * @throws moodle_exception if user doesnt have the permission to create events.
      */
-    public static function get_exercise_name($courseid, $exerciseid) {
+    public static function get_exercise_name($courseid, $exerciseid, $returnempty) {
 
         // Parameter validation.
         $params = self::validate_parameters(self::get_exercise_name_parameters(), array(
                 'courseid' => $courseid,
                 'exerciseid' => $exerciseid,
+                'returnempty' => $returnempty,
                 )
             );
 
@@ -1252,7 +1258,7 @@ class local_booking_external extends external_api {
 
         $warnings = array();
 
-        return array('exercisename' => $subscriber->get_exercise_name($exerciseid), 'warnings' => $warnings);
+        return array('exercisename' => $subscriber->get_exercise_name($exerciseid, $courseid, $returnempty), 'warnings' => $warnings);
     }
 
     /**
@@ -1274,7 +1280,7 @@ class local_booking_external extends external_api {
      *
      * @return external_function_parameters
      */
-    public static function submit_create_update_form_parameters() {
+    public static function submit_logentry_form_parameters() {
         return new external_function_parameters(
             [
                 'formargs' => new external_value(PARAM_RAW, 'The arguments from the logentry form'),
@@ -1290,11 +1296,11 @@ class local_booking_external extends external_api {
      * @return array The created or modified logbook entry
      * @throws moodle_exception
      */
-    public static function submit_create_update_form($formargs, $formdata) {
+    public static function submit_logentry_form($formargs, $formdata) {
         global $USER;
 
         // Parameter validation.
-        $params = self::validate_parameters(self::submit_create_update_form_parameters(), ['formargs' => $formargs, 'formdata' => $formdata]);
+        $params = self::validate_parameters(self::submit_logentry_form_parameters(), ['formargs' => $formargs, 'formdata' => $formdata]);
         $args = [];
         $data = [];
 
@@ -1382,7 +1388,7 @@ class local_booking_external extends external_api {
      *
      * @return external_description.
      */
-    public static function  submit_create_update_form_returns() {
+    public static function  submit_logentry_form_returns() {
         $logentrystructure = logentry_exporter::get_read_structure();
         $logentrystructure->required = VALUE_OPTIONAL;
 
