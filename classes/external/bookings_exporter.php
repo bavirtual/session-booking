@@ -279,7 +279,7 @@ class bookings_exporter extends exporter {
             }
 
             // get the students list based on the requested filter for active or on-hold
-            $studentslist = $this->course->get_students($filter);
+            $studentslist = $this->course->get_students($filter, false, false, true);
             $this->activestudents = $this->filter != 'suspended' ? $this->sort_students($studentslist, $sorttype) : $studentslist;
 
         } elseif ($this->viewtype == 'confirm') {
