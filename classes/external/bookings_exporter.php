@@ -56,6 +56,11 @@ class bookings_exporter extends exporter {
     const LATEWARNING = 2;
 
     /**
+     * @var student[] $students list to export.
+     */
+    public $activestudentsexports = [];
+
+    /**
      * @var subscriber $subscriber The subscribing course.
      */
     protected $course;
@@ -105,15 +110,16 @@ class bookings_exporter extends exporter {
     public function __construct($data, $related) {
         global $COURSE;
 
+        $this->course = $COURSE->subscriber;
         $url = new moodle_url('/local/booking/view.php', [
-                'courseid' => $data['courseid'],
+                'courseid' => $this->course->get_id(),
                 'time' => time(),
             ]);
 
         $data['url'] = $url->out(false);
         $data['contextid'] = $related['context']->id;
+        $data['courseid'] = $this->course->get_id();
         $this->viewtype = $data['view'];
-        $this->course = $COURSE->subscriber;
         $this->modules = $this->course->get_modules();
         $data['trainingtype'] = $this->course->trainingtype;
         $data['findpirepenabled'] = $this->course->has_integration('external_data', 'pireps');
@@ -121,7 +127,7 @@ class bookings_exporter extends exporter {
         if ($this->viewtype == 'confirm')
             $this->bookingstudentid = $data['studentid'];
         $this->filter = !empty($data['filter']) ? $data['filter'] : 'active';
-        $data['visible'] = true;
+        $data['visible'] = 0;
 
         parent::__construct($data, $related);
     }
@@ -146,6 +152,7 @@ class bookings_exporter extends exporter {
             ],
             'visible' => [
                 'type' => PARAM_INT,
+                'default' => 0,
             ],
         ];
     }
@@ -163,10 +170,6 @@ class bookings_exporter extends exporter {
             ],
             'activestudents' => [
                 'type' => booking_student_exporter::read_properties_definition(),
-                'multiple' => true,
-            ],
-            'activebookings' => [
-                'type' => booking_mybookings_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
             'scoresort' => [
@@ -228,7 +231,6 @@ class bookings_exporter extends exporter {
         $return = [
             'coursemodules' => base_view::get_modules($output, $this->course, $options),
             'activestudents'=> $this->get_students($output),
-            'activebookings'=> $this->get_mybookings($output),
             'scoresort'         => $this->data['sorttype'] == 's',
             'avgwait'       => $this->averagewait,
             'showaction'    => $this->filter == 'active',
@@ -245,17 +247,6 @@ class bookings_exporter extends exporter {
     }
 
     /**
-     * Returns a list of objects that are related.
-     *
-     * @return array
-     */
-    protected static function define_related() {
-        return array(
-            'context' => 'context',
-        );
-    }
-
-    /**
      * Get the list of day names for display, re-ordered from the first day
      * of the week.
      *
@@ -263,7 +254,6 @@ class bookings_exporter extends exporter {
      * @return  student_exporter[]
      */
     protected function get_students($output) {
-        $activestudentsexports = [];
 
         // get all active students for the instructor dashboard view (sessions) or a single student of the interim step (confirm)
         if ($this->viewtype == 'sessions') {
@@ -279,8 +269,9 @@ class bookings_exporter extends exporter {
             }
 
             // get the students list based on the requested filter for active or on-hold
-            $studentslist = $this->course->get_students($filter, false, false, true);
-            $this->activestudents = $this->filter != 'suspended' ? $this->sort_students($studentslist, $sorttype) : $studentslist;
+            $this->activestudents = $this->course->get_students($filter, false, false, true, $this->data['page']);
+            // $studentslist = $this->course->get_students($filter, false, false, true, $this->data['page']);
+            // $this->activestudents = $this->filter != 'suspended' ? $this->sort_students($studentslist, $sorttype) : $studentslist;
 
         } elseif ($this->viewtype == 'confirm') {
             $this->activestudents[] = $this->course->get_student($this->bookingstudentid);
@@ -323,15 +314,15 @@ class bookings_exporter extends exporter {
             $studentexporter = new booking_student_exporter($data, [
                 'context'       => $context,
                 'coursemodules' => $this->modules,
-                'course'        => $this->course,
+                'subscriber'    => $this->course,
                 'filter'        => $this->filter,
             ]);
-            $activestudentsexports[] = $studentexporter->export($output);
+            $this->activestudentsexports[] = $studentexporter->export($output);
             $totaldays += $this->filter == 'active' || $this->filter == 'onhold' ?  $student->get_priority()->get_recency_days() : 0;
         }
         $this->averagewait = !empty($totaldays) ? ceil($totaldays / $i) : 0;
 
-        return $activestudentsexports;
+        return $this->activestudentsexports;
     }
 
     /**
@@ -427,30 +418,6 @@ class bookings_exporter extends exporter {
     }
 
     /**
-     * Get the list of all instructor bookings
-     * of the week.
-     *
-     * @param   renderer_base $output
-     * @return  mybooking_exporter[]
-     */
-    protected function get_mybookings($output) {
-        global $USER;
-        $bookingexports = [];
-
-        // get active bookings if the view is session booking
-        if ($this->viewtype == 'sessions') {
-            $instructor = $this->course->get_instructor($USER->id);
-            $bookings = $instructor->get_bookings(false, true, true);
-            foreach ($bookings as $booking) {
-                $bookingexport = new booking_mybookings_exporter(['booking'=>$booking], $this->related);
-                $bookingexports[] = $bookingexport->export($output);
-            }
-        }
-
-        return $bookingexports;
-    }
-
-    /**
      * Get a warning flag related to
      * when the student took the last
      * session 3x wait is overdue, and
@@ -475,5 +442,17 @@ class bookings_exporter extends exporter {
         }
 
         return $warning;
+    }
+
+    /**
+     * Returns a list of objects that are related.
+     *
+     * @return array
+     */
+    protected static function define_related() {
+        return array(
+            'context' => 'context',
+            'subscriber' => 'local_booking\local\subscriber\entities\subscriber',
+        );
     }
 }
