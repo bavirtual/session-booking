@@ -63,7 +63,7 @@ class booking_student_exporter extends exporter {
         $data['studentname'] = $this->student->get_name();
         $data['fleet'] = $this->student->get_fleet();
         $data['simulator'] = $this->student->get_simulator();
-        $data['profileurl'] = $CFG->wwwroot . '/local/booking/profile.php?courseid=' . $related['course']->get_id() . '&userid=' . $this->student->get_id();
+        $data['profileurl'] = $CFG->wwwroot . '/local/booking/profile.php?courseid=' . $related['subscriber']->get_id() . '&userid=' . $this->student->get_id();
 
         // get recency or relavent information dates depending on the filter view
         switch ($related['filter']) {
@@ -229,8 +229,8 @@ class booking_student_exporter extends exporter {
             else
                 $actiontype = 'book';
 
-            $graduationsessionidx = array_search($this->related['course']->get_graduation_exercise(), array_column($sessions, 'exerciseid'));
-            $action = new action($this->related['course'], $this->student, $actiontype, $sessions[$graduationsessionidx]->sessionid);
+            $graduationsessionidx = array_search($this->related['subscriber']->get_graduation_exercise(), array_column($sessions, 'exerciseid'));
+            $action = new action($this->related['subscriber'], $this->student, $actiontype, $sessions[$graduationsessionidx]->sessionid);
             $posts = $this->data['view'] == 'confirm' ? $this->student->get_total_posts() : 0;
 
             $return = array_merge(array(
@@ -257,10 +257,10 @@ class booking_student_exporter extends exporter {
      */
     protected static function define_related() {
         return array(
-            'context'=>'context',
-            'coursemodules'=>'cm_info[]?',
-            'course'=>'local_booking\local\subscriber\entities\subscriber',
-            'filter'=>'string',
+            'context' => 'context',
+            'coursemodules' => 'cm_info[]',
+            'subscriber' => 'local_booking\local\subscriber\entities\subscriber',
+            'filter' => 'string',
         );
     }
 
@@ -279,7 +279,7 @@ class booking_student_exporter extends exporter {
         $logbook = $student->get_logbook();
 
         $studentname = $student->get_name();
-        $gradexercise = $related['course']->get_graduation_exercise();
+        $gradexercise = $related['subscriber']->get_graduation_exercise();
 
         // export all exercise sessions, quizes, and exams
         $coursemods = $related['coursemodules'];
