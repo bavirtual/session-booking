@@ -31,6 +31,8 @@ require_once($CFG->libdir . '/completionlib.php');
 require_once($CFG->dirroot . '/group/lib.php');
 
 use ArrayObject;
+use completion_completion;
+use completion_info;
 use local_booking\local\participant\data_access\participant_vault;
 use local_booking\local\subscriber\data_access\subscriber_vault;
 use local_booking\local\participant\entities\instructor;
@@ -59,7 +61,7 @@ class subscriber implements subscriber_interface {
     protected $courses;
 
     /**
-     * @var int $course The global course.
+     * @var stdClass $course The global course.
      */
     protected $course;
 
@@ -938,5 +940,27 @@ class subscriber implements subscriber_interface {
         }
 
         return !empty($onholdgroupid) && !empty($inactivegroupid) && !empty($graduatesgroupid);
+    }
+
+    /**
+     * Forces completion of the subscribed course for a specific student.
+     * This function is to fix eliminate legacy enrolments
+     *
+     * @param int $studentid    The user id for the student to force course completion for
+     */
+    public function force_student_course_completion(int $studentid) {
+        $completioninfo = new completion_info($this->course);
+        $criteria = $completioninfo->get_criteria(COMPLETION_CRITERIA_TYPE_ROLE);
+        foreach ($criteria as $criterion) {
+            $completions = $completioninfo->get_completions($studentid, COMPLETION_CRITERIA_TYPE_ROLE);
+            foreach ($completions as $completion) {
+                if ($completion->is_complete()) {
+                    continue;
+                }
+                if ($completion->criteriaid === $criterion->id) {
+                    $criterion->complete($completion);
+                }
+            }
+        }
     }
 }

@@ -310,4 +310,12 @@ interface subscriber_interface {
      * @return bool
      */
     public static function has_integration($root, $key);
+
+    /**
+     * Forces completion of the subscribed course for a specific student.
+     * This function is to fix eliminate legacy enrolments
+     *
+     * @param int $studentid    The user id for the student to force course completion for
+     */
+    public function force_student_course_completion(int $studentid);
 }

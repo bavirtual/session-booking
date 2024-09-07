@@ -76,6 +76,7 @@ $string['lastsessiondate'] = 'Last session booked';
 $string['mystudents'] = 'My assigned students';
 $string['nextlesson'] = 'Next Lesson';
 $string['nobookingtoconfirm'] = 'You have no booking to confirm.';
+$string['nograduatedate'] = 'No graduate date';
 $string['participation'] = 'Instructor participation';
 $string['pluginname'] = 'Session booking';
 $string['role'] = 'Role';
@@ -323,6 +324,8 @@ $string['graduationconfirmation'] = '<p><strong>Process completed successfully..
     <li style="padding-bottom: 20px;">\'{$a->fullname}\' has been added to the <strong>Graduates</strong> group.</li>';
 $string['graduationconfirmationcongrat'] = '<li style="padding-bottom: 20px;">A <strong>congratulatory message</strong> was sent to active course participants.</li>';
 $string['feedbackreport'] = 'Feedback report';
+$string['forcecompletion'] = 'Force course completion';
+$string['forcecompletionconfirm'] = 'Forcing completion will flag all course requirements as complete. Are you sure you want to force course completion?';
 $string['instructorsince'] = 'In {$a} role since';
 $string['keepactive'] = 'Keep active';
 $string['lastlesson'] = 'Last lesson completed';
