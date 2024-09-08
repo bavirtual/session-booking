@@ -143,9 +143,11 @@ class participant_vault implements participant_vault_interface {
      * @param int $courseid         The course id.
      * @param string $filter        The filter to show students, inactive (including graduates), suspended, and default to active.
      * @param bool $includeonhold   Whether to include on-hold students as well
+     * @param int $offset           The offset record for pagination
+     * @param bool &$count          Reference to the count of students count before pagination
      * @return {Object}[]           Array of database records.
      */
-    public static function get_students(int $courseid, string $filter = 'active', bool $includeonhold = false, $offset = 0, int &$count = 0) {
+    public static function get_students(int $courseid, string $filter = 'active', bool $includeonhold = false, int $offset = 0, int &$count = 0) {
         global $DB;
 
         list($sql, $countsql) = self::get_students_sql($filter, $includeonhold);
@@ -167,20 +169,43 @@ class participant_vault implements participant_vault_interface {
     /**
      * Get all active students from the database.
      *
+     * @param int $courseid         The course id.
+     * @param string $filter        The filter to show students, inactive (including graduates), suspended, and default to active.
+     * @param bool $includeonhold   Whether to include on-hold students as well
+     * @return {Object}[]           Array of database records.
+     */
+    public static function get_students_for_select(int $courseid, string $filter = 'active', bool $includeonhold = false) {
+        global $DB;
+
+        $params = [
+            'courseid'  => $courseid,
+            'scourseid' => $courseid,
+            'gcourseid' => $courseid,
+            'contextid' => \context_course::instance($courseid)->id
+        ];
+
+        list($sql, $countsql) = self::get_students_sql($filter, $filter, true);
+        return $DB->get_records_sql($sql, $params);
+    }
+
+    /**
+     * Get all active students from the database.
+     *
      * @param  string $filter          The filter to show students, inactive (including graduates), suspended, and default to active.
      * @param  bool   $includeonhold   Whether to include on-hold students as well
+     * @param  bool   $forselect       To return sql for html Select user ids & names only
      * @return string $sql             The query SQL string
      */
-    private static function get_students_sql(string $filter = 'active', bool $includeonhold = false) {
+    private static function get_students_sql(string $filter = 'active', bool $includeonhold = false, bool $forselect = false) {
         global $DB;
 
         $select = 'SELECT * FROM (SELECT u.id AS userid, ' . $DB->sql_concat('u.firstname', '" "', 'u.lastname', '" "', 'u.alternatename') . '
-                    AS fullname, s.activeposts, s.lessonscomplete, s.lastsessiondate, s.currentexerciseid, s.nextexerciseid,
-                    MAX(ue.timecreated) AS enroldate, ue.timemodified AS suspenddate, cc.timecompleted AS graduateddate,
-                    en.courseid AS courseid, u.lastlogin AS lastlogin, IF(s.activeposts > 0, 1, 0) AS hasposts,
-                        (SELECT GROUP_CONCAT(shortname) FROM {' . self::DB_ROLE_ASSIGN . '} ra
+                    AS fullname, (SELECT GROUP_CONCAT(shortname) FROM {' . self::DB_ROLE_ASSIGN . '} ra
                          INNER JOIN {' . self::DB_ROLE . '}  r ON r.id = ra.roleid
                          WHERE ra.userid = u.id AND ra.contextid = :contextid) AS roles';
+        $select .= $forselect ? '' : ', s.activeposts, s.lessonscomplete, s.lastsessiondate, s.currentexerciseid, s.nextexerciseid,
+                    MAX(ue.timecreated) AS enroldate, ue.timemodified AS suspenddate, cc.timecompleted AS graduateddate,
+                    en.courseid AS courseid, u.lastlogin AS lastlogin, IF(s.activeposts > 0, 1, 0) AS hasposts';
 
         $from = ' FROM {' . self::DB_USER . '} u
         INNER JOIN {' . self::DB_STATS . '} s ON s.userid = u.id
@@ -195,7 +220,7 @@ class participant_vault implements participant_vault_interface {
 
         $outerwhere = ' WHERE roles like "%student%"';
 
-        $orderby = ' ORDER BY lessonscomplete DESC, hasposts DESC, lastsessiondate ASC';
+        $orderby = $forselect ? ' ORDER BY fullname' : ' ORDER BY lessonscomplete DESC, hasposts DESC, lastsessiondate ASC';
 
         $groupby = ' GROUP BY u.id) students';
 

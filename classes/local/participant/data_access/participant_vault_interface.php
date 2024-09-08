@@ -60,6 +60,16 @@ interface participant_vault_interface {
     public static function get_students(int $courseid, string $filter = 'active', bool $includeonhold = false);
 
     /**
+     * Get all active students from the database.
+     *
+     * @param int $courseid         The course id.
+     * @param string $filter        The filter to show students, inactive (including graduates), suspended, and default to active.
+     * @param bool $includeonhold   Whether to include on-hold students as well
+     * @return {Object}[]           Array of database records.
+     */
+    public static function get_students_for_select(int $courseid, string $filter = 'active', bool $includeonhold = false);
+
+    /**
      * Get all active instructors for the course from the database.
      *
      * @param int $courseid      The course id.
