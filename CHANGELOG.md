@@ -1,5 +1,22 @@
 # Change log
 
+## [2024091000] - RELEASED 2024-09-10
+
+### Added
+
+- autocomplete search w/ server-side lookup
+
+## [2024090800] - RELEASED 2024-09-08
+
+### Changed
+
+- get participants criteria sql
+
+### Fixed
+
+- P2 not showing when filling new logentry
+- graduates booking view exception
+
 ## [2024090600] - RELEASED 2024-09-06
 
 ### Added
