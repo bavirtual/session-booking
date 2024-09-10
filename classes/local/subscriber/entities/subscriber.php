@@ -366,6 +366,20 @@ class subscriber implements subscriber_interface {
     }
 
     /**
+     * Get all active participant names for UI from the database.
+     *
+     * @param string $filter        The filter to show students, inactive (including graduates), suspended, and default to active.
+     * @param bool $includeonhold   Whether to include on-hold students as well
+     * @param string $roles         The roles of the participants
+     * @return array                Array of student ids & names
+     */
+    public function get_participant_names(string $filter = 'active', bool $includeonhold = false, string $roles = null) {
+        $participantrecs = participant_vault::get_participants_simple($this->courseid, $filter, $includeonhold, $roles);
+        $participants = array_combine(array_keys($participantrecs), array_column($participantrecs, 'fullname'));
+        return $participants;
+    }
+
+    /**
      * Get a student.
      *
      * @param int  $studentid   A participant user id.
