@@ -1,5 +1,11 @@
 # Change log
 
+## [2024091000] - RELEASED 2024-09-10
+
+### Added
+
+- autocomplete search w/ server-side lookup
+
 ## [2024090800] - RELEASED 2024-09-08
 
 ### Changed
