@@ -197,6 +197,12 @@
 .disabled-link {
     pointer-events: none;
 }
+#searchform .fitem {
+    display: inline-block;
+}
+#userids .fitem {
+    margin-right: 30px;
+}
 
 /* Session Booking: booking container interim step */
 .booking-container {
