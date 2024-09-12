@@ -1,5 +1,12 @@
 # Change log
 
+## [2024091200] - RELEASED 2024-09-12
+
+### Fixed
+
+- slot unique record insert
+- last booked date format
+
 ## [2024091000] - RELEASED 2024-09-10
 
 ### Added
