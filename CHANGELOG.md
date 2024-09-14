@@ -1,5 +1,12 @@
 # Change log
 
+## [xxxxx] - RELEASED 2024-09-xx
+
+### Fixed
+
+- student profile progress grid not showing
+- VATSIMID exception in cases where the constant is not defined
+
 ## [2024091200] - RELEASED 2024-09-12
 
 ### Fixed
