@@ -90,29 +90,6 @@ class slot_vault implements slot_vault_interface {
     public static function save_slot(slot $slot) {
         global $DB, $USER;
 
-        // $sql = "INSERT IGNORE INTO {" . self::DB_SLOTS . "} (userid, courseid, starttime, endtime, `year`, week, slotstatus, bookinginfo)
-        //         VALUES (:userid, :courseid, :starttime, :endtime, :year, :week, :slotstatus, :bookinginfo)
-        //         ON DUPLICATE KEY UPDATE
-        //             starttime = VALUES(starttime),
-        //             endtime = VALUES(endtime),
-        //             `year` = VALUES(`year`),
-        //             week = VALUES(week),
-        //             slotstatus = VALUES(slotstatus),
-        //             bookinginfo = VALUES(bookinginfo)";
-
-        // $params = [
-        //     'userid' => $slot->get_userid() == 0 ? $USER->id : $slot->get_userid(),
-        //     'courseid' => $slot->get_courseid(),
-        //     'starttime' => $slot->get_starttime(),
-        //     'endtime' => $slot->get_endtime(),
-        //     'year' => $slot->get_year(),
-        //     'week' => $slot->get_week(),
-        //     'slotstatus' => $slot->get_slotstatus(),
-        //     'bookinginfo' => $slot->get_bookinginfo()
-        // ];
-
-        // return $DB->execute($sql, $params);
-
         try {
 
             $slotrecord = new \stdClass();
@@ -130,7 +107,7 @@ class slot_vault implements slot_vault_interface {
 
         } catch (Exception $e) {
             // update if a this is a duplicate slot error otherwise throw exception
-            if (str_contains($e->getMessage(), "Duplicate entry")) {
+            try {
                 $existingslot = $DB->get_record(static::DB_SLOTS, [
                     'courseid' => $slot->get_courseid(),
                     'userid'    => $slot->get_userid(),
@@ -144,9 +121,10 @@ class slot_vault implements slot_vault_interface {
 
                 $DB->update_record(self::DB_SLOTS, $existingslot);
                 return $existingslot->id;
-            } else {
+
+            } catch (Exception $ex) {
                 // check for unique key exception
-                throw $e;
+                throw $ex;
             }
         }
     }
