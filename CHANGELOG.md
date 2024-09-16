@@ -1,11 +1,12 @@
 # Change log
 
-## [xxxxx] - RELEASED 2024-09-xx
+## [2024091600] - RELEASED 2024-09-16
 
 ### Fixed
 
 - student profile progress grid not showing
 - VATSIMID exception in cases where the constant is not defined
+- slot unique record update
 
 ## [2024091200] - RELEASED 2024-09-12
 

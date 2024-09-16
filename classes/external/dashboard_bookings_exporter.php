@@ -43,7 +43,7 @@ use moodle_url;
  * @copyright  BAVirtual.co.uk © 2021
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class bookings_exporter extends exporter {
+class dashboard_bookings_exporter extends exporter {
 
     /**
      * Warning flag of an overdue session (orange)
@@ -162,11 +162,11 @@ class bookings_exporter extends exporter {
     protected static function define_other_properties() {
         return [
             'coursemodules' => [
-                'type' => exercise_name_exporter::read_properties_definition(),
+                'type' => list_exercise_name_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
             'activestudents' => [
-                'type' => booking_student_exporter::read_properties_definition(),
+                'type' => dashboard_student_exporter::read_properties_definition(),
                 'multiple' => true,
             ],
             'scoresort' => [
@@ -228,7 +228,7 @@ class bookings_exporter extends exporter {
         $return = [
             'coursemodules' => base_view::get_modules($output, $this->course, $options),
             'activestudents'=> $this->get_students($output),
-            'scoresort'         => $this->data['sorttype'] == 's',
+            'scoresort'     => $this->data['sorttype'] == 's',
             'avgwait'       => $this->averagewait,
             'showaction'    => $this->filter == 'active',
             'showactive'    => $this->filter == 'active' || empty($this->filter) ? 'checked' : '',
@@ -306,7 +306,7 @@ class bookings_exporter extends exporter {
                 $data['sequencetooltip'] = get_string('sequencetooltip_' . (!empty($sorttype) ? $sorttype : 'a'), 'local_booking', $sequencetooltip);
             }
 
-            $studentexporter = new booking_student_exporter($data, [
+            $studentexporter = new dashboard_student_exporter($data, [
                 'context'       => $context,
                 'coursemodules' => $this->modules,
                 'subscriber'    => $this->course,
