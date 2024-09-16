@@ -60,6 +60,7 @@ class pdf_report_theoryexam extends pdf_report {
 
         // get the the exams for a user
         $studentexams = $this->student->get_quize_grades();
+        $vatsimid = $this->student->get_profile_field('vatsimcid') ?: get_string('notfound', 'local_booking');
 
         // iterate through all the attempts
         foreach ($studentexams as $exam) {
@@ -68,7 +69,7 @@ class pdf_report_theoryexam extends pdf_report {
                 'ato'   => get_config('local_booking', 'atoname'),
                 'coursename' => $this->course->get_shortname(),
                 'studentname' => $this->student->get_name(false),
-                'vatsimid' => $this->student->get_profile_field('VATSIMID'),
+                'vatsimid' => $vatsimid,
                 'attempts' => count($exam->attempts),
                 'score' => intval($exam->finalgrade),
                 'total' => intval($exam->get_grade_max()),
@@ -98,7 +99,7 @@ class pdf_report_theoryexam extends pdf_report {
             $this->SetTextColor(0,0,0);
             $this->SetFont($this->fontfamily, '', 12);
             $this->Ln(50);
-            $vatsimid = $this->student->get_profile_field(LOCAL_BOOKING_VATSIMCID);
+            $vatsimid = $this->student->get_profile_field('vatsimcid') ?: get_string('notfound', 'local_booking');
             $html = '<h3>' . $this->student->get_name() . '</h3>';
             $html .= '<span style="font-size: small;">' . get_string('vatsimid', 'local_booking') . ': ';
             $html .= (!empty($vatsimid) ? $vatsimid : get_string('vatsimidmissing', 'local_booking')) . '</span>';
