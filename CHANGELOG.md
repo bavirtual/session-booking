@@ -1,5 +1,11 @@
 # Change log
 
+## [2024091601] - RELEASED 2024-09-16
+
+### Fixed
+
+- slot endtime set to 59th minute of the hour instead of start of the next hour
+
 ## [2024091600] - RELEASED 2024-09-16
 
 ### Fixed
