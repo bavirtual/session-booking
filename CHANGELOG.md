@@ -1,5 +1,15 @@
 # Change log
 
+## [2024092000] - RELEASED 2024-09-20
+
+### Added
+
+- minimum slot period feature (course setting)
+
+### Changed
+
+- lesson completion restriction course with no lessons case
+
 ## [2024091601] - RELEASED 2024-09-16
 
 ### Fixed
