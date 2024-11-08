@@ -1,5 +1,14 @@
 # Change log
 
+## [2024110800] - RELEASED 2024-11-08
+
+### Added
+
+- moodle 4.5 compatility and upgrade notes
+- updated messages to MESSAGE_DEFAULT_ENABLED
+- rounded table style and progression views
+- intructor participation session date column
+
 ## [2024110301] - RELEASED 2024-11-03
 
 ### Fixed
