@@ -57,7 +57,7 @@ $title = $student->get_name()  . ' ' . get_string('coursecompletion', 'local_boo
 if ($COURSE->subscriber->requires_skills_evaluation()) {
 
     // verify credentials, if the certifier is not the same as the examiner throw invalid permissions error
-    $exerciseid = $COURSE->subscriber->get_graduation_exercise();
+    $exerciseid = $COURSE->subscriber->get_graduation_exercise_id();
     $grade = $student->get_grade($exerciseid, true);
     $lastattempt = (count($grade->attempts) ?: 1) - 1;
     $examinerid = $grade->attempts[$lastattempt]->grader;
