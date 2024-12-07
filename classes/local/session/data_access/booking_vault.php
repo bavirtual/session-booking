@@ -148,7 +148,7 @@ class booking_vault implements booking_vault_interface {
      * @param bool   $oldestfirst Sort order of the returned records.
      * @param bool   $activeonly  Retrieve active bookings only.
      * @param bool   $allcourses  Retrieve bookings for all courses.
-     * @return array {Object}
+     * @return array
      */
     public static function get_bookings(int $courseid, int $userid, bool $isstudent, bool $oldestfirst = false, bool $activeonly = true, bool $allcourses = false) {
         global $DB;
@@ -169,7 +169,7 @@ class booking_vault implements booking_vault_interface {
      * Get booking based on passed object.
      *
      * @param booking $booking
-     * @return Object
+     * @return \stdClass
      */
     public static function get_booking($booking) {
         global $DB;
@@ -309,7 +309,7 @@ class booking_vault implements booking_vault_interface {
      *
      * @param int $courseid The associated course
      * @param int $userid   The user id conducting the session
-     * @return object|null
+     * @return array
      */
     public static function get_user_total_booked_sessions(int $courseid, int $userid) {
         global $DB;
@@ -332,7 +332,7 @@ class booking_vault implements booking_vault_interface {
      *
      * @param int $isinstructor
      * @param int $userid
-     * @return int
+     * @return array
      */
     public static function get_user_total_graded_sessions(int $courseid, int $userid) {
         global $DB;
@@ -370,7 +370,7 @@ class booking_vault implements booking_vault_interface {
     }
 
     /**
-     * Set active flag to false to deactive the booking
+     * Set active flag to false to deactivate the booking
      * and set no-show status of the booking accordingly
      *
      * @param int  $bookingid The booking id in reference.
@@ -439,12 +439,12 @@ class booking_vault implements booking_vault_interface {
     }
 
     /**
-     * Retreives the conflicting booking if exists.
+     * Retrieves the conflicting booking if exists.
      *
      * @param int $instructorid The instructor id making a booking
-     * @param int $studnetid    The student id the booking is for
+     * @param int $studentid    The student id the booking is for
      * @param int $start        The start & end dates
-     * @param itn $end          The start & end dates
+     * @param int $end          The start & end dates
      * @return {object?}
      */
     public static function get_booking_conflict(int $instructorid, int $studentid, int $start, int $end) {
