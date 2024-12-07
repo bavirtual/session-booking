@@ -19,11 +19,11 @@
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafa.hajjar)
- * @copyright  BAVirtual.co.uk © 2021
+ * @copyright  BAVirtual.co.uk © 2024
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_booking\external;
+namespace local_booking\exporters;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -81,6 +81,20 @@ class dashboard_session_exporter extends exporter {
             ];
         }
         parent::__construct($data, $related);
+    }
+
+    /**
+     * Returns a list of objects that are related.
+     *
+     * @return array
+     */
+    protected static function define_related() {
+        return array(
+            'context'=>'context',
+            'coursemodules'=>'cm_info[]?',
+            'subscriber'=>'local_booking\local\subscriber\entities\subscriber',
+            'filter'=>'string',
+        );
     }
 
     /**
@@ -196,8 +210,8 @@ class dashboard_session_exporter extends exporter {
 
         if ($this->related['filter'] == 'active' || $this->related['filter'] == 'onhold') {
             // get student posts for active and onhold students
-            $nextexercise = $this->student->get_next_exercise();
-            $noposts = ($nextexercise == $this->data['exerciseid'] && $this->student->get_total_posts() == 0) ? get_string('bookingnoposts', 'local_booking') : '';
+            $nextexerciseid = $this->student->get_next_exercise()->id;
+            $noposts = ($nextexerciseid == $this->data['exerciseid'] && $this->student->get_total_posts() == 0) ? get_string('bookingnoposts', 'local_booking') : '';
         }
 
         if (!empty($this->session)) {
@@ -232,20 +246,6 @@ class dashboard_session_exporter extends exporter {
         ];
 
         return $return;
-    }
-
-    /**
-     * Returns a list of objects that are related.
-     *
-     * @return array
-     */
-    protected static function define_related() {
-        return array(
-            'context'=>'context',
-            'coursemodules'=>'cm_info[]?',
-            'subscriber'=>'local_booking\local\subscriber\entities\subscriber',
-            'filter'=>'string',
-        );
     }
 
     /**
@@ -328,7 +328,7 @@ class dashboard_session_exporter extends exporter {
         if (count($bookings) > 0) {
             $bookingsarr = array_filter($bookings,
                 function ($b) use (&$exerciseid) {
-                    return $b->get_exerciseid() == $exerciseid;
+                    return $b->get_exercise_id() == $exerciseid;
                 }
             );
             if (count($bookingsarr) > 0) {

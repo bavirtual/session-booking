@@ -57,7 +57,7 @@ $title = $student->get_name()  . ' ' . get_string('coursecompletion', 'local_boo
 if ($COURSE->subscriber->requires_skills_evaluation()) {
 
     // verify credentials, if the certifier is not the same as the examiner throw invalid permissions error
-    $exerciseid = $COURSE->subscriber->get_graduation_exercise();
+    $exerciseid = $COURSE->subscriber->get_graduation_exercise_id();
     $grade = $student->get_grade($exerciseid, true);
     $lastattempt = (count($grade->attempts) ?: 1) - 1;
     $examinerid = $grade->attempts[$lastattempt]->grader;
@@ -78,13 +78,13 @@ if ($COURSE->subscriber->requires_skills_evaluation()) {
             $badgeid = $coursebadge->id;
             $badge = new badge($badgeid);
 
-            // check for manual criteria badges (awarded manually by the exmainer here)
+            // check for manual criteria badges (awarded manually by the examiner here)
             if (array_search(BADGE_CRITERIA_TYPE_MANUAL, array_column($badge->get_criteria(), 'criteriatype'))) {
 
                 // get badge roles
                 $acceptedroles = array_keys($badge->criteria[BADGE_CRITERIA_TYPE_MANUAL]->params);
 
-                // check if the badge is awardable by the examiner
+                // check if the badge can be awarded by the examiner
                 if (!empty($acceptedroles)) {
 
                     // verify the badge is active
@@ -135,8 +135,8 @@ if ($COURSE->subscriber->requires_skills_evaluation()) {
     $PAGE->navbar->add($navbartext);
     $PAGE->set_pagelayout('standard');
     $PAGE->set_context($context);
-    $PAGE->set_title($COURSE->shortname . ': ' . $title, 'local_booking');
-    $PAGE->set_heading($title, 'local_booking');
+    $PAGE->set_title($COURSE->shortname . ': ' . $title);
+    $PAGE->set_heading($title);
     $PAGE->add_body_class('path-local-booking');
 
     $renderer = $PAGE->get_renderer('local_booking');

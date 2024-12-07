@@ -91,7 +91,7 @@ $PAGE->requires->css(new \moodle_url("https://cdn.datatables.net/buttons/2.3.6/c
 
 $PAGE->navbar->add($USER->id == $userid ? get_string('logbookmy', 'local_booking') : ucfirst(get_string('logbook', 'local_booking')));
 $PAGE->set_pagelayout('admin'); // wide page layout
-$PAGE->set_title($COURSE->shortname . ': ' . $title, 'local_booking');
+$PAGE->set_title($COURSE->shortname . ': ' . $title);
 $PAGE->set_heading($COURSE->fullname);
 $PAGE->add_body_class('path-local-booking');
 
@@ -109,7 +109,7 @@ $pilot   = $COURSE->subscriber->get_participant($userid);
 $editor  = $COURSE->subscriber->get_instructor($USER->id);
 $admin = has_capability('moodle/site:config', $context);
 $logbook = $pilot->get_logbook(true, $format == 'easa');
-$totals  = (array) $logbook->get_summary(true, $format == 'easa', $COURSE->subscriber->get_graduation_exercise());
+$totals  = (array) $logbook->get_summary(true, $format == 'easa', $COURSE->subscriber->get_graduation_exercise_id());
 $data    = [
     'contextid'     => $context->id,
     'courseid'      => $courseid,

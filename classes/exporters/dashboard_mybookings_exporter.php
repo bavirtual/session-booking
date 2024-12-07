@@ -19,11 +19,11 @@
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafa.hajjar)
- * @copyright  BAVirtual.co.uk © 2021
+ * @copyright  BAVirtual.co.uk © 2024
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_booking\external;
+namespace local_booking\exporters;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -70,6 +70,18 @@ class dashboard_mybookings_exporter extends exporter {
         parent::__construct($data, $related);
     }
 
+    /**
+     * Returns a list of objects that are related.
+     *
+     * @return array
+     */
+    protected static function define_related() {
+        return array(
+            'context' => 'context',
+            'subscriber' => 'local_booking\local\subscriber\entities\subscriber',
+        );
+    }
+
     protected static function define_properties() {
         return [
             'contextid' => [
@@ -108,7 +120,7 @@ class dashboard_mybookings_exporter extends exporter {
 
         foreach ($this->mybookings as $booking) {
             $student = $course->get_student($booking->get_studentid(), $booking->get_courseid());
-            $action = new action($course, $student, 'cancel', $booking->get_exerciseid());
+            $action = new action($course, $student, 'cancel', $booking->get_exercise_id());
             $slot = $booking->get_slot();
             $starttime = new DateTime('@' . $slot->get_starttime());
             // TODO: end time should include the last hour
@@ -118,9 +130,9 @@ class dashboard_mybookings_exporter extends exporter {
             'bookingid'     => $booking->get_id(),
             'studentid'     => $booking->get_studentid(),
             'studentname'   => $student->get_name(),
-            'exerciseid'    => $booking->get_exerciseid(),
+            'exerciseid'    => $booking->get_exercise_id(),
             'noshows'       => count($student->get_noshow_bookings()),
-            'exercise'      => $course->get_exercise_name($booking->get_exerciseid(), $booking->get_courseid()),
+            'exercise'      => $course->get_exercise($booking->get_exercise_id(), $booking->get_courseid())->name,
             'sessiondate'   => $starttime->format('D M j'),
             'starttime'     => $starttime->format('H:i \z\u\l\u'),
             'endtime'       => $endtime->format('H:i \z\u\l\u'),
@@ -134,17 +146,5 @@ class dashboard_mybookings_exporter extends exporter {
         }
 
         return ['activebookings' => $instructorbookings];
-    }
-
-    /**
-     * Returns a list of objects that are related.
-     *
-     * @return array
-     */
-    protected static function define_related() {
-        return array(
-            'context' => 'context',
-            'subscriber' => 'local_booking\local\subscriber\entities\subscriber',
-        );
     }
 }

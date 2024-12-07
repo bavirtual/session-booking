@@ -19,11 +19,11 @@
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafa.hajjar)
- * @copyright  BAVirtual.co.uk © 2021
+ * @copyright  BAVirtual.co.uk © 2024
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_booking\external;
+namespace local_booking\exporters;
 
 require_once($CFG->dirroot . '/lib/completionlib.php');
 
@@ -88,6 +88,20 @@ class dashboard_student_exporter extends exporter {
             }
 
         parent::__construct($data, $related);
+    }
+
+    /**
+     * Returns a list of objects that are related.
+     *
+     * @return array
+     */
+    protected static function define_related() {
+        return array(
+            'context' => 'context',
+            'coursemodules' => 'cm_info[]',
+            'subscriber' => 'local_booking\local\subscriber\entities\subscriber',
+            'filter' => 'string',
+        );
     }
 
     /**
@@ -236,7 +250,7 @@ class dashboard_student_exporter extends exporter {
             else
                 $actiontype = 'book';
 
-            $graduationsessionidx = array_search($this->related['subscriber']->get_graduation_exercise(), array_column($sessions, 'exerciseid'));
+            $graduationsessionidx = array_search($this->related['subscriber']->get_graduation_exercise_id(), array_column($sessions, 'exerciseid'));
             $action = new action($this->related['subscriber'], $this->student, $actiontype, $sessions[$graduationsessionidx]->sessionid);
             $posts = $this->data['view'] == 'confirm' ? $this->student->get_total_posts() : 0;
 
@@ -258,20 +272,6 @@ class dashboard_student_exporter extends exporter {
     }
 
     /**
-     * Returns a list of objects that are related.
-     *
-     * @return array
-     */
-    protected static function define_related() {
-        return array(
-            'context' => 'context',
-            'coursemodules' => 'cm_info[]',
-            'subscriber' => 'local_booking\local\subscriber\entities\subscriber',
-            'filter' => 'string',
-        );
-    }
-
-    /**
      * Get the list of conducted sessions for the student.
      *
      * @param   $output  The output to be rendered
@@ -286,7 +286,7 @@ class dashboard_student_exporter extends exporter {
         $logbook = $student->get_logbook();
 
         $studentname = $student->get_name();
-        $gradexercise = $related['subscriber']->get_graduation_exercise();
+        $gradexercise = $related['subscriber']->get_graduation_exercise_id();
 
         // export all exercise sessions, quizes, and exams
         $coursemods = $related['coursemodules'];
@@ -331,8 +331,8 @@ class dashboard_student_exporter extends exporter {
                     // show the graduation exercise booking option for examiners only
                     if (\has_capability('mod/assign:grade', \context_module::instance($coursemod->id))) {
                         $sessionoptions[] = [
-                            'nextsession' => ($action->get_exerciseid() == $coursemod->id ? "checked" : ""),
-                            'bordered' => $action->get_exerciseid() == $coursemod->id,
+                            'nextsession' => ($action->get_exercise_id() == $coursemod->id ? "checked" : ""),
+                            'bordered' => $action->get_exercise_id() == $coursemod->id,
                             'graded'  => isset($grades[$coursemod->id]),
                             'exerciseid'  => $coursemod->id
                         ];

@@ -20,11 +20,11 @@
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafa.hajjar)
- * @copyright  BAVirtual.co.uk © 2021
+ * @copyright  BAVirtual.co.uk © 2024
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_booking\external;
+namespace local_booking\exporters;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -56,7 +56,7 @@ class dashboard_bookings_exporter extends exporter {
     const LATEWARNING = 2;
 
     /**
-     * @var student[] $students list to export.
+     * @var array $students list to export.
      */
     public $activestudentsexports = [];
 
@@ -86,7 +86,7 @@ class dashboard_bookings_exporter extends exporter {
     protected $filter;
 
     /**
-     * @var array $modules An array of excersice and quiz ids and names for the course.
+     * @var array $modules An array of exercises and quiz ids and names for the course.
      */
     protected $modules;
 
@@ -129,6 +129,18 @@ class dashboard_bookings_exporter extends exporter {
         parent::__construct($data, $related);
     }
 
+    /**
+     * Returns a list of objects that are related.
+     *
+     * @return array
+     */
+    protected static function define_related() {
+        return array(
+            'context' => 'context',
+            'subscriber' => 'local_booking\local\subscriber\entities\subscriber',
+        );
+    }
+
     protected static function define_properties() {
         return [
             'url' => [
@@ -162,8 +174,21 @@ class dashboard_bookings_exporter extends exporter {
     protected static function define_other_properties() {
         return [
             'coursemodules' => [
-                'type' => list_exercise_name_exporter::read_properties_definition(),
                 'multiple' => true,
+                'type' => [
+                    'exerciseid' => [
+                        'type' => PARAM_INT,
+                    ],
+                    'exercisename' => [
+                        'type' => PARAM_RAW,
+                    ],
+                    'exercisetype' => [
+                        'type' => PARAM_RAW,
+                    ],
+                    'exercisetitle' => [
+                        'type' => PARAM_RAW,
+                    ],
+                ]
             ],
             'activestudents' => [
                 'type' => dashboard_student_exporter::read_properties_definition(),
@@ -252,7 +277,7 @@ class dashboard_bookings_exporter extends exporter {
      * of the week.
      *
      * @param   renderer_base $output
-     * @return  student_exporter[]
+     * @return  array
      */
     protected function get_students($output) {
 
@@ -338,7 +363,7 @@ class dashboard_bookings_exporter extends exporter {
         $waitdays = intval($this->course->postingwait);
         $onholdperiod = intval($this->course->onholdperiod);
 
-        // Color code amber and red for inactivity one week after waitperiod
+        // Color code amber and red for inactivity one week after wait period
         // since last session (amber) and one week before on-hold date (red)
         if ($waitdays > 0 && $onholdperiod > 0) {
             if (($dayssincelast > ($waitdays + 7)) &&  $dayssincelast < ($onholdperiod - 7)) {
@@ -349,17 +374,5 @@ class dashboard_bookings_exporter extends exporter {
         }
 
         return $warning;
-    }
-
-    /**
-     * Returns a list of objects that are related.
-     *
-     * @return array
-     */
-    protected static function define_related() {
-        return array(
-            'context' => 'context',
-            'subscriber' => 'local_booking\local\subscriber\entities\subscriber',
-        );
     }
 }

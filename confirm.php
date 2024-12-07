@@ -55,15 +55,15 @@ if (!empty($booking->get_id())) {
     // update the booking by the instructor.
     $sessiondatetime = (new DateTime('@' . ($booking->get_slot())->get_starttime()))->format('D M j\, H:i');
     $strdata = [
-        'exercise'  => $COURSE->subscriber->get_exercise_name($exerciseid),
+        'exercise'  => $COURSE->subscriber->get_exercise($exerciseid)->name,
         'instructor'=> student::get_fullname($instructorid),
         'status'    => ucwords(get_string('statusbooked', 'local_booking')),
         'sessiondate'=> $sessiondatetime
     ];
     if ($booking->confirm(get_string('bookingconfirmmsg', 'local_booking', $strdata))) {
         // notify the instructor of the student's confirmation
-        $message = new notification();
-        $result = $message->send_instructor_notification($courseid, $studentid, $exerciseid, $sessiondatetime, $instructorid);
+        $message = new notification($COURSE->subscriber);
+        $result = $message->send_instructor_notification($studentid, $exerciseid, $sessiondatetime, $instructorid);
     }
     $time = ($booking->get_slot())->get_starttime();
     $week = ($booking->get_slot())->get_week();

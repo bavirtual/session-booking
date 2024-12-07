@@ -20,11 +20,11 @@
  *
  * @package    local_booking
  * @author     Mustafa Hajjar (mustafa.hajjar)
- * @copyright  BAVirtual.co.uk © 2021
+ * @copyright  BAVirtual.co.uk © 2024
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_booking\external;
+namespace local_booking\exporters;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -78,10 +78,21 @@ class profile_student_exporter extends exporter {
         $data['url'] = $url->out(false);
         $data['contextid'] = $related['context']->id;
         $data['courseid'] = $this->courseid;
-        $data['userid'] = $data['userid'];
         $this->student = $this->subscriber->get_student($data['userid']);
 
         parent::__construct($data, $related);
+    }
+
+    /**
+     * Returns a list of objects that are related.
+     *
+     * @return array
+     */
+    protected static function define_related() {
+        return array(
+            'context' => 'context',
+            'subscriber' => 'local_booking\local\subscriber\entities\subscriber',
+        );
     }
 
     protected static function define_properties() {
@@ -261,8 +272,21 @@ class profile_student_exporter extends exporter {
                 'default' => false,
             ],
             'coursemodules' => [
-                'type' => list_exercise_name_exporter::read_properties_definition(),
                 'multiple' => true,
+                'type' => [
+                    'exerciseid' => [
+                        'type' => PARAM_INT,
+                    ],
+                    'exercisename' => [
+                        'type' => PARAM_RAW,
+                    ],
+                    'exercisetype' => [
+                        'type' => PARAM_RAW,
+                    ],
+                    'exercisetitle' => [
+                        'type' => PARAM_RAW,
+                    ],
+                ]
             ],
             'sessions' => [
                 'type' => dashboard_session_exporter::read_properties_definition(),
@@ -289,8 +313,8 @@ class profile_student_exporter extends exporter {
         $moodleuser = \core_user::get_user($studentid, 'timezone');
 
         // student current lesson and consider new joiners that have no current exercise, their next exercise is the first
-        $exerciseid = $this->student->get_current_exercise();
-        $currentlesson = $exerciseid ? array_values($this->subscriber->get_lesson_by_exerciseid($exerciseid))[1] : get_string('none');
+        $exerciseid = $this->student->get_current_exercise()->id;
+        $currentlesson = $exerciseid ? array_values($this->subscriber->get_lesson_by_exercise_id($exerciseid))[1] : get_string('none');
 
         // module completion information
         $usermods = $this->student->get_priority()->get_completions();
@@ -316,7 +340,7 @@ class profile_student_exporter extends exporter {
         $requiresevaluation = $this->subscriber->requires_skills_evaluation();
         $endorsed = false;
         $endorsementmsg = '';
-        $hasexams = count($this->student->get_quize_grades()) > 0;
+        $hasexams = count($this->student->get_quizzes_grades()) > 0;
 
         if ($requiresevaluation) {
 
@@ -354,11 +378,11 @@ class profile_student_exporter extends exporter {
 
         } elseif ($this->student->tested()) {
 
-            $graduationstatus = get_string(($this->student->passed() ? 'checkpassed' : 'checkfailed'), 'local_booking') . ' ' .  $this->subscriber->get_graduation_exercise(true);
+            $graduationstatus = get_string(($this->student->passed() ? 'checkpassed' : 'checkfailed'), 'local_booking') . ' ' .  $this->subscriber->get_graduation_exercise_id(true);
 
         } else {
             $graduationstatus = ($qualified ? get_string('qualified', 'local_booking') . ' ' .
-                $this->subscriber->get_graduation_exercise(true) : get_string('notqualified', 'local_booking'));
+                $this->subscriber->get_graduation_exercise_id(true) : get_string('notqualified', 'local_booking'));
         }
 
         // log in as url
@@ -486,17 +510,5 @@ class profile_student_exporter extends exporter {
         ];
 
         return $return;
-    }
-
-    /**
-     * Returns a list of objects that are related.
-     *
-     * @return array
-     */
-    protected static function define_related() {
-        return array(
-            'context' => 'context',
-            'subscriber' => 'local_booking\local\subscriber\entities\subscriber',
-        );
     }
 }
