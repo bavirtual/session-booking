@@ -25,22 +25,16 @@
 
 define([
         'jquery',
-        'core/str',
         'core/pending',
-        'core/modal',
-        'core/notification',
         'local_booking/booking_view_manager',
         'local_booking/booking_actions',
         'local_booking/events',
-        'local_booking/logentry_modal_form',
+        'local_booking/logentry_edit_modal',
         'local_booking/selectors'
     ],
     function(
         $,
-        Str,
         Pending,
-        Modal,
-        Notification,
         ViewManager,
         BookingActions,
         BookingEvents,
@@ -58,7 +52,7 @@ define([
      const registerBookingEventListeners = function(root) {
         const body = $('body');
 
-        body.on(BookingEvents.sessioncanceled, function() {
+        body.on(BookingEvents.bookingcanceled, function() {
             ViewManager.refreshBookingsContent(root);
         });
 
@@ -78,27 +72,9 @@ define([
             ViewManager.refreshBookingsContent(root, 0, 0, 0, null, $('input[name="studentsfilter"]:checked').val());
         });
 
-        // Register the listeners required to search for a specific user
-        $('#id_searchstudents').on('click', function(e) {
-            let selectedOption = $("[id^=form_autocomplete_suggestions-]")[1];
-            let userId = $(selectedOption).data('value');
-            if (userId != 0) {
-                ViewManager.refreshBookingsContent(root, 0, 0, userId);
-                $('html,body').scrollTop(0);
-            }
-            e.preventDefault();
-        });
-
-        // Register the listeners required to clear the search
-        $('#id_clearsearch').on('click', function(e) {
-            ViewManager.refreshBookingsContent(root);
-            e.preventDefault();
-        });
-
         // Register the listeners required to redirect to the Moodle grade page
         root.on('click', Selectors.actions.gotoFeedback, function(e) {
             BookingActions.gotoFeedback(root, e);
-
             e.preventDefault();
         });
     };
@@ -111,8 +87,8 @@ define([
     const registerSessionEventListeners = (root) => {
 
         // Get promise for the logentry form for create and edit
-        const contextId = $(Selectors.bookingwrapper).data('contextid'),
-        courseId = $(Selectors.bookingwrapper).data('courseid');
+        const contextId = $(Selectors.wrappers.bookingwrapper).data('contextid'),
+        courseId = $(Selectors.wrappers.bookingwrapper).data('courseid');
 
         if (contextId) {
             // Listen the click on the progression table of sessions for a logentry (new/view).

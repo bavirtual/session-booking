@@ -28,7 +28,8 @@ import Templates from 'core/templates';
 import Notification from 'core/notification';
 import Pending from 'core/pending';
 import ModalEvents from 'core/modal_events';
-import ModalLogentrySummaryForm from 'local_booking/logentry_modal_summary';
+import ModalLogentrySummaryForm from 'local_booking/logentry_view_modal';
+import BookingCancelForm from 'local_booking/booking_cancel_modal';
 import * as Repository from 'local_booking/repository';
 import * as Selectors from 'local_booking/selectors';
 
@@ -48,9 +49,9 @@ export const refreshBookingsContent = (root, courseId, contextId, userId = 0, ta
     startLoading(root);
 
     const bookingtemplate = root.attr('data-template'),
-        bookingtarget = target || root.find(Selectors.bookingwrapper);
-    courseId = courseId || root.find(Selectors.bookingwrapper).data('courseid');
-    contextId = contextId || root.find(Selectors.bookingwrapper).data('contextid');
+        bookingtarget = target || root.find(Selectors.wrappers.bookingwrapper);
+    courseId = courseId || root.find(Selectors.wrappers.bookingwrapper).data('courseid');
+    contextId = contextId || root.find(Selectors.wrappers.bookingwrapper).data('contextid');
     filter = filter || 'active';
 
     M.util.js_pending([root.get('id'), courseId, contextId].join('-'));
@@ -82,9 +83,9 @@ export const refreshInstructorBookingsContent = (root, courseId, contextId, temp
     startLoading(root);
 
     const mybookingstemplate = template || root.attr('data-template'),
-        mybookingstarget = root.find(Selectors.mybookingswrapper);
-    courseId = courseId || root.find(Selectors.mybookingswrapper).data('courseid');
-    contextId = contextId || root.find(Selectors.mybookingswrapper).data('contextid');
+        mybookingstarget = root.find(Selectors.wrappers.mybookingswrapper);
+    courseId = courseId || root.find(Selectors.wrappers.mybookingswrapper).data('courseid');
+    contextId = contextId || root.find(Selectors.wrappers.mybookingswrapper).data('contextid');
 
     M.util.js_pending([root.get('id'), courseId, contextId].join('-'));
     return Repository.getInstructorBookingsData(courseId)
@@ -107,7 +108,7 @@ export const refreshInstructorBookingsContent = (root, courseId, contextId, temp
  * @method  renderLogentryEditForm
  * @param   {object} root       The container element
  * @param   {object} e          The triggered event.
- * @param   {Number} LogentryFormPromise  The Logentry form promise.
+ * @param   {object} LogentryFormPromise  The Logentry form promise.
  * @param   {object} target     The target element.
  * @param   {Number} contextId  The course context id of the logentry.
  * @param   {number} courseId   The graded session course id.
@@ -146,7 +147,7 @@ export const refreshInstructorBookingsContent = (root, courseId, contextId, temp
                     exerciseId = logegntrySession.dataset.exerciseId;
                     sessionId = logegntrySession.dataset.sessionId;
                     flightType = logegntrySession.dataset.flightType;
-                    findpirepenabled = $(Selectors.bookingwrapper).data('findpirep');
+                    findpirepenabled = $(Selectors.wrappers.bookingwrapper).data('findpirep');
                 }
             } else {
                 if (template == 'local_booking/logbook_std') {
@@ -245,6 +246,22 @@ export const refreshInstructorBookingsContent = (root, courseId, contextId, temp
         return modal;
     })
     .catch(Notification.exception);
+};
+
+/**
+ * Render the logentry summary modal.
+ *
+ * @method  renderCancelBookingModal
+ * @param   {object} e Cancel button click event
+ * @returns {promise}
+ */
+export const renderCancelBookingConfirmation = async(e) => {
+    const target = e.target,
+        bookingId = target.dataset.bookingid,
+        modal = await BookingCancelForm.create({});
+
+    modal.setBookingId(bookingId);
+    modal.show();
 };
 
 /**

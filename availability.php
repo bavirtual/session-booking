@@ -33,13 +33,12 @@ require_once($CFG->dirroot . '/calendar/lib.php');
 
 defined('MOODLE_INTERNAL') || die();
 
-use local_booking\local\subscriber\entities\subscriber;
+use local_booking\output\action_bar;
 use local_booking\output\views\calendar_view;
 
 global $USER, $COURSE;
 
 // Set up the page.
-$categoryid = optional_param('categoryid', null, PARAM_INT);
 $courseid = optional_param('courseid', SITEID, PARAM_INT);
 $course = get_course($courseid);
 $context = context_course::instance($courseid);
@@ -59,23 +58,21 @@ $confirm = optional_param('confirm', 0, PARAM_INT);
 $url = new moodle_url('/local/booking/availability.php');
 $url->param('courseid', $courseid);
 
-// define subscriber globally
-if (empty($COURSE->subscriber))
-    $COURSE->subscriber = new subscriber($courseid);
+// define session booking plugin subscriber globally
+$subscriber = get_course_subscriber_context($url->out(false), $courseid);
 
 // view all capability for instructors
 if (has_capability('local/booking:view', $context)) {
-
     $view = $action == 'book' ? 'user' : 'all';
-
+    $student = $userid ? $subscriber->get_student($userid) : null;
 } else {
-
-    $student = $COURSE->subscriber->get_student($USER->id);
+    $student = $subscriber->get_student($USER->id);
     $action = 'post';
     $url->param('time', $student->get_next_allowed_session_date()->getTimestamp());
 }
 
 $PAGE->set_url($url);
+$PAGE->requires->js_call_amd('local_booking/calendar', 'init', ['#region-main-box']);
 
 // If a day, month and year were passed then convert it to a timestamp. If these were passed
 // then we can assume the day, month and year are passed as Gregorian, as no where in core
@@ -91,11 +88,11 @@ if (empty($time)) {
     $time =  time();
 }
 
-$calendar = calendar_information::create($time, $courseid, !empty($categoryid) ? $categoryid : $course->category);
+$calendar = calendar_information::create($time, $courseid);
 
 $PAGE->navbar->add(userdate($time, get_string('weekinyear','local_booking', date('W', $time))));
 $PAGE->set_pagelayout('standard');
-$PAGE->set_title($COURSE->shortname . ': ' . get_string('pluginname', 'local_booking'), 'local_booking');
+$PAGE->set_title($COURSE->shortname . ': ' . get_string('pluginname', 'local_booking'));
 $PAGE->set_heading($COURSE->fullname);
 $PAGE->add_body_class('path-availability');
 
@@ -107,18 +104,22 @@ $data = [
     'calendar'   => $calendar,
     'view'       => $view,
     'action'     => $action,
-    'student'    => $COURSE->subscriber->get_participant($userid),
+    'student'    => $student,
     'exerciseid' => $exerciseid,
     'confirm'    => $confirm,
     ];
-// get calendar view for Session booking
-$calendarview = new calendar_view($data, ['subscriber'=>$COURSE->subscriber, 'context'=>$context]);
+
+    // get calendar view for Session booking
+$calendarview = new calendar_view($data, ['subscriber'=>$subscriber, 'context'=>$context]);
+$actionbar = new action_bar($PAGE, 'calendar', ['calendarparams'=>$calendarview->get_exportdata()]);
 
 // output calendar view
 echo $OUTPUT->header();
 echo $calendarview->get_renderer()->start_layout();
+echo $calendarview->get_renderer()->render_tertiary_navigation($actionbar);
 echo html_writer::start_tag('div', array('class'=>'heightcontainer'));
 echo $calendarview->output();
 echo html_writer::end_tag('div');
 echo $calendarview->get_renderer()->complete_layout();
+
 echo $OUTPUT->footer();

@@ -16,11 +16,12 @@
 
 namespace local_booking\output\views;
 
+use stdClass;
+use moodle_url;
+use core\output\sticky_footer;
 use local_booking\exporters\dashboard_bookings_exporter;
 use local_booking\exporters\dashboard_mybookings_exporter;
 use local_booking\exporters\dashboard_participation_exporter;
-use moodle_url;
-use stdClass;
 
 /**
  * Class to output instructor dashboard & interim booking views.
@@ -30,12 +31,52 @@ use stdClass;
  * @copyright  BAVirtual.co.uk © 2024
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class booking_view extends base_view {
+class booking_view extends base_view
+{
 
     /**
      * @var array $related Related objects necessary to pass along to exporters.
      */
     protected $related;
+
+    /**
+     * The number of students in the course
+     * @var int $studentcount
+     */
+    protected $studentcount;
+
+    /**
+     * Results page number
+     * @var int $page
+     */
+    protected $page;
+
+    /**
+     * Results per page
+     * @var int $perpage
+     */
+    protected $perpage;
+
+    /** @var int Maximum number of students that can be shown on one page */
+    protected static $maxperpage = 200;
+
+    /**
+     * List of allowed values for 'perpage' setting
+     * @var array $validperpage
+     */
+    protected static $validperpage = [20, 50, 100];
+
+    /**
+     * Results for the selected filter
+     * @var int $filter
+     */
+    protected $filter;
+
+    /**
+     * List of allowed values for 'filter' setting
+     * @var array $validfilter
+     */
+    protected static $validfilter = ['active', 'onhold', 'graduates', 'suspended'];
 
     /**
      * logbook view constructor.
@@ -44,7 +85,19 @@ class booking_view extends base_view {
      * @param array    $related   The related objects to pass
      */
     public function __construct(array $data, array $related) {
+        global $USER;
         parent::__construct($data, $related, '');
+
+        $course = $related['subscriber'];
+        $courseid = $course->get_id();
+        $this->filter = $this->data['filter'];
+        $this->page = $this->data['page'];
+        $this->perpage = $this->data['perpage'] ?: get_user_preferences("course-$courseid-$USER->id-perpage", 0, $USER->id);
+        set_user_preferences(["course-$courseid-$USER->id-perpage"=>$this->perpage], $USER->id);
+        $this->data['perpage'] = $this->perpage;
+        $bookings = new dashboard_bookings_exporter($this->data, $this->related);
+        $this->exporteddata = $bookings->export($this->renderer);
+        $this->studentcount = $course->get_students_count();
     }
 
     /**
@@ -56,27 +109,18 @@ class booking_view extends base_view {
         global $OUTPUT, $PAGE;
         $output = '';
 
-        $bookings = new dashboard_bookings_exporter($this->data, $this->related);
-        $this->exporteddata = $bookings->export($this->renderer);
-
         // export bookings
         if ($this->data['action'] == 'readonly' || $this->data['action'] == 'book') {
 
             if ($html) {
-                $output = parent::output('local_booking/dashboard' . ($this->data['action'] == 'readonly' ? '_readonly' : '') , $this->exporteddata);
-
-                // show page bar and search form if required
-                $course = $this->related['subscriber'];
-                if ($course->get_students_count() > LOCAL_BOOKING_DASHBOARDPAGESIZE) {
-                    // show paging bar
-                    $output .= $this->users_selector($course->get_course());
-                    $output .= $OUTPUT->paging_bar($course->get_students_count(), $this->data['page'], LOCAL_BOOKING_DASHBOARDPAGESIZE, $PAGE->url);
-                    $baseurl = new moodle_url('/local/booking/view.php', ['courseid' => $course->get_id()]);
-                    $PAGE->requires->js_call_amd('local_booking/user_search', 'init', [$baseurl->out(false)]);
-                }
+                $templatesuffix = !empty($this->data['action']) ? ($this->data['action'] == 'readonly' ? '_readonly' : '') : '';
+                $output = parent::output('local_booking/dashboard' . $templatesuffix, $this->exporteddata);
             }
 
-        } elseif ($this->data['action'] == 'confirm') {
+        }
+
+        // booking confirmation page
+        if ($this->data['action'] == 'confirm') {
             $output = parent::output('local_booking/dashboard_booking_confirm', $this->exporteddata);
         }
 
@@ -98,7 +142,7 @@ class booking_view extends base_view {
             $this->exporteddata = $mybookings->export($this->renderer);
 
             if ($html) {
-                $output = parent::output('local_booking/dashboard_my_bookings', $this->exporteddata);
+                $output = parent::output('local_booking/dashboard_mybookings', $this->exporteddata);
             }
 
         }
@@ -110,7 +154,7 @@ class booking_view extends base_view {
      *
      * @return  ?stdClass
      */
-    public function get_instructor_participation(bool $html = true) {
+    public function get_instructor_participation(bool $html = true){
 
         $output = '';
         if ($this->data['action'] != 'confirm') {
@@ -130,34 +174,121 @@ class booking_view extends base_view {
 
         return $html ? $output : $this->exporteddata;
     }
+
     /**
-     * Renders the user selector trigger element.
+     * Get instructor participation export
      *
-     * @param object $course The course object.
-     * @param int|null $userid The user ID.
-     * @param int|null $groupid The group ID.
-     * @return string The raw HTML to render.
+     * @return  ?stdClass
      */
-    public function users_selector(object $course, ?int $userid = null, ?int $groupid = null): string {
+    public function get_sticky_footer() {
+        global $OUTPUT, $PAGE;
+
+        $output = '';
+        // $showpaging = $this->studentcount > LOCAL_BOOKING_DASHBOARDPAGESIZE;
+
+        // render page select
+        $perpageselect = $this->get_perpage();
+
+        // render filter select
+        $studentfilterselect = $this->get_studentfilter();
+
+        // render paging bar
+        $pagingbar = $OUTPUT->paging_bar($this->studentcount, $this->page, $this->perpage, $PAGE->url);
+
+        // render footer content bar
+        $footercontent = ['perpageselect' => $perpageselect, 'studentfilterselect' => $studentfilterselect, 'pagingbar' => $pagingbar];
+        $footercontent = $OUTPUT->render_from_template('local_booking/dashboard_footer_navigation', $footercontent);
+
+        // show paging bar
+        $stickyfooter = new sticky_footer($footercontent);
+        $output = $OUTPUT->render($stickyfooter);
+
+        return $output;
+    }
+
+    /**
+     * Get the per-page select render object
+     *
+     * @return  array
+     */
+    public function get_perpage() {
         global $PAGE;
 
-        $courserenderer = $PAGE->get_renderer('core', 'course');
-        $resetlink = new moodle_url('/local/booking/view.php', ['courseid' => $course->id]);
-        $usersearch = '';
+        $url = new moodle_url($PAGE->url);
+        $numusers = $this->studentcount;
 
-        if ($userid) {
-            $user = core_user::get_user($userid);
-            $usersearch = fullname($user);
+        // Print per-page dropdown.
+        $pagingoptions = self::$validperpage;
+        if ($this->perpage) {
+            $pagingoptions[] = $this->perpage; // To make sure the current preference is within the options.
+        }
+        $pagingoptions = array_unique($pagingoptions);
+        sort($pagingoptions);
+        $pagingoptions = array_combine($pagingoptions, $pagingoptions);
+        if ($numusers > self::$maxperpage) {
+            $pagingoptions['0'] = self::$maxperpage;
+        } else {
+            $pagingoptions['0'] = get_string('all');
         }
 
-        return $courserenderer->render(
-            new \core_course\output\actionbar\user_selector(
-                course: $course,
-                resetlink: $resetlink,
-                userid: $userid,
-                groupid: $groupid,
-                usersearch: $usersearch
-            )
-        );
+        $perpagedata = [
+            'baseurl' => $url->out(false),
+            'options' => []
+        ];
+        foreach ($pagingoptions as $key => $name) {
+            $perpagedata['options'][] = [
+                'name' => $name,
+                'value' => $key,
+                'selected' => $key == $this->perpage,
+            ];
+        }
+
+        return $perpagedata;
+
+    }
+
+    /**
+     * Get the students filter select render object
+     *
+     * @return  array
+     */
+    public function get_studentfilter() {
+        global $PAGE;
+
+        $url = new moodle_url($PAGE->url);
+
+        // Print per-page dropdown.
+        $filteroptions = self::$validfilter;
+        if ($this->filter) {
+            $filteroptions[] = $this->filter; // To make sure the current preference is within the options.
+        }
+
+        $filteroptions = array_unique($filteroptions);
+        sort($filteroptions);
+        $filteroptions = array_combine($filteroptions, $filteroptions);
+
+        $studentfilterdata = [
+            'baseurl' => $url->out(false),
+            'options' => []
+        ];
+        foreach ($filteroptions as $name) {
+            $studentfilterdata['options'][] = [
+                'name' => $name,
+                'value' => $name,
+                'selected' => $name == $this->filter,
+            ];
+        }
+
+        return $studentfilterdata;
+
+    }
+
+    /**
+     * Get instructor participation export
+     *
+     * @return  \stdClass
+     */
+    public function get_exportdata() {
+        return $this->exporteddata;
     }
 }

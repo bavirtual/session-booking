@@ -65,12 +65,13 @@ class participant_vault implements participant_vault_interface {
      *
      * @param int  $courseid The course id.
      * @param int  $userid   A specific user.
+     * @param string $filter Optional filter.
      * @return {Object}      Array of database records.
      */
-    public static function get_participant(int $courseid, int $userid) {
+    public static function get_participant(int $courseid, int $userid, string $filter = 'active') {
         global $DB;
 
-        $enrolledsql = self::get_sql($courseid);
+        $enrolledsql = self::get_sql($courseid, $filter, ($filter == 'any'), 'student', ($filter != 'any'));
 
         $sql = "SELECT * FROM (SELECT u.id AS userid, $enrolledsql->fields $enrolledsql->from $enrolledsql->where $enrolledsql->groupby) AS participants
                 WHERE roles like '%student%' AND userid = $userid $enrolledsql->orderby";
@@ -85,6 +86,7 @@ class participant_vault implements participant_vault_interface {
      * @param string $filter        The filter to show students, inactive (including graduates), suspended, and default to active.
      * @param bool $includeonhold   Whether to include on-hold students as well
      * @param int $offset           The offset record for pagination
+     * @param int $limitnum         The number of record to retrieve per page
      * @param bool $requirescompletion Whether the course has lesson completion restriction
      * @return array Array of database records and total count.
      */
@@ -93,6 +95,7 @@ class participant_vault implements participant_vault_interface {
         string $filter = 'active',
         bool $includeonhold = false,
         int $offset = 0,
+        int $limitnum = 0,
         bool $requirescompletion = true) {
 
         global $DB;
@@ -110,7 +113,7 @@ class participant_vault implements participant_vault_interface {
 
         // get filtered students and their total count
         $count = $DB->count_records_sql($countsql);
-        $students = $DB->get_records_sql($sql, null, $offset, LOCAL_BOOKING_DASHBOARDPAGESIZE);
+        $students = $DB->get_records_sql($sql, null, $offset, $limitnum);
 
         return [$students, $count];
     }
